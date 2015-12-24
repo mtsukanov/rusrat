@@ -1,0 +1,7 @@
+source /var/beacon/clr/bin/activate
+
+
+
+celery -A ctasks worker --loglevel=INFO --concurrency=10 -n worker1.%h
+celery -A ctasks worker --loglevel=INFO --concurrency=10 -n worker2.%h
+celery -A ctasks worker --loglevel=INFO --concurrency=10 -n worker3.%h

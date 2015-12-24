@@ -1,0 +1,25 @@
+import requests
+from flask import jsonify
+
+def test():
+    cid = 1
+    rtdm_ip = "http://10.38.13.241"
+    rtdm_path = "/RTDM/rest/runtime/decisions/SAS_for_Retail_Best_Retail_Oriented_Product_Promotion"
+    rtdm_url=rtdm_ip+rtdm_path
+    
+    
+    payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"CustomerID":cid,"ProdCatCode":"Leggings"}}
+
+    r = requests.post(rtdm_url,json = payload)
+    resp = r.json()
+    x = resp['outputs']
+    x = str(x)
+    x = o.replace("u'",'"')
+    x = x.replace("'",'"')
+
+    return x
+
+print test()
+
+
+
