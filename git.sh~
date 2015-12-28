@@ -1,6 +1,6 @@
 cd /var/beacon/clr
-git add . 
-git commit -a -m -q "fuck"
-git tag "auto"
-git push https://github.com/mtsukanov/rusrat.git master
+sudo git add . 
+sudo git commit -m -q 
+sudo git tag "auto"
+sudo git push https://github.com/mtsukanov/rusrat.git master
 
