@@ -304,14 +304,20 @@ def mobile_get_all():
     if cid is None:
         query_customers = 'Login is not null'
         query_tranz = None
-        
+        query_offers = None
+        query_prods = None
     else:
         query_customers = 'Login is not null AND CustomerId ='+cid
         query_tranz = 'ClientID ='+cid
-
+        query_offers = 'ClientID ='+cid
+        query_prods = 'ClientID ='+cid
     result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
     result_mysql_tranz = mysql_select('thebankfront',None,'transactions',query_tranz)
+    result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
+    result_mysql_prods = mysql_select('thebankfront','t1.ProductID = t2.ProductID','customer_product as t1 inner join products as t2 ',query_prods)
     Clients =[]
+    Offers = []
+    Products = []
     Transactions = []
 #GET CLIENTS
     for row in result_mysql_sel:
@@ -325,6 +331,42 @@ def mobile_get_all():
         client["password"] = row[28]
         client["loyaltyscore"] = row[29]
         Clients.append(client)
+#GET OFFERS
+    for row in result_mysql_offers:
+        offer = {}
+        offer["clientid"] = row[0]
+        offer["offerid"] = row[1]
+        offer["name"] = row[3]
+        offer["type"] = row[9]
+        offer["description"] = row[4]
+        offer["sum"] = row[6]
+        offer["image"] = row[5]
+        offer["rate"] = row[7]
+        offer["payment"] = row[19]
+        offer["secret"] = row[15]
+        offer["visibility"] = row[16]
+        offer["priority"] = row[12]
+        offer["generated_dttm"] = row[17]
+        offer["recieved_dttm"] = row[0]
+        offer["termination_dttm"] = row[18]
+        Offers.append(offer)
+#GET PRODUCTS
+    for row in result_mysql_prods:
+        product = {}
+        product["clientid"] = row[5]
+        product["name"] = row[8]
+        product["type"] = row[9]
+        #product["description"] = row[10]
+        product["sum"] = row[1]
+        product["image"] = row[5]
+        product["rate"] = row[2]
+        product["payment"] = row[7]
+        product["productid"] = row[6]
+        product["purchased_dttm"] = row[4]
+        product["exparation_dttm"] = row[5]
+
+        Products.append(product)
+
 #GET SETTINGS
     Settings =     {
     "app_server" : app_server,
@@ -346,7 +388,7 @@ def mobile_get_all():
 
 
    
-    response = {"Clients":Clients,"Products":"not tomorrow","Offers":"but one day","Transactions":Transactions,"Settings":Settings}
+    response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings}
 
     return make_response(jsonify(response),200)
 
