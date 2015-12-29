@@ -353,20 +353,20 @@ def mobile_get_all():
 #GET PRODUCTS
     for row in result_mysql_prods:
         product = {} 
-"""        product["clientid"] = row[5]
-        product["name"] = row[8]
-        product["type"] = row[9]
-        product["description"] = row[10]
-        product["sum"] = row[1]
-        product["image"] = row[5]
-        product["rate"] = row[2]
-        product["payment"] = row[7]
-        product["productid"] = row[6]
-        product["purchased_dttm"] = row[4]
-        product["exparation_dttm"] = row[5]
+        #product["clientid"] = row[5]
+        #product["name"] = row[8]
+        #product["type"] = row[9]
+        #product["description"] = row[10]
+        #product["sum"] = row[1]
+        #product["image"] = row[5]
+        #product["rate"] = row[2]
+        #product["payment"] = row[7]
+        #product["productid"] = row[6]
+        #product["purchased_dttm"] = row[4]
+        #product["exparation_dttm"] = row[5]
 
-        Products.append(product)
-"""
+        #Products.append(product)
+
 #GET SETTINGS
     Settings =     {
     "app_server" : app_server,
