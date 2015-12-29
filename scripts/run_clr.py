@@ -352,8 +352,8 @@ def mobile_get_all():
         Offers.append(offer)
 #GET PRODUCTS
     for row in result_mysql_prods:
-        product = {} """
-        product["clientid"] = row[5]
+        product = {} 
+"""        product["clientid"] = row[5]
         product["name"] = row[8]
         product["type"] = row[9]
         product["description"] = row[10]

@@ -352,11 +352,11 @@ def mobile_get_all():
         Offers.append(offer)
 #GET PRODUCTS
     for row in result_mysql_prods:
-        product = {}
+        product = {} """
         product["clientid"] = row[5]
         product["name"] = row[8]
         product["type"] = row[9]
-        #product["description"] = row[10]
+        product["description"] = row[10]
         product["sum"] = row[1]
         product["image"] = row[5]
         product["rate"] = row[2]
@@ -366,7 +366,7 @@ def mobile_get_all():
         product["exparation_dttm"] = row[5]
 
         Products.append(product)
-
+"""
 #GET SETTINGS
     Settings =     {
     "app_server" : app_server,
