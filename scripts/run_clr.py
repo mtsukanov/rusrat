@@ -305,16 +305,16 @@ def mobile_get_all():
         query_customers = 'Login is not null'
         query_tranz = None
         query_offers = None
-        query_prods = None
+        query_prods = 't1.ProductID = t2.ProductID'
     else:
         query_customers = 'Login is not null AND CustomerId ='+cid
         query_tranz = 'ClientID ='+cid
         query_offers = 'ClientID ='+cid
-        query_prods = 'ClientID ='+cid
+        query_prods = 't1.ProductID = t2.ProductID and ClientID ='+cid
     result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
     result_mysql_tranz = mysql_select('thebankfront',None,'transactions',query_tranz)
     result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-    result_mysql_prods = mysql_select('thebankfront','t1.ProductID = t2.ProductID','customer_product as t1 inner join products as t2 ',query_prods)
+    result_mysql_prods = mysql_select('thebankfront',None, 'customer_product as t1 inner join products as t2 ',query_prods)
     Clients =[]
     Offers = []
     Products = []
@@ -337,7 +337,7 @@ def mobile_get_all():
         offer["clientid"] = row[0]
         offer["offerid"] = row[1]
         offer["name"] = row[3]
-        offer["type"] = row[9]
+        offer["type"] = 'financial'#row[9]
         offer["description"] = row[4]
         offer["sum"] = row[6]
         offer["image"] = row[5]
@@ -353,19 +353,19 @@ def mobile_get_all():
 #GET PRODUCTS
     for row in result_mysql_prods:
         product = {} 
-        #product["clientid"] = row[5]
-        #product["name"] = row[8]
-        #product["type"] = row[9]
-        #product["description"] = row[10]
-        #product["sum"] = row[1]
-        #product["image"] = row[5]
-        #product["rate"] = row[2]
-        #product["payment"] = row[7]
-        #product["productid"] = row[6]
-        #product["purchased_dttm"] = row[4]
-        #product["exparation_dttm"] = row[5]
+        product["clientid"] = row[5]
+        product["name"] = row[8]
+        product["type"] = 'financial'#row[9]
+        product["description"] = row[10]
+        product["sum"] = row[1]
+        product["image"] = row[5]
+        product["rate"] = row[2]
+        product["payment"] = row[7]
+        product["productid"] = row[6]
+        product["purchased_dttm"] = row[4]
+        product["exparation_dttm"] = row[5]
 
-        #Products.append(product)
+        Products.append(product)
 
 #GET SETTINGS
     Settings =     {
