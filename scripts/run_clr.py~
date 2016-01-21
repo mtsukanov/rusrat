@@ -306,19 +306,31 @@ def mobile_get_all():
         query_tranz = None
         query_offers = None
         query_prods = 't1.ProductID = t2.ProductID'
+        query_beacon = None
+        query_wifi = None
+        query_gps = None
     else:
         query_customers = 'Login is not null AND CustomerId ='+cid
         query_tranz = 'CustomerID ='+cid
         query_offers = 'CustomerID ='+cid
         query_prods = 't1.ProductID = t2.ProductID and CustomerID ='+cid
+        query_beacon = None
+        query_wifi = None
+        query_gps = None
     result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
     result_mysql_tranz = mysql_select('thebankfront',None,'transactions',query_tranz)
     result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
     result_mysql_prods = mysql_select('thebankfront',None, 'customer_product as t1 inner join products as t2 ',query_prods)
+    result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
+    result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
+    result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
     Clients =[]
     Offers = []
     Products = []
     Transactions = []
+    WIFI = []
+    GPS = []
+    Beacon = []
 #GET CLIENTS
     for row in result_mysql_sel:
         client = {}
@@ -392,21 +404,24 @@ def mobile_get_all():
         wifi["id"] = row[0]
         wifi["ssid"] = row[1]
         wifi["level"] = row[3]
+        WIFI.append(wifi)
 #GET BEACONS
     for row in result_mysql_beacon:
         beacon = {}
         beacon["uuid"] = row[0]
         beacon["major"] = row[1]
         beacon["minor"] = row[3]
+        Beacon.append(beacon)
 #GET GPS
     for row in result_mysql_gps:
         gps = {}
         gps["id"] = row[0]
-        gps["lat"] = row[1]
-        gps["lon"] = row[3]
+        gps["latitude"] = row[1]
+        gps["longitude"] = row[3]
+        GPS.append(gps)
 
    
-    response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings}
+    response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings,"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
 
     return make_response(jsonify(response),200)
 
