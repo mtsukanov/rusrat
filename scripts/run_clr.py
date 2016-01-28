@@ -318,7 +318,7 @@ def get_nbo_req():
     ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
 
-"""
+    """
     event = "FrontOfficeEvent"
     dns = "ruscilab"
     ans  = {     "clientTimeZone" : "Europe/Moscow",
@@ -341,8 +341,7 @@ def get_nbo_req():
       "Parameter_7":True
 }
 }
-"""
-
+    """
     inputs = ans
     anus = (dns,event,inputs)
     return make_response(jsonify({'Max said':anus}),201)

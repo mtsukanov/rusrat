@@ -340,8 +340,7 @@ def get_nbo_req():
       "Parameter_6":["1","2"],
       "Parameter_7":True
 }
-}
-"""
+}"""
 
     inputs = ans
     anus = (dns,event,inputs)
