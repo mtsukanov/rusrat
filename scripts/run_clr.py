@@ -299,7 +299,7 @@ def create_load():
 @app.route('/nbo', methods=['GET','POST','OPTIONS'])
 @crossdomain(origin='*',headers = 'Content-Type')
 def get_nbo_req():
-
+"""
     cid = request.json["cid"]
     channel = request.json["channel"]
     context = request.json["context"]
@@ -319,8 +319,7 @@ def get_nbo_req():
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
 
     """
-    event = "FrontOfficeEvent"
-    dns = "ruscilab"
+
     ans  = {     "clientTimeZone" : "Europe/Moscow",
      "version": 1,
      "inputs" :
@@ -341,10 +340,13 @@ def get_nbo_req():
       "Parameter_7":True
 }
 }
-    """
+    
     inputs = ans
-    anus = (dns,event,inputs)
-    return make_response(jsonify({'Max said':anus}),201)
+    dns = "ruscilab"
+    event = "frontmainevent"
+    response = call_rtdm(dns,event,inputs)
+    
+    return make_response(jsonify({"RTDM":response}),201)
 
 
 
