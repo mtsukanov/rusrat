@@ -314,10 +314,10 @@ def get_nbo_req():
     param5 = request.json["param5"]
     param6 = request.json["param6"]
     param7 = request.json["param7"]
-    """
+    
     ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
-
+    """
   
 
     ans  = {     "clientTimeZone" : "Europe/Moscow",

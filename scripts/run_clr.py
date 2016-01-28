@@ -320,9 +320,7 @@ def get_nbo_req():
     """
   
 
-    ans  = {     "clientTimeZone" : "Europe/Moscow",
-     "version": 1,
-     "inputs" :
+    ans  = 
      {
      "ClientID":3245,
      "Channel":"2",
@@ -339,7 +337,7 @@ def get_nbo_req():
       "Parameter_6":["1","2"],
       "Parameter_7":True
 }
-}
+
     
     inputs = ans
     dns = "ruscilab"
