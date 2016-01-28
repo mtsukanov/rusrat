@@ -95,7 +95,7 @@ def test_work(x):
 @app.task
 def get_offer(cid,rtdm_ip):
 	payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"CustomerID":cid,"ProdCatCode":"Leggings"}}
-	r = requests.post(rtdm_ip,json = payload)
+	r = requests.post(rtdm_ip, data = payload)
 	resp = r.json()
 	return resp
 

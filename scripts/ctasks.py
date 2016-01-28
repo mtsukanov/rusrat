@@ -95,7 +95,7 @@ def test_work(x):
 @app.task
 def get_offer(cid,rtdm_ip):
 	payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"CustomerID":cid,"ProdCatCode":"Leggings"}}
-	r = requests.post(rtdm_ip, data = payload)
+	r = requests.post(rtdm_ip, json = payload)
 	resp = r.json()
 	return resp
 
@@ -106,7 +106,7 @@ def call_rtdm(dns,event,inputs):
 "clientTimeZone":"Europe/Moscow",
 "version":1,
 "inputs":"inputs"}
-    r = requests.post(rtdm_addr,json = payload)
+    r = requests.post(rtdm_addr,data = payload)
     resp = r.json()
     return {"y":"h"}
 
