@@ -59,7 +59,7 @@ def mysql_b_history_ins(db_,input_data):
 
 @app.task(trail=True)
 def mysql_select(db_,select_, from_, where_):
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db=db_)
+    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db=db_,use_unicode = True,charset='UTF8')
     cur = db.cursor()
     if select_ is None or select_ == '':
         select_ = '*'
@@ -99,6 +99,12 @@ def get_offer(cid,rtdm_ip):
 	resp = r.json()
 	return resp
 
+@app.task
+def call_rtdm(dns,event,payload):
+    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+	r = requests.post(rtdm_addr,json = payload)
+	resp = r.json()
+	return resp
 
 
 if __name__ == '__main__':

@@ -99,6 +99,12 @@ def get_offer(cid,rtdm_ip):
 	resp = r.json()
 	return resp
 
+@app.task
+def call_rtdm(dns,event,payload):
+	rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+	r = requests.post(rtdm_addr,json = payload)
+	resp = r.json()
+	return resp
 
 
 if __name__ == '__main__':

@@ -293,6 +293,40 @@ def create_load():
     o = r.content
        
     return o
+
+
+
+@app.route('/nbo', methods=['POST','OPTIONS'])
+@crossdomain(origin='*',headers = 'Content-Type')
+def get_nbo_req():
+
+    cid = request.json["cid"]
+    channel = request.json["channel"]
+    context = request.json["context"]
+    device = request.json["device"]
+    regtime = request.json["regtime"]
+    reqtime = request.json["reqtime"]
+    timezone = request.json["timezone"]
+    param1 = request.json["param1"]
+    param2 = request.json["param2"]
+    param3 = request.json["param3"]
+    param4 = request.json["param4"]
+    param5 = request.json["param5"]
+    param6 = request.json["param6"]
+    param7 = request.json["param7"]
+    
+    ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
+"param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
+    event = "FrontOfficeEvent"
+    dns = "ruscilab"
+    payload = ans
+    ans = call_rtdm(dns,event,payload)
+    return make_response(jsonify({'Max said':ans}),201)
+
+
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /MOBILE_GET                                                                                                                                              #
@@ -486,21 +520,46 @@ def get_atm_status():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /FRONT                                                                                                                                                    #
+#                         BLOCK OF /ESP                                                                                                                                                    #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/dashboard', methods=['GET'])
+@app.route('/geo', methods=['GET','POST'])
 @crossdomain(origin='*')
-def get_dashboard_info():
-    dummy = [
-    {"name":"Summa na konets perioda","ast":[1234.21, 3423.43]},
-    {"name":"Summa platezha","data":99934.21},
-    {"name":"Osnovnoi dolg","data":3234.21},
-    {"name":"Protsenty","data":12094.11},
-    {"name":"Data", "2015-10-12"},
-    {"name":"Tip ptoducta","data":"Credit"}
-]
+def get_geo():
 
+    result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',None)
+    result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',None)
+    result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',None)
+
+    WIFI = []
+    GPS = []
+    Beacon = []
+
+#GET WIFI
+    for row in result_mysql_wifi:
+        wifi = {}
+        wifi["id"] = row[0]
+        wifi["ssid"] = row[1]
+        wifi["level"] = row[3]
+        WIFI.append(wifi)
+#GET BEACONS
+    for row in result_mysql_beacon:
+        beacon = {}
+        beacon["uuid"] = row[0]
+        beacon["major"] = row[1]
+        beacon["minor"] = row[3]
+        Beacon.append(beacon)
+#GET GPS
+    for row in result_mysql_gps:
+        gps = {}
+        gps["id"] = row[0]
+        gps["latitude"] = row[1]
+        gps["longitude"] = row[3]
+        GPS.append(gps)
+
+    response = {"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
+
+    return make_response(jsonify(response),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
