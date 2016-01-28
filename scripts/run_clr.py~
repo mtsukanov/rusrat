@@ -16,7 +16,7 @@ from flask import Flask, jsonify, abort,make_response,request,json
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime
-from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,"""
+from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -300,9 +300,8 @@ def create_load():
 @crossdomain(origin='*',headers = 'Content-Type')
 def get_nbo_req():
 
-    """call_rtdmcid = request.json["cid"]
+    cid = request.json["cid"]
     channel = request.json["channel"]
-    
     context = request.json["context"]
     device = request.json["device"]
     regtime = request.json["regtime"]
@@ -317,7 +316,9 @@ def get_nbo_req():
     param7 = request.json["param7"]
     
     ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
-"param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}"""
+"param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
+
+"""
     event = "FrontOfficeEvent"
     dns = "ruscilab"
     ans  = {     "clientTimeZone" : "Europe/Moscow",
@@ -340,13 +341,11 @@ def get_nbo_req():
       "Parameter_7":True
 }
 }
+"""
 
-
-
-
-    payload = ans
-    ans = (dns,event,payload)
-    return make_response(jsonify({'Max said':ans}),201)
+    inputs = ans
+    anus = (dns,event,inputs)
+    return make_response(jsonify({'Max said':anus}),201)
 
 
 
