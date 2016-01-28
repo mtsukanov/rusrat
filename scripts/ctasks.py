@@ -102,13 +102,13 @@ def get_offer(cid,rtdm_ip):
 @app.task
 def call_rtdm(dns,event,inputs):
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-    """payload = {
+    payload = {
 "clientTimeZone":"Europe/Moscow",
 "version":1,
-"inputs":"inputs"}"""
+"inputs":"inputs"}
     #r = requests.post(rtdm_addr,data = payload)
     #resp = r.json()
-    return rtdm_addr
+    return payload
 
 
 if __name__ == '__main__':

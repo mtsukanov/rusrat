@@ -106,9 +106,9 @@ def call_rtdm(dns,event,inputs):
 "clientTimeZone":"Europe/Moscow",
 "version":1,
 "inputs":"inputs"}
-    r = requests.post(rtdm_addr,data = payload)
-    resp = r.json()
-    return rtdm_addr
+    #r = requests.post(rtdm_addr,data = payload)
+    #resp = r.json()
+    return pyload
 
 
 if __name__ == '__main__':
