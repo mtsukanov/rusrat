@@ -16,7 +16,7 @@ from flask import Flask, jsonify, abort,make_response,request,json
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime
-from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins
+from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -300,7 +300,7 @@ def create_load():
 @crossdomain(origin='*',headers = 'Content-Type')
 def get_nbo_req():
 
-    """cid = request.json["cid"]
+    """call_rtdmcid = request.json["cid"]
     channel = request.json["channel"]
     
     context = request.json["context"]
@@ -337,7 +337,7 @@ def get_nbo_req():
      "Parameter_4":1,
       "Parameter_5":[1,2],
       "Parameter_6":["1","2"],
-      "Parameter_7":true
+      "Parameter_7":True
 }
 }
 
@@ -345,7 +345,7 @@ def get_nbo_req():
 
 
     payload = ans
-    ans = call_rtdm(dns,event,payload)
+    ans = (dns,event,payload)
     return make_response(jsonify({'Max said':ans}),201)
 
 
