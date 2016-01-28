@@ -323,7 +323,8 @@ def get_nbo_req():
     inputs = ans
     dns = "ruscilab"
     event = "frontmainevent"
-    response = call_rtdm(dns,event,inputs)
+    response = get_offe
+    #response = call_rtdm(dns,event,inputs)
     
     return make_response(jsonify({"RTDM":response}),201)
 
