@@ -108,7 +108,7 @@ def call_rtdm(dns,event,inputs):
 "inputs":"inputs"}
     r = requests.post(rtdm_addr,json = payload)
     resp = r.json()
-    return resp
+    return {"y":"h"}
 
 
 if __name__ == '__main__':
