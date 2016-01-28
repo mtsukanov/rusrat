@@ -299,10 +299,10 @@ def create_load():
 @app.route('/nbo', methods=['GET','POST','OPTIONS'])
 @crossdomain(origin='*',headers = 'Content-Type')
 def get_nbo_req():
-
+"""
     cid = request.json["cid"]
     channel = request.json["channel"]
-    """
+    
     context = request.json["context"]
     device = request.json["device"]
     regtime = request.json["regtime"]
