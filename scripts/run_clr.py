@@ -299,7 +299,7 @@ def create_load():
 @app.route('/nbo', methods=['GET','POST','OPTIONS'])
 @crossdomain(origin='*',headers = 'Content-Type')
 def get_nbo_req():
-    """
+    
     cid = request.json["cid"]
     channel = request.json["channel"]
     context = request.json["context"]
@@ -317,27 +317,8 @@ def get_nbo_req():
     
     ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
-    """
+    
   
-
-    ans  = 
-     {
-     "ClientID":3245,
-     "Channel":"2",
-     "Context":"1",
-     "Device":"2",
-     "RegTime":"2012-04-23T18:25:43.511Z",
-     "ReqTime":"2012-04-23T18:25:43.511Z",
-     "TimeZone":"Europe/Moscow",
-     "Parameter_1":"123454",
-     "Parameter_2":"123454",
-     "Parameter_3":1,
-     "Parameter_4":1,
-      "Parameter_5":[1,2],
-      "Parameter_6":["1","2"],
-      "Parameter_7":True
-}
-
     
     inputs = ans
     dns = "ruscilab"
