@@ -296,12 +296,13 @@ def create_load():
 
 
 
-@app.route('/nbo', methods=['POST','OPTIONS'])
+@app.route('/nbo', methods=['GET','POST','OPTIONS'])
 @crossdomain(origin='*',headers = 'Content-Type')
 def get_nbo_req():
-
+"""
     cid = request.json["cid"]
     channel = request.json["channel"]
+    
     context = request.json["context"]
     device = request.json["device"]
     regtime = request.json["regtime"]
@@ -317,6 +318,7 @@ def get_nbo_req():
     
     ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
+    """
     event = "FrontOfficeEvent"
     dns = "ruscilab"
     ans  = {     "clientTimeZone" : "Europe/Moscow",
