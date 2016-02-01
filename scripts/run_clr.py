@@ -139,7 +139,7 @@ def make_celery(app):
 def get_client(cid):
     db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
     cur = db.cursor()
-    query = "SELECT * FROM customers where Customer_id="+str(cid)
+    query = "SELECT * FROM customers where CID="+str(cid)
     cur.execute(query)
     photoid = 0
     for row in cur.fetchall():
@@ -295,6 +295,7 @@ def create_load():
     o = r.content
        
     return o
+
 
 
 
@@ -490,6 +491,20 @@ def mobile_get_all():
     response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings,"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
 
     return make_response(jsonify(response),200)
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /MOBILE_POST                                                                                                                                             #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/mobile_post', methods=['POST'])
+def mobile_post_all():
+    sys = request.json['sys']
+    response = {'Ratatoskr': sys}
+    return make_response(jsonify(response),200)
+
+
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
