@@ -80,7 +80,7 @@ freq_sync = 180
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
-                automatic_options=True):
+                automatic_options=True, content=None):
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
     if headers is not None and not isinstance(headers, basestring):
@@ -107,6 +107,8 @@ def crossdomain(origin=None, methods=None, headers=None,
                 return resp
 
             h = resp.headers
+
+            h['Content-Type'] = content
 
             h['Access-Control-Allow-Origin'] = origin
             h['Access-Control-Allow-Headers'] = headers
@@ -296,8 +298,8 @@ def create_load():
 
 
 
-@app.route('/nbo', methods=['GET','POST','OPTIONS'])
-@crossdomain(origin='*',headers = 'Content-Type')
+@app.route('/nbo', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def get_nbo_req():
     
     cid = request.json["cid"]
@@ -315,20 +317,41 @@ def get_nbo_req():
     param6 = request.json["param6"]
     param7 = request.json["param7"]
     
-    ans = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
+    inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
     
-  
-    
-    inputs = ans
-    dns = "ruscilab"
+
+    dns = "172.28.106.245"
     event = "frontmainevent"
-    response = get_offe
-    #response = call_rtdm(dns,event,inputs)
-    
-    return make_response(jsonify({"RTDM":response}),201)
+    #event = "SAS_Activity_echo_string"
+    #inputs = {"in_string":"I rule"}
+    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+    r = requests.post(rtdm_addr,json = payload)
+    resp = str(r)
+    return make_response(jsonify({"A":r.json()}),201)
 
 
+def call_rtdm(dns,event,inputs):
+    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+    r = requests.post(rtdm_addr,data = payload)
+    #resp = r.json()
+    resp = str(rtdm_addr)+str(r.headers)+str(r.text)
+    return resp
+
+
+@app.route('/test_rtdm', methods=['POST'])
+def test_rtdm():
+    rtdm_ip = "172.28.106.245"
+    rtdm_path = "/RTDM/rest/runtime/decisions/SAS_Activity_echo_string"
+    rtdm_url="http://"+rtdm_ip+rtdm_path
+    payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"in_string":"I rule"}}
+    r = requests.post(rtdm_url,json = payload)
+    resp = r.json()
+    o = r.content
+       
+    return o
 
 
 
@@ -356,13 +379,17 @@ def mobile_get_all():
         query_beacon = None
         query_wifi = None
         query_gps = None
-    result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
-    result_mysql_tranz = mysql_select('thebankfront',None,'transactions',query_tranz)
-    result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-    result_mysql_prods = mysql_select('thebankfront',None, 'customer_product as t1 inner join products as t2 ',query_prods)
-    result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
-    result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
-    result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
+    try:
+        result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
+        result_mysql_tranz = mysql_select('thebankfront',None,'transactions',query_tranz)
+        result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
+        result_mysql_prods = mysql_select('thebankfront',None, 'customer_product as t1 inner join products as t2 ',query_prods)
+        result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
+        result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
+        result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
+    except Exception:
+        response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."}
+        return make_response(jsonify(response),500)
     Clients =[]
     Offers = []
     Products = []
