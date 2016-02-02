@@ -61,6 +61,7 @@ list_of_images = []
 lunaresp = 'never used'
 lunaans = 'never used'
 
+
 app_server = "ruscilab"
 web_server = "ruswbsrvr"
 soa_server = "rusrat:5000"
@@ -68,6 +69,7 @@ sync = 1
 freq_in = 30
 freq_out = 5
 freq_sync = 180
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -385,12 +387,12 @@ def mobile_get_all():
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
         result_mysql_tranz = mysql_select('thebankfront',None,'transhistory',query_tranz)
         result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-        result_mysql_prods = mysql_select('thebankfront',None, 'customers as t0 inner join productdetails as t1 inner join products as t2 ',query_prods)
+        result_mysql_prods = mysql_select('thebankfront','t1.CID, t2.PName, t2.PDesc, t1.PAmount,t2.PImage, t1.PRate, t1.PPayment, t2.PID, t1.PStart, t1.PEnd','customers as t0 inner join productdetails as t1 inner join products as t2',query_prods)
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
     except Exception:
-        response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience.","Message":str(query_customers)}
+        response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."}
         return make_response(jsonify(response),500)
     Clients =[]
     Offers = []
@@ -434,17 +436,17 @@ def mobile_get_all():
 #GET PRODUCTS
     for row in result_mysql_prods:
         product = {} 
-        product["clientid"] = row[5]
-        product["name"] = row[8]
+        product["clientid"] = row[0]
+        product["name"] = row[1]
         product["type"] = 'financial'#row[9]
-        product["description"] = row[10]
-        product["sum"] = row[1]
-        product["image"] = row[5]
-        product["rate"] = row[2]
-        product["payment"] = row[7]
-        product["productid"] = row[6]
-        product["purchased_dttm"] = row[4]
-        product["exparation_dttm"] = row[5]
+        product["description"] = row[2]
+        product["sum"] = row[3]
+        product["image"] = row[4]
+        product["rate"] = row[5]
+        product["payment"] = row[6]
+        product["productid"] = row[7]
+        product["purchased_dttm"] = str(row[8])#str(row[8].day)+"."+str(row[8].month)+"."+str(row[8].year)
+        product["exparation_dttm"] = str(row[9])
 
         Products.append(product)
 
@@ -505,8 +507,12 @@ def mobile_post_all():
     beacon = request.json['beacon']
     gps = request.json['gps']
     trigger =  request.json['trigger']
-    response = {'Ratatoskr': {'sys':sys,'wifi':wifi,'gps':gps,'beacon':beacon, 'trigger': trigger}}
-    return make_response(jsonify(response),201)
+    message = {'Ratatoskr': {'sys':sys,'wifi':wifi,'gps':gps,'beacon':beacon, 'trigger': trigger}}
+    message = str(message)
+    message = message.replace("'",'"')
+    result_mq = rabbitmq_add.delay('geo_mq','_mq',message,'application/json','geo_mq')
+
+    return make_response(jsonify({'test':'a'}),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -515,13 +521,23 @@ def mobile_post_all():
 #############################################################################################################################################################################################
 @app.route('/sync_updt', methods=['POST'])
 def sync_updt():
+
+    global app_server
+    global web_server
+    global soa_server
+    global sync
+    global freq_in
+    global freq_out
+    global freq_sync
+
     app_server = request.json['app_server']
-    freq_syncweb_server = request.json['web_server']
+    web_server = request.json['web_server']
     soa_server = request.json['soa_server']
     sync = request.json['sync']
     freq_in = request.json['freq_in']
     freq_out = request.json['freq_out']
     freq_sync = request.json['freq_sync']
+
     Settings =     {
     "app_server" : app_server,
     "web_server" : web_server,
@@ -530,7 +546,22 @@ def sync_updt():
     "freq_in" : freq_in,
     "freq_out" : freq_out,
     "freq_sync" : freq_sync}
+
     return make_response(jsonify(Settings),201)
+
+@app.route('/sync_updt', methods=['GET'])
+def sync_updt2():
+
+    Settings =     {
+    "app_server" : app_server,
+    "web_server" : web_server,
+    "soa_server" : soa_server,
+    "sync" : sync,
+    "freq_in" : freq_in,
+    "freq_out" : freq_out,
+    "freq_sync" : freq_sync}
+
+    return make_response(jsonify(Settings),200)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -544,7 +575,8 @@ def offer_accept():
     priority = request.json['priority']
     accepted_dttm = request.json['accepted_dttm']
     clientid = request.json['clientid']
-    Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid}
+    offerid = request.json['offerid']
+    Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
     return make_response(jsonify(Offer),201)
 
 #############################################################################################################################################################################################
