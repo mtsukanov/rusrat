@@ -576,8 +576,8 @@ def offer_accept():
     offerid = request.json['offerid']
     Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
     response = call_rtdm.delay(app_server,'frontofficemainevent',Offer)
-    #t = response.ready()
-    return make_response(jsonify(Offer)),201)
+    t = response.ready()
+    return make_response(jsonify(Offer),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
