@@ -575,9 +575,10 @@ def offer_accept():
     clientid = request.json['clientid']
     offerid = request.json['offerid']
     Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
-    response = call_rtdm.delay(app_server,'frontofficemainevent',Offer)
-    #t = response.ready()
-    return make_response(jsonify(Offer),201)
+    result = call_rtdm.delay(app_server,'frontofficemainevent',Offer)
+    [v for v in result.collect()
+        if not isinstance(v, (ResultBase, tuple))]
+    return make_response(str(v[1]),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
