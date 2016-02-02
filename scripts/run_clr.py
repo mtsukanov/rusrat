@@ -572,24 +572,21 @@ def sync_updt2():
 @app.route('/offer_accept', methods=['POST'])
 def offer_accept():
     try:
-    otype = request.json['type']
-    visibility = request.json['visibility']
-    priority = request.json['priority']
-    accepted_dttm = request.json['accepted_dttm']
-    clientid = request.json['clientid']
-    offerid = request.json['offerid']
+        otype = request.json['type']
+        visibility = request.json['visibility']
+        priority = request.json['priority']
+        accepted_dttm = request.json['accepted_dttm']
+        clientid = request.json['clientid']
+        offerid = request.json['offerid']
 
-    Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
-    result = call_rtdm.delay("172.28.106.245",'frontofficemainevent',Offer)
-    [v for v in result.collect()
-        if not isinstance(v, (ResultBase, tuple))]
-    except Exception:
-    return make_response(jsonify({'Max':'i tak soidet'}),201)
-
-   
-
-
+        Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
+        result = call_rtdm.delay("172.28.106.245",'frontofficemainevent',Offer)
+        [v for v in result.collect()
+            if not isinstance(v, (ResultBase, tuple))]
     return make_response(str(v[1]),201)
+    except Exception:
+        return make_response(jsonify({'Max':'i tak soidet'}),201)
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #

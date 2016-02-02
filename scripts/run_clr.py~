@@ -512,6 +512,9 @@ def mobile_post_all():
 
     return make_response(jsonify({'test':'a'}),201)
 
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
@@ -568,6 +571,7 @@ def sync_updt2():
 #############################################################################################################################################################################################
 @app.route('/offer_accept', methods=['POST'])
 def offer_accept():
+    try:
     otype = request.json['type']
     visibility = request.json['visibility']
     priority = request.json['priority']
@@ -579,6 +583,12 @@ def offer_accept():
     result = call_rtdm.delay("172.28.106.245",'frontofficemainevent',Offer)
     [v for v in result.collect()
         if not isinstance(v, (ResultBase, tuple))]
+    except Exception:
+    return make_response(jsonify({'Max':'i tak soidet'}),201)
+
+   
+
+
     return make_response(str(v[1]),201)
 
 #############################################################################################################################################################################################
