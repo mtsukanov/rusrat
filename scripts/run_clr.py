@@ -362,34 +362,35 @@ def test_rtdm():
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 @app.route('/mobile_get', methods=['GET'])
+
 def mobile_get_all():
     cid = request.args.get('client_id')
     if cid is None:
         query_customers = 'Login is not null'
         query_tranz = None
         query_offers = None
-        query_prods = 't1.ProductID = t2.ProductID'
+        query_prods = 't1.PID = t2.PID'
         query_beacon = None
         query_wifi = None
         query_gps = None
     else:
-        query_customers = 'Login is not null AND CustomerId ='+cid
-        query_tranz = 'CustomerID ='+cid
+        query_customers = 'Login is not null AND CID ='+cid
+        query_tranz = 'CID ='+cid
         query_offers = 'CustomerID ='+cid
-        query_prods = 't1.ProductID = t2.ProductID and CustomerID ='+cid
+        query_prods = 't1.PID = t2.PID and CID ='+cid
         query_beacon = None
         query_wifi = None
         query_gps = None
     try:
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
-        result_mysql_tranz = mysql_select('thebankfront',None,'transactions',query_tranz)
+        result_mysql_tranz = mysql_select('thebankfront',None,'transhistory',query_tranz)
         result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-        result_mysql_prods = mysql_select('thebankfront',None, 'customer_product as t1 inner join products as t2 ',query_prods)
+        result_mysql_prods = mysql_select('thebankfront',None, 'customers as t0 inner join productdetails as t1 inner join products as t2 ',query_prods)
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
     except Exception:
-        response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."}
+        response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience.","Message":str(query_customers)}
         return make_response(jsonify(response),500)
     Clients =[]
     Offers = []
@@ -500,11 +501,65 @@ def mobile_get_all():
 @app.route('/mobile_post', methods=['POST'])
 def mobile_post_all():
     sys = request.json['sys']
-    response = {'Ratatoskr': sys}
-    return make_response(jsonify(response),200)
+    wifi = request.json['wifi']
+    beacon = request.json['beacon']
+    gps = request.json['gps']
+    trigger =  request.json['trigger']
+    response = {'Ratatoskr': {'sys':sys,'wifi':wifi,'gps':gps,'beacon':beacon, 'trigger': trigger}}
+    return make_response(jsonify(response),201)
 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/sync_updt', methods=['POST'])
+def sync_updt():
+    app_server = request.json['app_server']
+    freq_syncweb_server = request.json['web_server']
+    soa_server = request.json['soa_server']
+    sync = request.json['sync']
+    freq_in = request.json['freq_in']
+    freq_out = request.json['freq_out']
+    freq_sync = request.json['freq_sync']
+    Settings =     {
+    "app_server" : app_server,
+    "web_server" : web_server,
+    "soa_server" : soa_server,
+    "sync" : sync,
+    "freq_in" : freq_in,
+    "freq_out" : freq_out,
+    "freq_sync" : freq_sync}
+    return make_response(jsonify(Settings),201)
 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /OFFER_ACCEPT                                                                                                                                            #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/offer_accept', methods=['POST'])
+def offer_accept():
+    otype = request.json['type']
+    visibility = request.json['visibility']
+    priority = request.json['priority']
+    accepted_dttm = request.json['accepted_dttm']
+    clientid = request.json['clientid']
+    Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid}
+    return make_response(jsonify(Offer),201)
 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /LAUNCH                                                                                                                                            #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/launch', methods=['POST'])
+def launch():
+    clientid = request.json['clientid']
+    login = request.json['login']
+    password = request.json['password']
+    scenario = scenario.json['scenario']
+    Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
+    return make_response(jsonify(Status),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -567,7 +622,7 @@ def get_atm_status():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /ESP                                                                                                                                                    #
+#                         BLOCK OF /ESP                                                                                                                                                     #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 @app.route('/geo', methods=['GET','POST'])
