@@ -574,6 +574,7 @@ def offer_accept():
     accepted_dttm = request.json['accepted_dttm']
     clientid = request.json['clientid']
     offerid = request.json['offerid']
+
     Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
     result = call_rtdm.delay("172.28.106.245",'frontofficemainevent',Offer)
     [v for v in result.collect()
