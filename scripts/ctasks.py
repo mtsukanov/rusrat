@@ -106,7 +106,7 @@ def call_rtdm(dns,event,inputs):
     
     r = requests.post(rtdm_addr,data = payload)
     #resp = r.json()
-    resp = str(payload)
+    resp = str(payload)+str(t.text)
     return resp
 
 
