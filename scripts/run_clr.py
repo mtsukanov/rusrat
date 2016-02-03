@@ -680,7 +680,7 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
-    scenario = ""
+
     clientid = request.json['clientid']
     login = request.json['login']
     password = request.json['password']
