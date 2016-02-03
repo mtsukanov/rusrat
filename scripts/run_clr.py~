@@ -570,26 +570,108 @@ def sync_updt2():
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 @app.route('/offer_accept', methods=['POST'])
+@crossdomain(origin='*')
 def offer_accept():
-    try:
-    otype = request.json['type']
-    visibility = request.json['visibility']
-    priority = request.json['priority']
-    accepted_dttm = request.json['accepted_dttm']
-    clientid = request.json['clientid']
-    offerid = request.json['offerid']
+    try: 
+        visibility = request.json['visibility']
+        option = 0
+    except:
+        option = 1
+    if option == 0:    
+        try:
+            context = request.json['type']
+            visibility = request.json['visibility']
+            priority = request.json['priority']
+            accepted_dttm = request.json['accepted_dttm']
+            cid = request.json['clientid']
+            offerid = request.json['offerid']
+        
+            channel = 'mobile_app'
+            resptype = 'direct'
+            device = 'in future releases'
+                   
+            if (priority == 1): 
+                respname = "accepted"
+                respid = 1
+            elif (visibility == 0 and priority == 0):
+                respname = "rejected"
+                respid = 2
+            else:
+                respname = "undefined"
+                respid = None
+    
+            inputs = {"cid":cid,
+"channel": channel,
+"context" : context,
+"device" : device,
+"offerid" : offerid,
+"resptype" : resptype,
+"respname" : respname,
+"respid" : respid,
+"resptime" : accepted_dttm,
+"resptimestr" : str(accepted_dttm),
+"param1" : None,
+"param2" : None,
+"param3" : None,
+"param4" : None,
+"param5" : None,
+"param6" : None,
+"param7" : None}
+            return make_response(jsonify({'Ratatoskr':inputs}),418)
+        except Exception:
+            return make_response(jsonify({'Ratatoskr':'error processing mobile'}),418)       
+    else:
+        try:
+            cid = request.json['cid']
 
-    Offer = {'type':otype,'visibility':visibility,'priority':priority, 'accepted_dttm':accepted_dttm,'clientid':clientid, 'offerid':offerid}
-    result = call_rtdm.delay("172.28.106.245",'frontofficemainevent',Offer)
-    [v for v in result.collect()
-        if not isinstance(v, (ResultBase, tuple))]
-    except Exception:
-    return make_response(jsonify({'Max':'i tak soidet'}),201)
+            channel = request.json['channel']
+            context = request.json['context']
+            device = request.json['device']
 
-   
+            offerid = request.json['offerid']
+            resptype = request.json['resptype']
+            respname = request.json['respname']
+            respid = request.json['respid']
 
+            resptime = request.json['resptime']
+            param1 = request.json['param1']
+            param2 = request.json['param2']
+            param3 = request.json['param3']
+            param4 = request.json['param4']
+            param5 = request.json['param5']
+            param6 = request.json['param6']
+            param7 = request.json['param7']
+        except Exception:
+            return make_response(jsonify({'Ratatoskr':'error in inputs'}),418) 
+        try:
+            inputs = {"cid":cid,
+"channel": channel,
 
-    return make_response(str(v[1]),201)
+"context" : context,
+"device" : device,
+"offerid" : offerid,
+"resptype" : resptype,
+"respname" : respname,
+"respid" : respid,
+"resptime" : resptime,
+"resptimestr" : str(resptime),
+"param1" : param1,
+"param2" : param2,
+"param3" : param3,
+"param4" : param4,
+"param5" : param5,
+"param6" : param6,
+"param7" : param7
+}
+            return make_response(jsonify({'Ratatoskr':inputs}),418)
+        except Exception:
+            return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
+#        result = call_rtdm.delay("172.28.106.245",'responsehistoryevent',inputs)
+#        [v for v in result.collect()
+#            if not isinstance(v, (ResultBase, tuple))]
+#
+#        return make_response(str(v[1]),201)
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -603,6 +685,9 @@ def launch():
     password = request.json['password']
     scenario = scenario.json['scenario']
     Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
+
+
+
     return make_response(jsonify(Status),201)
 
 #############################################################################################################################################################################################
@@ -845,4 +930,4 @@ if __name__ == '__main__':
 
 
 
-
+resptime
