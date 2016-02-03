@@ -502,16 +502,17 @@ def mobile_get_all():
 #############################################################################################################################################################################################
 @app.route('/mobile_post', methods=['POST'])
 def mobile_post_all():
-    sys = request.json['sys']
-    wifi = request.json['wifi']
-    beacon = request.json['beacon']
-    gps = request.json['gps']
-    trigger =  request.json['trigger']
-    message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
-    result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
-
-    return make_response(jsonify({'test':'a'}),201)
-
+    try:
+        sys = request.json['sys']
+        wifi = request.json['wifi']
+        beacon = request.json['beacon']
+        gps = request.json['gps']
+        trigger =  request.json['trigger']
+        message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
+        result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    except Exception:
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 
 
@@ -680,15 +681,17 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
-    scenario = ""
-    clientid = request.json['clientid']
-    login = request.json['login']
-    password = request.json['password']
-    scenario = scenario.json['scenario']
-    Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
+    try:
+        clientid = request.json['clientid']
+        login = request.json['login']
+        password = request.json['password']
+        scenario = request.json['scenario']
+        Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
 
-    return make_response(jsonify(Status)}),201)
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    except Exception:
 
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #

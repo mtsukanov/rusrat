@@ -502,16 +502,17 @@ def mobile_get_all():
 #############################################################################################################################################################################################
 @app.route('/mobile_post', methods=['POST'])
 def mobile_post_all():
-    sys = request.json['sys']
-    wifi = request.json['wifi']
-    beacon = request.json['beacon']
-    gps = request.json['gps']
-    trigger =  request.json['trigger']
-    message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
-    result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
-
-    return make_response(jsonify({'test':'a'}),201)
-
+    try:
+        sys = request.json['sys']
+        wifi = request.json['wifi']
+        beacon = request.json['beacon']
+        gps = request.json['gps']
+        trigger =  request.json['trigger']
+        message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
+        result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    except Exception:
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 
 
@@ -530,16 +531,16 @@ def sync_updt():
     global freq_in
     global freq_out
     global freq_sync
+    try:
+        app_server = request.json['app_server']
+        web_server = request.json['web_server']
+        soa_server = request.json['soa_server']
+        sync = request.json['sync']
+        freq_in = request.json['freq_in']
+        freq_out = request.json['freq_out']
+        freq_sync = request.json['freq_sync']
 
-    app_server = request.json['app_server']
-    web_server = request.json['web_server']
-    soa_server = request.json['soa_server']
-    sync = request.json['sync']
-    freq_in = request.json['freq_in']
-    freq_out = request.json['freq_out']
-    freq_sync = request.json['freq_sync']
-
-    Settings =     {
+        Settings =     {
     "app_server" : app_server,
     "web_server" : web_server,
     "soa_server" : soa_server,
@@ -548,7 +549,10 @@ def sync_updt():
     "freq_out" : freq_out,
     "freq_sync" : freq_sync}
 
-    return make_response(jsonify(Settings),201)
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    except Exception:
+
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 @app.route('/sync_updt', methods=['GET'])
 def sync_updt2():
@@ -680,15 +684,17 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
+    try:
+        clientid = request.json['clientid']
+        login = request.json['login']
+        password = request.json['password']
+        scenario = request.json['scenario']
+        Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
 
-    clientid = request.json['clientid']
-    login = request.json['login']
-    password = request.json['password']
-    scenario = scenario.json['scenario']
-    Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    except Exception:
 
-    return make_response(jsonify(Status)}),201)
-
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
