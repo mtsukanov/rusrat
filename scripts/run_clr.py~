@@ -531,16 +531,16 @@ def sync_updt():
     global freq_in
     global freq_out
     global freq_sync
+    try:
+        app_server = request.json['app_server']
+        web_server = request.json['web_server']
+        soa_server = request.json['soa_server']
+        sync = request.json['sync']
+        freq_in = request.json['freq_in']
+        freq_out = request.json['freq_out']
+        freq_sync = request.json['freq_sync']
 
-    app_server = request.json['app_server']
-    web_server = request.json['web_server']
-    soa_server = request.json['soa_server']
-    sync = request.json['sync']
-    freq_in = request.json['freq_in']
-    freq_out = request.json['freq_out']
-    freq_sync = request.json['freq_sync']
-
-    Settings =     {
+        Settings =     {
     "app_server" : app_server,
     "web_server" : web_server,
     "soa_server" : soa_server,
@@ -549,7 +549,10 @@ def sync_updt():
     "freq_out" : freq_out,
     "freq_sync" : freq_sync}
 
-    return make_response(jsonify(Settings),201)
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    except Exception:
+
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 @app.route('/sync_updt', methods=['GET'])
 def sync_updt2():
@@ -667,11 +670,10 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':inputs}),201)
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
-#        result = call_rtdm.delay("172.28.106.245",'responsehistoryevent',inputs)
-#        [v for v in result.collect()
-#            if not isinstance(v, (ResultBase, tuple))]
-#
-#        return make_response(str(v[1]),201)
+        result = call_rtdm.delay("172.28.106.245",'responsehistoryevent',inputs)
+        [v for v in result.collect()
+             if not isinstance(v, (ResultBase, tuple))]
+        return make_response(str(v[1]),201)
 
 
 #############################################################################################################################################################################################

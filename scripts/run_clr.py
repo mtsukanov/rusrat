@@ -621,7 +621,7 @@ def offer_accept():
 "param5" : None,
 "param6" : None,
 "param7" : None}
-            return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+            #return make_response(jsonify({'Ratatoskr':'request processed'}),201)
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing mobile'}),415)       
     else:
@@ -667,14 +667,13 @@ def offer_accept():
 "param6" : param6,
 "param7" : param7
 }
-            return make_response(jsonify({'Ratatoskr':inputs}),201)
+            #return make_response(jsonify({'Ratatoskr':inputs}),201)
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
-#        result = call_rtdm.delay("172.28.106.245",'responsehistoryevent',inputs)
-#        [v for v in result.collect()
-#            if not isinstance(v, (ResultBase, tuple))]
-#
-#        return make_response(str(v[1]),201)
+        result = call_rtdm.delay("172.28.106.245",'responsehistoryevent',inputs)
+        [v for v in result.collect()
+             if not isinstance(v, (ResultBase, tuple))]
+        return make_response(str(v[1]),201)
 
 
 #############################################################################################################################################################################################
