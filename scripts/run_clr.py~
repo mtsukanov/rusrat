@@ -379,7 +379,7 @@ def mobile_get_all():
         query_customers = 'Login is not null AND CID ='+cid
         query_tranz = 'CID ='+cid
         query_offers = 'CustomerID ='+cid
-        query_prods = 't1.PID = t2.PID and CID ='+cid
+        query_prods = 't1.PID = t2.PID and t1.CID ='+cid
         query_beacon = None
         query_wifi = None
         query_gps = None
@@ -493,7 +493,7 @@ def mobile_get_all():
    
     response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings,"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
 
-    return make_response(jsonify(response),200)
+    return make_response(jsonify(response, ensure_ascii=False),200)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -569,8 +569,8 @@ def sync_updt2():
 #                         BLOCK OF /OFFER_ACCEPT                                                                                                                                            #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/offer_accept', methods=['POST'])
-@crossdomain(origin='*')
+@app.route('/offer_accept', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_accept():
     try: 
         visibility = request.json['visibility']
@@ -617,9 +617,9 @@ def offer_accept():
 "param5" : None,
 "param6" : None,
 "param7" : None}
-            return make_response(jsonify({'Ratatoskr':inputs}),418)
+            return make_response(jsonify({'Ratatoskr':'request processed'}),201)
         except Exception:
-            return make_response(jsonify({'Ratatoskr':'error processing mobile'}),418)       
+            return make_response(jsonify({'Ratatoskr':'error processing mobile'}),415)       
     else:
         try:
             cid = request.json['cid']
@@ -642,7 +642,7 @@ def offer_accept():
             param6 = request.json['param6']
             param7 = request.json['param7']
         except Exception:
-            return make_response(jsonify({'Ratatoskr':'error in inputs'}),418) 
+            return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),406) 
         try:
             inputs = {"cid":cid,
 "channel": channel,
@@ -663,7 +663,7 @@ def offer_accept():
 "param6" : param6,
 "param7" : param7
 }
-            return make_response(jsonify({'Ratatoskr':inputs}),418)
+            return make_response(jsonify({'Ratatoskr':inputs}),201)
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
 #        result = call_rtdm.delay("172.28.106.245",'responsehistoryevent',inputs)
@@ -680,15 +680,16 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
-    clientid = request.json['clientid']
-    login = request.json['login']
-    password = request.json['password']
-    scenario = scenario.json['scenario']
-    Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
+    try:
+        clientid = request.json['clientid']
+        login = request.json['login']
+        password = request.json['password']
+        scenario = scenario.json['scenario']
+        Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
 
-
-
-    return make_response(jsonify(Status),201)
+        return make_response(jsonify('Ratatoskr':'request processed'),201)
+    except Exception:
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),406) 
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
