@@ -687,7 +687,7 @@ def launch():
     scenario = scenario.json['scenario']
     #Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
 
-    return make_response(jsonify({'a':str(request.data)}),201)
+    return make_response(jsonify({'a':str(Status)}),201)
 
 
 #############################################################################################################################################################################################
