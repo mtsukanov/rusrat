@@ -1,6 +1,7 @@
 from celery import Celery
 from celery.task.control import inspect
 from time import sleep
+from flask import json
 import pika
 import requests
 import MySQLdb
@@ -104,10 +105,10 @@ def call_rtdm(dns,event,inputs):
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
     
-    r = requests.post(rtdm_addr,data = payload)
-    #resp = r.json()
+    r = requests.post(rtdm_addr, json = payload)
+    resp = r.json()
     #resp = str(payload)+str(r.content)
-    return str(r.content)
+    return r.resp
 
 
 
