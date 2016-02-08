@@ -395,17 +395,21 @@ def mobile_get_all():
             response = {"Ratatoskr":"Something wrong with offline offers"}
             return make_response(jsonify(response),500)
     else:
+        try:
         dns = "http://172.28.106.245:5000/nbo"
         inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
-        try:
+        
             r = requests.post(dns,json = inputs)
+        except Exception:
+            response = {"Ratatoskr":"R:"+str(r)}
+      
+        try:
             resp = r.json()
-            
             response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(dns)}
             return make_response(jsonify(response),500)
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO:"+str(resp)+str(dns)}
+            response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(dns)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid

@@ -400,12 +400,15 @@ def mobile_get_all():
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
         try:
             r = requests.post(dns,json = inputs)
-            resp = r.json()
+        except Exception:
+            response = {"Ratatoskr":"R:"+str(r)}
             
+        try:
+            resp = r.json()
             response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(dns)}
             return make_response(jsonify(response),500)
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO:"+str(r.json())+str(dns)}
+            response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(dns)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
