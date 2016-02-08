@@ -367,6 +367,20 @@ def test_rtdm():
 
 def mobile_get_all():
     cid = request.args.get('client_id')
+    context = 'sync'
+    channel = 'mobile'
+    device = ''
+    regtime = ''
+    reqtime = ''
+    timezone = ''
+    param1 = ''
+    param2 = ''
+    param3 = ''
+    param4 = ''
+    param5 = ''
+    param6 = ''
+    param7 = ''
+    
     if cid is None:
         query_customers = 'Login is not null'
         query_tranz = None
@@ -376,7 +390,17 @@ def mobile_get_all():
         query_wifi = None
         query_gps = None
     else:
+        dns = "172.28.106.245:5000/nbo"
+        inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
+"param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
+        r = requests.post(ans,json = payload)
+        resp = r.json()
+
+
         query_customers = 'Login is not null AND CID ='+cid
+
+
+
         query_tranz = 'CID ='+cid
         query_offers = 'CustomerID ='+cid
         query_prods = 't1.PID = t2.PID and t1.CID ='+cid
@@ -480,7 +504,7 @@ def mobile_get_all():
         beacon = {}
         beacon["uuid"] = row[0]
         beacon["major"] = row[1]
-        beacon["minor"] = row[3]
+        beacon["minor"] = row[2]
         Beacon.append(beacon)
 #GET GPS
     for row in result_mysql_gps:
