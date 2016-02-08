@@ -395,15 +395,15 @@ def mobile_get_all():
             response = {"Ratatoskr":"Something wrong with offline offers"}
             return make_response(jsonify(response),500)
     else:
-        dns = "172.28.106.245:5000/nbo"
+        dns = "http://172.28.106.245:5000/nbo"
         inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
         try:
-            r = requests.post(ans,json = inputs)
+            r = requests.post(dns,json = inputs)
             resp = r.json()
             result_mysql_offers = resp
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO:"+str(inputs)+str(r.status)}
+            response = {"Ratatoskr":"Error calling NBO:"+str(inputs)+str(dns)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
