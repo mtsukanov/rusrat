@@ -367,19 +367,19 @@ def test_rtdm():
 
 def mobile_get_all():
     cid = request.args.get('client_id')
-    context = 'sync'
-    channel = 'mobile'
-    device = '1'
-    regtime = '1'
-    reqtime = '1'
-    timezone = '1'
-    param1 = '1'
-    param2 = '1'
-    param3 = '1'
-    param4 = '1'
-    param5 = '1'
-    param6 = '1'
-    param7 = '1'
+    context = "sync"
+    channel = "mobile"
+    device = "mobile"
+    regtime = "2012-04-23T18:25:43.511Z"
+    reqtime = "2012-04-23T18:25:43.511Z"
+    timezone = "1"
+    param1 ="1"
+    param2 = "1"
+    param3 = 1
+    param4 = 1
+    param5 = ["1"]
+    param6 = [1]
+    param7 = True
     
     if cid is None:
         query_customers = 'Login is not null'
@@ -397,18 +397,17 @@ def mobile_get_all():
     else:
         try:
             dns = "http://"+server_ip+":5000/nbo"
-            inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
+            inputs = {"cid":int(cid),"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
         
-                dns = "172.28.106.245"
-                event = "frontmainevent"
-                #event = "SAS_Activity_echo_string"
-                #inputs = {"in_string":"I rule"}
-                rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-                payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-                r = requests.post(rtdm_addr,json = payload)
-                resp = str(r)
-                return make_response(jsonify({"A":r.json()}),201)
+            dns = "172.28.106.245"
+            event = "frontmainevent"
+
+            rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+            payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+            r = requests.post(rtdm_addr,json = payload)
+            resp = r.json()
+            return make_response(jsonify(type(resp)),201)
         except Exception:
             response = {"Ratatoskr":"R:"+str(r)}
             return make_response(jsonify(response),500)
