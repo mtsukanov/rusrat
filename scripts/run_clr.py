@@ -401,9 +401,11 @@ def mobile_get_all():
         try:
             r = requests.post(dns,json = inputs)
             resp = r.json()
-            result_mysql_offers = resp
+            
+            response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(dns)}
+            return make_response(jsonify(response),500)
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO:"+str(inputs)+str(dns)}
+            response = {"Ratatoskr":"Error calling NBO:"+str(resp)+str(dns)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
