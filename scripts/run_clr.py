@@ -396,8 +396,8 @@ def mobile_get_all():
             return make_response(jsonify(response),500)
     else:
         try:
-        dns = "http://172.28.106.245:5000/nbo"
-        inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
+            dns = "http://172.28.106.245:5000/nbo"
+            inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
         
             r = requests.post(dns,json = inputs)
