@@ -389,6 +389,11 @@ def mobile_get_all():
         query_beacon = None
         query_wifi = None
         query_gps = None
+        try:
+            result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
+        except Exception:
+            response = {"Ratatoskr":"Something wrong with offline offers"}
+            return make_response(jsonify(response),500)
     else:
         dns = "172.28.106.245:5000/nbo"
         inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
@@ -398,11 +403,8 @@ def mobile_get_all():
 
 
         query_customers = 'Login is not null AND CID ='+cid
-
-
-
         query_tranz = 'CID ='+cid
-        query_offers = 'CustomerID ='+cid
+        #query_offers = 'CustomerID ='+cid
         query_prods = 't1.PID = t2.PID and t1.CID ='+cid
         query_beacon = None
         query_wifi = None
@@ -410,7 +412,7 @@ def mobile_get_all():
     try:
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
         result_mysql_tranz = mysql_select('thebankfront',None,'transhistory',query_tranz)
-        result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
+        #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
         result_mysql_prods = mysql_select('thebankfront','t1.CID, t2.PName, t2.PDesc, t1.PAmount,t2.PImage, t1.PRate, t1.PPayment, t2.PID, t1.PStart, t1.PEnd','customers as t0 inner join productdetails as t1 inner join products as t2',query_prods)
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
