@@ -418,11 +418,12 @@ def mobile_get_all():
             offer = {}
             for row in resp["outputs"]["offercode"]:
                 offer["clientid"] = row["cid"]
-                offer["type"] = 'financial'
+                offer["type"] = "financial"
                 offer["generated_dttm"] = row["reqtime"]
                 offer["recieved_dttm"] = ""
                 offer["termination_dttm"] = ""
-
+                Offers.append(offer)
+            return make_response(jsonify(Offers),201) 
 """
             offer["offerid"] = row[1]
             offer["name"] = row[3]

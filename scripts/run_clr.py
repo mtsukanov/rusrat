@@ -417,9 +417,9 @@ def mobile_get_all():
             #return make_response(jsonify(resp["outputs"]),201)        
             offer = {}
             for row in resp["outputs"]["offercode"]:
-                offer["clientid"] = row["cid"]
-                offer["type"] = 'financial'
-                offer["generated_dttm"] = row["reqtime"]
+                offer["clientid"] = resp["outputs"]["cid"]
+                offer["type"] = "financial"
+                offer["generated_dttm"] = resp["outputs"]["reqtime"]
                 offer["recieved_dttm"] = ""
                 offer["termination_dttm"] = ""
                 Offers.append(offer)
