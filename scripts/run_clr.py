@@ -380,7 +380,14 @@ def mobile_get_all():
     param5 = ["1"]
     param6 = [1]
     param7 = True
-    
+    resp = None
+    Clients =[]
+    Offers = []
+    Products = []
+    Transactions = []
+    WIFI = []
+    GPS = []
+    Beacon = []
     if cid is None:
         query_customers = 'Login is not null'
         query_tranz = None
@@ -407,7 +414,33 @@ def mobile_get_all():
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
-            return make_response(jsonify(resp),201)
+            #return make_response(jsonify(resp["outputs"]),201)        
+            offer = {}
+            for row in resp["outputs"]["offercode"]:
+                offer["clientid"] = row["cid"]
+                offer["type"] = 'financial'
+                offer["generated_dttm"] = row["reqtime"]
+                offer["recieved_dttm"] = ""
+                offer["termination_dttm"] = ""
+                Offers.append(offer)
+            return make_response(jsonify(Offers),201) 
+"""
+            offer["offerid"] = row[1]
+            offer["name"] = row[3]
+            offer["type"] = 'financial'#row[9]
+            offer["description"] = row[4]""
+            offer["sum"] = row[6]
+            offer["image"] = row[5]
+            offer["rate"] = row[7]
+            offer["payment"] = row[19]
+            offer["secret"] = row[15]
+            offer["visibility"] = row[16]
+            offer["priority"] = row[12]
+            offer["generated_dttm"] = row[17]
+            offer["recieved_dttm"] = row[0]
+            offer["termination_dttm"] = row[18]
+            offer["sent_dttm"] = int(round(time.time()*1))          
+"""            
         except Exception:
             response = {"Ratatoskr":"R:"+str(r)}
             return make_response(jsonify(response),500)
@@ -439,13 +472,6 @@ def mobile_get_all():
         response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."}
         return make_response(jsonify(response),500)
 
-    Clients =[]
-    Offers = []
-    Products = []
-    Transactions = []
-    WIFI = []
-    GPS = []
-    Beacon = []
 #GET CLIENTS
     for row in result_mysql_sel:
         client = {}
