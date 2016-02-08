@@ -369,17 +369,17 @@ def mobile_get_all():
     cid = request.args.get('client_id')
     context = 'sync'
     channel = 'mobile'
-    device = ''
-    regtime = ''
-    reqtime = ''
-    timezone = ''
-    param1 = ''
-    param2 = ''
-    param3 = ''
-    param4 = ''
-    param5 = ''
-    param6 = ''
-    param7 = ''
+    device = '1'
+    regtime = '1'
+    reqtime = '1'
+    timezone = '1'
+    param1 = '1'
+    param2 = '1'
+    param3 = '1'
+    param4 = '1'
+    param5 = '1'
+    param6 = '1'
+    param7 = '1'
     
     if cid is None:
         query_customers = 'Login is not null'
@@ -399,11 +399,11 @@ def mobile_get_all():
         inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
         try:
-            r = requests.post(ans,json = payload)
+            r = requests.post(ans,json = inputs)
             resp = r.json()
             result_mysql_offers = resp
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO"}
+            response = {"Ratatoskr":"Error calling NBO:"+str(inputs)+str(r.status)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
