@@ -400,15 +400,15 @@ def mobile_get_all():
             inputs = {"cid":cid,"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
         
-                dns = "172.28.106.245"
-                event = "frontmainevent"
-                #event = "SAS_Activity_echo_string"
-                #inputs = {"in_string":"I rule"}
-                rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-                payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-                r = requests.post(rtdm_addr,json = payload)
-                resp = str(r)
-                return make_response(jsonify({"A":r.json()}),201)
+            dns = "172.28.106.245"
+            event = "frontmainevent"
+            #event = "SAS_Activity_echo_string"
+            #inputs = {"in_string":"I rule"}
+            rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+            payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+            r = requests.post(rtdm_addr,json = payload)
+            resp = str(r)
+            return make_response(jsonify({"A":r.json()}),201)
         except Exception:
             response = {"Ratatoskr":"R:"+str(r)}
             return make_response(jsonify(response),500)
