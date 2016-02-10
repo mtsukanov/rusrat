@@ -415,6 +415,7 @@ def mobile_get_all():
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
             Offers = []
+            offer = {}
             #return make_response(jsonify(resp["outputs"]),201) 
             for row in resp["outputs"]["offercode"]:
                 mas.append(resp["outputs"]["cid"])
