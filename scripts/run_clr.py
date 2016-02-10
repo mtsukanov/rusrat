@@ -419,7 +419,7 @@ def mobile_get_all():
             #return make_response(jsonify(resp["outputs"]),201) 
             for row in resp["outputs"]["offercode"]:
                 mas.append(resp["outputs"]["cid"])
-                offer = {'clientid' = resp["outputs"]["cid"])
+                offer = {'clientid' = resp["outputs"]["cid"]}
                 Offers.append(offer)
             return make_response(jsonify({'Offers':mas, 'OUTPUT':resp["outputs"], 'Offers': Offers}),201) 
                   
