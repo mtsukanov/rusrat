@@ -398,7 +398,7 @@ def mobile_get_all():
         query_gps = None
         try:
             result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-        except Exception:est
+        except Exception:
             response = {"Ratatoskr":"Something wrong with offline offers"}
             return make_response(jsonify(response),500)
     else:
@@ -418,7 +418,7 @@ def mobile_get_all():
             #return make_response(jsonify(resp["outputs"]),201) 
             for row in resp["outputs"]["offercode"]:
                 mas.append(resp["outputs"]["cid"])
-            return make_response(jsonify({'Offers':mas}),201) 
+            return make_response(jsonify({'Offers':mas, 'OUTPUT':resp["outputs"]}),201) 
                   
             
         except Exception:

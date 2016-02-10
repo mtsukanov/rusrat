@@ -414,11 +414,13 @@ def mobile_get_all():
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
-            mas = []
+            Offers = []
             #return make_response(jsonify(resp["outputs"]),201) 
             for row in resp["outputs"]["offercode"]:
                 mas.append(resp["outputs"]["cid"])
-            return make_response(jsonify({'Offers':mas}),201) 
+                offer = {'clientid' = resp["outputs"]["cid"])
+                Offers.append(offer)
+            return make_response(jsonify({'Offers':mas, 'OUTPUT':resp["outputs"], 'Offers': Offers}),201) 
                   
             
         except Exception:
