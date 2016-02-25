@@ -12,7 +12,7 @@
 
 
 
-from flask import Flask, jsonify, abort,make_response,request,json
+from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime
@@ -27,6 +27,7 @@ import time
 import pika
 import requests
 import MySQLdb
+import pymssql
 
 
 #############################################################################################################################################################################################
@@ -414,18 +415,18 @@ def mobile_get_all():
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
-            Offers = []
-            offer = {}
-            #return make_response(jsonify(resp["outputs"]),201) 
+            i = 0
             for row in resp["outputs"]["offercode"]:
-                mas.append(resp["outputs"]["cid"])
-                offer = {'clientid' = resp["outputs"]["cid"])
+                #offer = {'i':i}
+                
+                offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["BriefDetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["Payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["Rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["Amountr"],'termination_dttm':'','type':'financial','visibility':1}
                 Offers.append(offer)
-            return make_response(jsonify({'Offers':mas, 'OUTPUT':resp["outputs"], 'Offers': Offers}),201) 
+                i += 1
+            return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
                   
             
-        except Exception:
-            response = {"Ratatoskr":"R:"+str(r)}
+        except Exception as e:
+            response = {"Ratatoskr":"R:"+str(e)}
             return make_response(jsonify(response),500)
       
         try:
@@ -549,6 +550,27 @@ def mobile_get_all():
     response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings,"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
 
     return make_response(jsonify(response, ensure_ascii=False),200)
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /GETRESPONSEHISTORY                                                                                                                                             #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/getresponsehistory', methods=['GET','POST', 'OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def getresponsehistory():
+    cid = request.args.get('cid')
+    #cid = 1
+    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM RTData.RESPONSE_HISTORY where CID='+str(cid))
+    data = cursor.fetchall()
+    Response = []
+    for row in data:
+        #response = {'cid':row[0],'channel':row[1],'context':row[2],'device':row[3],'offerid':row[4],'resptype':row[5],'respname':row[6],'respid':row[7],'resptime':row[8],'resptimestr':row[9],'param1':row[10],'param2':row[11],'param3':row[12],'param4':row[13],'param5':row[14],'param6':row[15],'param7':row[16]}
+        Response.append(response)
+    return make_response(jsonify({'Ratatoskr':Response}),200)
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
