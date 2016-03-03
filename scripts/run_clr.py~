@@ -358,7 +358,37 @@ def test_rtdm():
     return o
 
 
-
+@app.route('/communication', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def test_rednet():
+    try:
+        login = request.json["login"]
+        psw = request.json["psw"]
+        phones = request.json["phones"]
+        mes = request.json["mes"]
+        try:
+            subj = request.json["subj"] 
+        except Exception:
+            subj = "undefined"
+        try:
+            mail = request.json["mail"] 
+            ismail = 1
+        except Exception:
+            ismail = 0 
+        sender = request.json["sender"]
+        param1 = request.json["param1"]
+        param2 = request.json["param2"]
+        param3 = request.json["param3"]
+        param4 = request.json["param4"]
+        if ismail == 1:
+            req_path = "http://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender+"&subj="+subj+"&mail="+str(mail)
+        else:
+            req_path = "http://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender
+        r = requests.get(req_path)
+        answer = r.content
+    except Exception:
+        answer = "Incorrect data input"
+    return make_response(jsonify({'response':answer}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /MOBILE_GET                                                                                                                                              #
@@ -567,7 +597,7 @@ def getresponsehistory():
     data = cursor.fetchall()
     Response = []
     for row in data:
-        #response = {'cid':row[0],'channel':row[1],'context':row[2],'device':row[3],'offerid':row[4],'resptype':row[5],'respname':row[6],'respid':row[7],'resptime':row[8],'resptimestr':row[9],'param1':row[10],'param2':row[11],'param3':row[12],'param4':row[13],'param5':row[14],'param6':row[15],'param7':row[16]}
+        response = {'cid':row[0],'channel':row[1],'context':row[2],'device':row[3],'offerid':row[4],'resptype':row[5],'respname':row[6],'respid':row[7],'resptime':row[8],'resptimestr':row[9],'param1':row[10],'param2':row[11],'param3':row[12],'param4':row[13],'param5':row[14],'param6':row[15],'param7':row[16]}
         Response.append(response)
     return make_response(jsonify({'Ratatoskr':Response}),200)
 
@@ -591,8 +621,16 @@ def mobile_post_all():
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
-
-
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/rtdm_test', methods=['POST'])
+def testis():
+    zayka = ''
+    zayka = str(request)
+    return make_response(jsonify({'Ratatoskr':zayka}),418)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
@@ -1002,6 +1040,7 @@ def call_luna():
     else:
         lunaresp = 'Ooops... something unexpected happened'
         return make_response(jsonify({'Ratatoskr': lunaresp+' Response code is '+status}), 418) 
+
 
 #Error handler
 @app.errorhandler(404)

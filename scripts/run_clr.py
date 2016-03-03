@@ -358,7 +358,37 @@ def test_rtdm():
     return o
 
 
-
+@app.route('/communication', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def test_rednet():
+    try:
+        login = request.json["login"]
+        psw = request.json["psw"]
+        phones = request.json["phones"]
+        mes = request.json["mes"]
+        try:
+            subj = request.json["subj"] 
+        except Exception:
+            subj = "undefined"
+        try:
+            mail = request.json["mail"] 
+            ismail = 1
+        except Exception:
+            ismail = 0 
+        sender = request.json["sender"]
+        param1 = request.json["param1"]
+        param2 = request.json["param2"]
+        param3 = request.json["param3"]
+        param4 = request.json["param4"] 
+        if ismail == 1:
+            req_path = "http://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender+"&subj="+subj+"&mail="+str(mail)
+        else:
+            req_path = "http://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender
+        r = requests.get(req_path)
+        answer = r.content
+    except Exception:
+        answer = "Incorrect data input"
+    return make_response(jsonify({'response':answer}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /MOBILE_GET                                                                                                                                              #
@@ -598,6 +628,7 @@ def mobile_post_all():
 #############################################################################################################################################################################################
 @app.route('/rtdm_test', methods=['POST'])
 def testis():
+    zayka = ''
     zayka = str(request)
     return make_response(jsonify({'Ratatoskr':zayka}),418)
 #############################################################################################################################################################################################
@@ -1009,6 +1040,7 @@ def call_luna():
     else:
         lunaresp = 'Ooops... something unexpected happened'
         return make_response(jsonify({'Ratatoskr': lunaresp+' Response code is '+status}), 418) 
+
 
 #Error handler
 @app.errorhandler(404)
