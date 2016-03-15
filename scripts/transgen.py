@@ -31,6 +31,7 @@ def transgen():
     try:
         i = 0
         k = 10
+        fullarr = []
         while i<k:
             transid = randint(1,1000)
             cardid = randint(1,8)
@@ -49,8 +50,10 @@ def transgen():
 'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
 'transactioninfo':transinfo}
             que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
-            return fulltrans
+            fullarr.append(fulltrans)
             i+=1
+            return fulltrans
+            
     except Exception as e:
         return e
 
