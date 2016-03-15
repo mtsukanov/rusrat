@@ -16,7 +16,7 @@ from flask import Flask, jsonify, abort,make_response,request,json
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime
-from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
+from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm,transgen
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -29,7 +29,7 @@ import pika
 import requests
 import MySQLdb
 import pymssql
-#from transgen import transgen
+
 from celery.task.control import revoke
 
 
