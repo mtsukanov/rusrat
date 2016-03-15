@@ -31,7 +31,7 @@ def transgen():
     global fullarr
     try:
         i = 0
-        k = 10
+        k = 1000
         fullarr = []
         while i<k:
             transid = randint(1,1000)
@@ -52,8 +52,7 @@ def transgen():
 'transactioninfo':transinfo}
             que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             fullarr.append(fulltrans)
-            i+=1
-            print i
+            i = i+1
         return fullarr          
     except Exception as e:
         return e
