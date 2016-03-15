@@ -7,6 +7,7 @@ import requests
 import MySQLdb
 import ctasks
 import time
+from time import gmtime, strftime
 #import celeryconfig
 from random import randint,choice
 
