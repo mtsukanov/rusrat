@@ -22,12 +22,13 @@ def transgen():
         terminalid = randint(1,100)
         terminaltype = choice(['atm','pos','mobapp','onlinebank'])
         mcc = randint(1000,9999)
-    except:
-        return '1'
-    try:
+    
         transstatus = choice(['ok','refusal','error'])
         transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
         transsum = randint(100,20000)
+    except:
+        return '1'
+    try:
         transcur = choice(['rub','euro','usd','kzt'])
         transtype = randint(0,5)
         transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
