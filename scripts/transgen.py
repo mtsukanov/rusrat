@@ -1,5 +1,5 @@
 from celery import Celery
-from celery.task.control import inspect,delay
+from celery.task.control import inspect
 from time import sleep
 from flask import json
 #from ctasks import rabbitmq_add
