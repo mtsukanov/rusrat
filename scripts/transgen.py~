@@ -9,7 +9,6 @@ import MySQLdb
 import ctasks
 import time
 from time import gmtime, strftime
-#import celeryconfig
 from random import randint,choice
 
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)

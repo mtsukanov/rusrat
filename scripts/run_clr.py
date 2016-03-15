@@ -829,13 +829,13 @@ def transgenerate():
     global taskid
     try:
         param = request.json['param']
-        taskid = transgen.delay()
-        qqq = taskid.status
+        #taskid = transgen.delay()
+        #qqq = taskid.status
        # else:
         #    revoke(taskid,terminate=True)
-        return make_response(jsonify({'Ratatoskr':str(qqq)}),200)
+        return make_response(jsonify({'Ratatoskr':param}),200)
     except Exception as e: 
-        return make_response(jsonify({'Ratatoskr':str(e)}),415)
+        return make_response(jsonify({'Ratatoskr':'err'}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #

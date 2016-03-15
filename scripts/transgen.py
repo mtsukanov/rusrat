@@ -1,19 +1,11 @@
-from celery import Celery
-from celery.task.control import inspect
-from time import sleep
-from flask import json
 from ctasks import rabbitmq_add
 import pika
-import requests
-import MySQLdb
-import ctasks
 import time
 from time import gmtime, strftime
 from random import randint,choice
 
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
-
 @app.task
 def transgen():
     try:
@@ -43,7 +35,6 @@ def transgen():
         return fulltrans
     except Exception as arrrrr:
         return arrrrr
-
 
 if __name__ == '__main__':
     app.worker_main()
