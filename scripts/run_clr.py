@@ -30,8 +30,7 @@ import requests
 import MySQLdb
 import pymssql
 import transgen
-from celery.task.control import revoke,delay
-
+#from celery.task.control import revoke
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -823,19 +822,11 @@ taskid = 0
 #                         BLOCK OF /TRANSACTION GENERATOR                                                                                                                                        #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/transgenerate', methods=['POST'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+@app.route('/transgenerate', methods=['GET','POST'])
 def transgenerate():
-    global taskid
-    try:
-        param = request.json['param']
-        #taskid = transgen.delay()
-        #qqq = taskid.status
-       # else:
-        #    revoke(taskid,terminate=True)
-        return make_response(jsonify({'Ratatoskr':param}),200)
-    except Exception as e: 
-        return make_response(jsonify({'Ratatoskr':'err'}),415)
+    param = request.json['param']
+
+    return make_response(jsonify({'Ratatoskr':param}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #
