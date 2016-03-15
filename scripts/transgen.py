@@ -3,6 +3,7 @@ import time
 from time import gmtime, strftime
 from random import randint,choice
 #from ctasks import rabbitmq_add
+from ctasks import rabbitmq_add
 from celery import Celery
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""

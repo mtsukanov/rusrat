@@ -8,6 +8,7 @@ import MySQLdb
 #import celeryconfig
 from random import randint,choice
 import transgen
+from time import gmtime, strftime
 
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
