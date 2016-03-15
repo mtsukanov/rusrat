@@ -16,7 +16,7 @@ from flask import Flask, jsonify, abort,make_response,request,json
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime
-from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm,transgen
+from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -29,7 +29,7 @@ import pika
 import requests
 import MySQLdb
 import pymssql
-
+import transgen
 from celery.task.control import revoke
 
 
@@ -829,11 +829,11 @@ def transgenerate():
     global taskid
     try:
         param = request.json['param']
-        taskid = transgen.delay()
-        qqq = taskid.status
+        #taskid = transgen.delay()
+        #qqq = taskid.status
        # else:
         #    revoke(taskid,terminate=True)
-        return make_response(jsonify({'Ratatoskr':str(qqq)}),200)
+        return make_response(jsonify({'Ratatoskr':param}),200)
     except Exception as e: 
         return make_response(jsonify({'Ratatoskr':str(e)}),415)
 #############################################################################################################################################################################################
