@@ -31,9 +31,9 @@ def transgen():
         fulltrans = {'transid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
 'transstatus':transstatus,'transdate':transdate,'transsum':transsum,'transcur':transcur,'transtype':transtype,'transinfo':transinfo}
         que_result = transgen.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
-        return make_response(jsonify({'Transgen.py':fulltrans}),200)
+        return fulltrans
     except:
-        return make_response(jsonify({'Transgen.py':'Error'}),418)
+        return Error
 
 
 if __name__ == '__main__':
