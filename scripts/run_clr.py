@@ -29,7 +29,7 @@ import pika
 import requests
 import MySQLdb
 import pymssql
-from transgen import transgen
+#from transgen import transgen
 from celery.task.control import revoke
 
 
