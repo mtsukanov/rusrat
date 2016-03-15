@@ -828,10 +828,11 @@ def transgenerate():
     try:
         param = request.json['param']
         if param == 'true':
-            taskid = transgen.delay()
+            taskid = transgen.delay().id
+            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
         else:
-            a = 'is false'
-        return make_response(jsonify({'Ratatoskr':taskid.id}),415)
+            revoke(taskid,terminate=True)
+            return make_response(jsonify({'Ratatoskr':'Transaction generator has been terminated'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
