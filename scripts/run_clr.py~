@@ -830,7 +830,8 @@ def transgenerate():
     try:
         param = request.json['param']
         if param == True:
-            #taskid = transgen.delay()
+            return make_response(jsonify({'Ratatoskr':'Suck'}),200)
+            taskid = transgen.delay()
             #qqq = type(taskid.status)
         else:
             revoke(taskid,terminate=True)
