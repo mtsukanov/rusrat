@@ -3,7 +3,7 @@ import time
 from time import gmtime, strftime
 from random import randint,choice
 from celery import Celery
-
+from flask import json
 
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""

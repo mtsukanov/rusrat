@@ -31,7 +31,7 @@ def transgen():
         cardid = randint(1,8)
         cardnumber = randint(10**15,10**16-1)
         accountid = randint(1,100)
-        terminalid = randint(1,100)e
+        terminalid = randint(1,100)
         terminaltype = choice(['atm','pos','mobapp','onlinebank'])
         mcc = randint(1000,9999)
     
