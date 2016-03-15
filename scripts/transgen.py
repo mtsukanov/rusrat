@@ -1,9 +1,9 @@
-from ctasks import rabbitmq_add
 import pika
 import time
 from time import gmtime, strftime
 from random import randint,choice
-
+#from ctasks import rabbitmq_add
+from celery import Celery
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 @app.task
@@ -29,8 +29,9 @@ def transgen():
     except:
         return '2'
     try:
-        fulltrans = {'transid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
-'transstatus':transstatus,'transdate':transdate,'transsum':transsum,'transcur':transcur,'transtype':transtype,'transinfo':transinfo}
+        fulltrans = {'transactionid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
+'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
+'transactioninfo':transinfo}
         que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
         return fulltrans
     except Exception as arrrrr:

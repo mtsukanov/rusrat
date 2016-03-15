@@ -29,8 +29,8 @@ import pika
 import requests
 import MySQLdb
 import pymssql
-import transgen
-#from celery.task.control import revoke
+#import transgen
+from celery.task.control import revoke
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -824,9 +824,16 @@ taskid = 0
 #############################################################################################################################################################################################
 @app.route('/transgenerate', methods=['GET','POST'])
 def transgenerate():
-    param = request.json['param']
-
-    return make_response(jsonify({'Ratatoskr':param}),415)
+    global taskid
+    try:
+        param = request.json['param']
+        if param == 'true':
+            taskid = transgen.delay()
+        else:
+            a = 'is false'
+        return make_response(jsonify({'Ratatoskr':taskid.id}),415)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #
