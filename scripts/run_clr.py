@@ -830,11 +830,11 @@ def transgenerate():
     try:
         param = request.json['param']
         if param == 'true':
-            taskid = transgen.delay()
-            qqq = taskid.status
+            #taskid = transgen.delay()
+            #qqq = type(taskid.status)
         if param == 'false':
             revoke(taskid,terminate=True)
-        return make_response(jsonify({'Ratatoskr':qqq}),200)
+        return make_response(jsonify({'Ratatoskr':'qqq'}),200)
     except Exception as e: 
         return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
