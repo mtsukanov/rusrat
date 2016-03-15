@@ -2,6 +2,7 @@ from celery import Celery
 from celery.task.control import inspect
 from time import sleep
 from flask import json
+from ctask import rabbitmq_add
 import pika
 import requests
 import MySQLdb

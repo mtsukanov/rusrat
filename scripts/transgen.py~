@@ -41,8 +41,8 @@ def transgen():
 'transstatus':transstatus,'transdate':transdate,'transsum':transsum,'transcur':transcur,'transtype':transtype,'transinfo':transinfo}
         que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
         return fulltrans
-    except:
-        return 'Error'
+    except Exception as arrrrr:
+        return arrrrr
 
 
 if __name__ == '__main__':
