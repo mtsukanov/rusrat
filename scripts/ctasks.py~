@@ -26,7 +26,7 @@ def transgen():
         transstatus = choice(['ok','refusal','error'])
         transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
         transsum = randint(100,20000)
-    except:
+    except Exception as arrrrr:
         return '1'
     try:
         transcur = choice(['rub','euro','usd','kzt'])

@@ -27,13 +27,13 @@ def transgen():
         transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
         transsum = randint(100,20000)
     except Exception as arrrrr:
-        return '1'
+        return arrrrr
     try:
         transcur = choice(['rub','euro','usd','kzt'])
         transtype = randint(0,5)
         transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
-    except:
-        return '2'
+    except Exception as arrrrr:
+        return arrrrr
     try:
         fulltrans = {'transid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
 'transstatus':transstatus,'transdate':transdate,'transsum':transsum,'transcur':transcur,'transtype':transtype,'transinfo':transinfo}
