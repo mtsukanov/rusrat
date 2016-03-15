@@ -24,6 +24,7 @@ def transgen():
         mcc = randint(1000,9999)
     except:
         return '1'
+    try:
         transstatus = choice(['ok','refusal','error'])
         transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
         transsum = randint(100,20000)
@@ -32,6 +33,7 @@ def transgen():
         transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
     except:
         return '2'
+    try:
         fulltrans = {'transid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
 'transstatus':transstatus,'transdate':transdate,'transsum':transsum,'transcur':transcur,'transtype':transtype,'transinfo':transinfo}
         #que_result = transgen.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
