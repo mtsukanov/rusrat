@@ -829,9 +829,9 @@ def transgenerate():
     global taskid
     try:
         param = request.json['param']
-        if param:
+        if param == True:
             taskid = transgen.delay()
-            qqq = type(taskid.status)
+            #qqq = type(taskid.status)
         else:
             revoke(taskid,terminate=True)
         return make_response(jsonify({'Ratatoskr':'qqq'}),200)
