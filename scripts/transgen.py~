@@ -33,7 +33,7 @@ def transgen():
         que_result = transgen.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
         return fulltrans
     except:
-        return Error
+        return 'Error'
 
 
 if __name__ == '__main__':
