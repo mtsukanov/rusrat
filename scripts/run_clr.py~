@@ -20,6 +20,7 @@ from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_histo
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
+from random import randint,choice
 
 #import celeryconfig
 import  ctasks
@@ -28,6 +29,8 @@ import pika
 import requests
 import MySQLdb
 import pymssql
+from transgen import transgen
+from celery.task.control import revoke
 
 
 #############################################################################################################################################################################################
@@ -361,34 +364,35 @@ def test_rtdm():
 @app.route('/communication', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def test_rednet():
+    #global req_path
     try:
+        login =  request.json["login"] 
         login = request.json["login"]
         psw = request.json["psw"]
         phones = request.json["phones"]
         mes = request.json["mes"]
+        sender = request.json["sender"]
         try:
             subj = request.json["subj"] 
-        except Exception:
-            subj = "undefined"
+        except:
+            subj = 'undefined'
         try:
             mail = request.json["mail"] 
-            ismail = 1
+            req_path = "https://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender+"&subj="+subj+"&mail="+str(mail)
         except Exception:
-            ismail = 0 
-        sender = request.json["sender"]
-        param1 = request.json["param1"]
-        param2 = request.json["param2"]
-        param3 = request.json["param3"]
-        param4 = request.json["param4"]
-        if ismail == 1:
-            req_path = "http://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender+"&subj="+subj+"&mail="+str(mail)
-        else:
-            req_path = "http://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender
-        r = requests.get(req_path)
-        answer = r.content
+            req_path = "https://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender    
+        #param1 = request.json["param1"]
+        #param2 = request.json["param2"]
+        #param3 = request.json["param3"]
+        #param4 = request.json["param4"] 
     except Exception:
-        answer = "Incorrect data input"
-    return make_response(jsonify({'response':answer}),200)
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)           
+    try:
+        r = requests.get(req_path) 
+        answer = r.content
+    except requests.exceptions.RequestException as e:
+        return make_response(jsonify({'Ratatoskr':'connection error'}),111)   
+    return make_response(jsonify({'Ratatoskr':'Success!'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /MOBILE_GET                                                                                                                                              #
@@ -811,6 +815,30 @@ def launch():
 
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
+
+
+taskid = 0
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /TRANSACTION GENERATOR                                                                                                                                        #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/transgenerate', methods=['POST'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def transgenerate():
+    global taskid
+    try:
+        param = request.json['param']
+        if param == 'true':
+            taskid = transgen.delay()
+            qqq =='PENDING' 
+            while qqq =='PENDING':
+                qqq = taskid.status
+        if param == 'false':
+            revoke(taskid,terminate=True)
+        return make_response(jsonify({'Ratatoskr':qqq}),200)
+    except Exception as e: 
+        return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #

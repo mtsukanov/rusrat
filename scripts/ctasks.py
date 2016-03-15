@@ -113,8 +113,6 @@ def call_rtdm(dns,event,inputs):
 
 
 
-
-
 if __name__ == '__main__':
     app.worker_main()
 
