@@ -32,7 +32,7 @@ def transgen():
     try:
         i=0
         fullarr = []
-        while i < 25 :
+        while i ==0 :
             transid = randint(1,1000)
             cardid = randint(1,8)
             cardnumber = randint(10**15,10**16-1)
