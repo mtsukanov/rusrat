@@ -52,6 +52,7 @@ def transgen():
             que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             print 'i= '+str(i)
             fullarr.append(fulltrans)
+            i+=1
         return fullarr
     except Exception as e:
         return e

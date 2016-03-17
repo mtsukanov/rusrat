@@ -8,7 +8,6 @@ from flask import json
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 
-@app.task
 def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
