@@ -8,6 +8,7 @@ from flask import json
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 
+@app.task
 def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -48,7 +49,7 @@ def transgen():
             fulltrans = {'transactionid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
 'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
 'transactioninfo':transinfo}
-            que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
+            que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             print 'i= '+str(i)
             fullarr.append(fulltrans)
             i+=1
