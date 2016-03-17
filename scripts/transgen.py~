@@ -30,7 +30,7 @@ def transgen():
     global k
     global fullarr
     try:
-        i=9
+        i=0
         fullarr = []
         while i < 25 :
             transid = randint(1,1000)
