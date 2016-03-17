@@ -50,9 +50,9 @@ def transgen():
             fulltrans = {'transactionid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
 'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
 'transactioninfo':transinfo}
-            sleep(10)
+            sleep(3)
             que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
-            sleep(10)
+            sleep(3)
             fullarr.append(fulltrans)
             i+=1
             print 'count: '+str(i)         

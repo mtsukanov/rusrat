@@ -30,10 +30,10 @@ def transgen():
     global k
     global fullarr
     try:
-        i = 0
+        i = 1
         k = 20
         fullarr = []
-        while i<k:
+        while i==1:
             transid = randint(1,1000)
             cardid = randint(1,8)
             cardnumber = randint(10**15,10**16-1)
@@ -55,7 +55,8 @@ def transgen():
             sleep(3)
             fullarr.append(fulltrans)
             i+=1
-            print 'count: '+str(i)         
+            print 'count: '+str(i) 
+        print 'OK!'        
     except Exception as e:
         return e
 
