@@ -831,7 +831,7 @@ def transgenerate():
             taskid = transgen.delay().id
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
         else:
-            app.control.revoke(taskid,terminate=True,signal='SIGKILL')
+            revoke(taskid,terminate=True)
             return make_response(jsonify({'Ratatoskr':'Transaction generator has been terminated'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
