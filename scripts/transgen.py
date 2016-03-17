@@ -1,6 +1,6 @@
 import pika
 import time
-from time import gmtime, strftime
+from time import gmtime, strftime,sleep
 from random import randint,choice
 from celery import Celery
 from flask import json
@@ -31,7 +31,7 @@ def transgen():
     global fullarr
     try:
         i = 0
-        k = 10000
+        k = 20
         fullarr = []
         while i<k:
             transid = randint(1,1000)
@@ -50,10 +50,11 @@ def transgen():
             fulltrans = {'transactionid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
 'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
 'transactioninfo':transinfo}
+            sleep(5)
             que_result = rabbitmq_add.delay('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             fullarr.append(fulltrans)
-            i = i+1
-        return 'fullarray: '+fullarr          
+            i+=1
+            return 'count: '+i         
     except Exception as e:
         return e
 
