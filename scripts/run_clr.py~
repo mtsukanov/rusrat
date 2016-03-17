@@ -834,7 +834,7 @@ def transgenerate():
             revoke(taskid,terminate=True)
             return make_response(jsonify({'Ratatoskr':'Transaction generator has been terminated'}),200)
     except Exception as e:
-#        return make_response(jsonify({'Ratatoskr':e}),415)
+        return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #

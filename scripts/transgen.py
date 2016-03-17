@@ -32,7 +32,7 @@ def transgen():
     try:
         i=0
         fullarr = []
-        while i < 20 :
+        while i ==0 :
             transid = randint(1,1000)
             cardid = randint(1,8)
             cardnumber = randint(10**15,10**16-1)
@@ -52,7 +52,7 @@ def transgen():
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             print 'i= '+str(i)
             fullarr.append(fulltrans)
-            i+=1
+            #i+=1
         return fullarr
     except Exception as e:
         return e
