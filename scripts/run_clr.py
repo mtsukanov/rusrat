@@ -30,7 +30,7 @@ import requests
 import MySQLdb
 import pymssql
 #import transgen
-from celery.task.control import revoke,discard_all
+from celery.task.control import revoke
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -831,8 +831,8 @@ def transgenerate():
             taskid = transgen.delay().id
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
         else:
-            #revoke(taskid,terminate=True)
-            discard_all()
+            revoke(taskid,terminate=True)
+            #discard_all()
             return make_response(jsonify({'Ratatoskr':'Transaction generator has been terminated'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
