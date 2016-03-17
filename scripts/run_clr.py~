@@ -30,7 +30,7 @@ import requests
 import MySQLdb
 import pymssql
 #import transgen
-from celery.task.control import revoke,discard_all
+from celery.task.control import revoke
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
