@@ -31,6 +31,7 @@ def transgen():
     global fullarr
     try:
         i=1
+        fullarr = []
         while i == 1:
             transid = randint(1,1000)
             cardid = randint(1,8)
