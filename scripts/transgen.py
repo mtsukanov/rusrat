@@ -30,8 +30,8 @@ def transgen():
     global k
     global fullarr
     try:
-        i==1
-        while i = 1:
+        i=1
+        while i == 1:
             transid = randint(1,1000)
             cardid = randint(1,8)
             cardnumber = randint(10**15,10**16-1)
