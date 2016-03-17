@@ -31,7 +31,6 @@ def transgen():
     global fullarr
     try:
         i = 1
-        k = 20
         fullarr = []
         while i==1:
             transid = randint(1,1000)

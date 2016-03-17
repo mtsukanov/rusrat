@@ -55,7 +55,6 @@ def transgen():
             fullarr.append(fulltrans)
             i+=1
             print 'count: '+str(i) 
-        return 'OK!'        
     except Exception as e:
         return e
 
