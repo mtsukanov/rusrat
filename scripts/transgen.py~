@@ -48,8 +48,8 @@ def transgen():
             #transtype = randint(0,5)
             #transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
             #fulltrans = {'transactionid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
-'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
-'transactioninfo':transinfo}
+#'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
+#'transactioninfo':transinfo}
             #que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             #print 'id= '+transgen.request.id
             #fullarr.append(fulltrans)
