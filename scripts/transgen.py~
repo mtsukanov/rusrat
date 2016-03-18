@@ -5,9 +5,8 @@ from random import randint,choice
 from celery import Celery
 from flask import json
 
-app = Celery(broker='redis://localhost/0', celery_event_queue_ttl = 300)
+app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
-app.conf.update(CELERY_RESULT_BACKEND='amqp')
 @app.task
 def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
     try:
