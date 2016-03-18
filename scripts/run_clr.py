@@ -30,8 +30,7 @@ import requests
 import MySQLdb
 import pymssql
 #import transgen
-from celery.worker.control import revoke
-
+from celery.task.control import revoke
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
