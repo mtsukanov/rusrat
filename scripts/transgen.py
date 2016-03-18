@@ -4,6 +4,7 @@ from time import gmtime, strftime,sleep
 from random import randint,choice
 from celery import Celery
 from flask import json
+from billiard.exceptions import Terminated
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 @app.task
@@ -22,7 +23,7 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
         return 'Failed adding to rabbitmq'
 
 
-@app.task
+@app.task(throws=(Terminated,))
 def transgen():
     #sleep(100)
     global i
