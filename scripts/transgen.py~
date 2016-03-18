@@ -24,7 +24,7 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
 
 @app.task
 def transgen():
-    sleep(10)
+    sleep(100)
     #global i
     #global k
     #global fullarr
