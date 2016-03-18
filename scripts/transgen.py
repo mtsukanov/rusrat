@@ -50,7 +50,7 @@ def transgen():
 'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
 'transactioninfo':transinfo}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
-            print 'id= '+transgen.request.id
+            print 'id= '+param
             fullarr.append(fulltrans)
             #i+=1
         return fullarr
