@@ -30,7 +30,7 @@ import requests
 import MySQLdb
 import pymssql
 #import transgen
-from celery.task.control import revoke
+#from celery.task.control import revoke
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
@@ -827,12 +827,12 @@ def transgenerate():
     try:
         param = request.json['param']
         if param == 'true':      
-            taskid=transgen.apply_async().id
+            taskid=transgen.apply_async()
             #taskid = transgen.delay().id
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
         else:
-            #revoke(taskid,terminate=True,signal="SIGKILL")
-            AsyncResult(taskid).revoke()
+            taskid.revoke(terminate=True)
+            #app.control.revoke(taskid,terminate=True,signal="SIGKILL")
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
