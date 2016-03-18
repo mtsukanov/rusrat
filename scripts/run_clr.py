@@ -832,7 +832,7 @@ def transgenerate():
             #taskid = transgen.delay().id
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
         else:
-            revoke(taskid,connection=connection,terminate=True)
+            revoke(taskid,terminate=True,signal="KILL")
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
