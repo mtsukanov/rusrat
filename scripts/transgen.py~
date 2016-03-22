@@ -38,17 +38,17 @@ def transgen():
             cardnumber = randint(10**15,10**16-1)
             accountid = randint(1,100)
             terminalid = randint(1,100)
-            terminaltype = choice(['atm','pos','mobapp','onlinebank'])
-            mcc = randint(1000,9999)
+            #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
+            #mcc = randint(1000,9999)
             transstatus = choice(['ok','refusal','error'])
             transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
             transsum = randint(100,20000)
             transcur = choice(['rub','eur','usd','kzt'])
             transtype = randint(0,5)
             transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
-            fulltrans = {'transactionid':transid,'cardid':cardid,'cardnumber':cardnumber,'accountid':accountid,'terminalid':terminalid,'terminaltype':terminaltype,'mcc':mcc,
-'transactionstatus':transstatus,'transactiondate':transdate,'transactionsum':transsum,'transactioncurrency':transcur,'transactiontype':transtype,
-'transactioninfo':transinfo}
+            fulltrans = {'TransID':transid,'CardID':cardid,'CardNumber':cardnumber,'AccountID':accountid,'TermID':terminalid,
+'TransStatus':transstatus,'TransDate':transdate,'TransSum':transsum,'TransCurrency':transcur,'TransType':transtype,
+'TransInfo':transinfo,'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             print 'id= '+transgen.request.id
             fullarr.append(fulltrans)

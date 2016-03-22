@@ -829,6 +829,7 @@ def transgenerate():
         if param == 'true':      
             taskid=transgen.apply_async()
             #taskid = transgen.delay().id
+            print transgen.AsyncResult(transgen.request.id).state
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
         else:
             taskid.revoke(terminate=True)
