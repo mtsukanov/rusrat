@@ -830,15 +830,18 @@ def transgenerate():
         param = request.json['param']
         if param == 'true':      
             taskid=transgen.delay()
-            time.sleep(1)
-            #status = AsyncResult(taskid.id).state
+            time.sleep(2)
             status = taskid.status
+            while status == 'SUCCESS':
+                taskid=transgen.delay()
+                time.sleep(2)
+                status = taskid.status
             #taskid = transgen.delay().id
             #print transgen.AsyncResult(transgen.request.id).state
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ. Status: '+status}),200)
         else:
             taskid.revoke(terminate=True)
-            time.sleep(1)
+            time.sleep(2)
             status = transgen.AsyncResult(taskid.id).state
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated. Status: '+status}),200)
     except Exception as e:
