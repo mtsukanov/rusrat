@@ -816,6 +816,7 @@ def launch():
 
 
 taskid = 0
+status = ''
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /TRANSACTION GENERATOR                                                                                                                                        #
@@ -824,15 +825,19 @@ taskid = 0
 @app.route('/transgenerate', methods=['GET','POST'])
 def transgenerate():
     global taskid
+    global status 
     try:
         param = request.json['param']
         if param == 'true':      
             taskid=transgen.apply_async()
+            status = transgen.AsyncResult(taskid.id).state
             #taskid = transgen.delay().id
-            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ'}),200)
+            #print transgen.AsyncResult(transgen.request.id).state
+            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ. Status: '+status}),200)
         else:
             taskid.revoke(terminate=True)
-            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated'}),200)
+            status = transgen.AsyncResult(taskid).state
+            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated. Status: '+status}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
