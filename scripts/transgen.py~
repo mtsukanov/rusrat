@@ -34,7 +34,7 @@ def transgen():
         fullarr = []
         while i ==0 :
             transid = randint(1,1000)
-            cardid = randint(1,8)
+            cardid = randint(1,10)
             cardnumber = randint(10**15,10**16-1)
             accountid = randint(1,100)
             terminalid = randint(1,100)

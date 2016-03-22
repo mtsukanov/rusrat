@@ -25,7 +25,6 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
 
 @app.task(throws=(Terminated,))
 def transgen():
-    #sleep(100)
     global i
     global k
     global fullarr
