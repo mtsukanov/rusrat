@@ -830,6 +830,7 @@ def transgenerate():
         param = request.json['param']
         if param == 'true':      
             taskid=transgen.apply_async()
+            time.sleep(5)
             status = transgen.AsyncResult(taskid.id).state
             #taskid = transgen.delay().id
             #print transgen.AsyncResult(transgen.request.id).state
