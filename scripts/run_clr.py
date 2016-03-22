@@ -842,7 +842,7 @@ def transgenerate():
         else:
             taskid.revoke(terminate=True)
             time.sleep(2)
-            status = transgen.AsyncResult(taskid.id).state
+            status = taskid.status
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated. Status: '+status}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)

@@ -831,8 +831,11 @@ def transgenerate():
         if param == 'true':      
             taskid=transgen.delay()
             time.sleep(2)
-            #status = AsyncResult(taskid.id).state
             status = taskid.status
+            while status == 'SUCCESS':
+                taskid=transgen.delay()
+                time.sleep(2)
+                status = taskid.status
             #taskid = transgen.delay().id
             #print transgen.AsyncResult(transgen.request.id).state
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ. Status: '+status}),200)
