@@ -828,7 +828,7 @@ def transgenerate():
     global status 
     try:
         param = request.json['param']
-        if param == 'true':      
+        if param == True:      
             taskid=transgen.delay()
             time.sleep(2)
             status = taskid.status
