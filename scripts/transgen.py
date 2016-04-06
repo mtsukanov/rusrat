@@ -32,7 +32,7 @@ def transgen():
     try:
         i=0
         fullarr = []
-        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        conn = pymssql.connect(server = '172.28.106.17',user = 'sa',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM TRANSData.TRANSACTION')
         data = cursor.fetchall()
