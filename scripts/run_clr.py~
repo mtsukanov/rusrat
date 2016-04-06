@@ -4,7 +4,7 @@
 #                         RATATOSKR WEB SERVICES 0.01                                                                                                                                       #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-#############################################################################################################################################################################################
+###################################################################t##########################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF LIBRARIES                                                                                                                                             #
 #                                                                                                                                                                                           #
@@ -846,6 +846,58 @@ def transgenerate():
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated. Status: '+status}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /ACTIVE_QUEUE                                                                                                                                     #
+#                                                                                                                                                                                           #
+########################################################################################################################################################
+Client_list = []
+i=1
+@app.route('/active_queue', methods=['POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def active_queue():
+    global i
+    global Client_list
+    try:
+        client_fname = request.json['name']
+        client_lname = request.json['surname']
+        client_mname = request.json['middlename']
+        client_dob = request.json['dob']
+        client_id = request.json['id']
+        client_status = request.json['status']
+        client_reason = request.json['reason']
+        client_location = request.json['location']
+    except:
+        return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415)  
+    Client_profile = {'client #':str(i),'id':client_id,'name':client_fname,'last name':client_lname,'middle name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+    Client_list.append(Client_profile)
+    i+=1
+    return make_response(jsonify({'Ratatoskr':'Client# '+str(i-1)+' successfully added to queue'}),200)
+
+@app.route('/active_queue', methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def CList():
+    if Client_list != []:
+        return make_response(jsonify({'Ratatoskr':Client_list}),200)
+    else:
+        return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
+
+@app.route('/active_queue', methods=['PUT'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def Status_updt():
+    try:
+        client_id = request.json['id']
+        client_location = request.json['location']
+        client_reason = request.json['reason']
+    except:
+        return make_response(jsonify({'Ratatoskr':'Invalid client id'}),415)
+    for client in Client_list:
+        if client['id'] == client_id:
+            client['location'] = client_location
+            client['reason'] = client_reason
+    return make_response(jsonify({'Ratatoskr':'Client status has been successfully updated'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #
@@ -947,6 +999,39 @@ def get_geo():
     response = {"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
 
     return make_response(jsonify(response),201)
+
+
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /BANNER                                                                                                                                                 #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+
+@app.route('/banner', methods=['POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def banner():
+    try:
+        UID = request.json["uid"]
+        placement = request.json["placement"]
+        banner_id = request.json["banner_id"]
+        if banner_id == 'cabinet':
+            banner_code = '<div style="height:270px;width:825px;background:linear-gradient(to right,#DDDCD9,white 600px)"><div style="height:270px;width:230px;float:left"><img id="label_img" src="http://www.evro-almaz.by/images/app/label_2.png" style="width:307px;height:200px;position:relative;right:25%;transform:rotate(25deg)"></img></div><div style="heigth:270px;width:315px;float:left"><h2 style="text-align:center;position:relative;margin-top:70px;color:blue">New Collection.<br>Try it now.</h2></div><div style="height:270px;width:275px;float:left"><img id="prod_img" src="http://www.evro-almaz.by/images/app/girl_jeans_1.png" style="height:100%;float:right"></img></div></div>'
+        elif banner_id == 'slider':
+            banner_code = '<div style="height:400px;width:760px;background-image:url(http://www.evro-almaz.by/images/app/slider_1.png);background-size:cover"></div>'
+        elif banner_id == 'right':
+            banner_code = '<div style="height:400px;width:350px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'  
+        elif banner_id == 'leftdown':
+            banner_code = '<div style="height:400px;width:250px;background-image:url(http://www.evro-almaz.by/images/app/leftdown_1.png);background-size:cover"><div style="background-color:white;opacity:0.5;border-radius:14px;position:relative;text-align:center;top:80%"><h3>Do not miss</h3></div></div>'  
+        elif banner_id == 'left':
+            banner_code = '<div style="height:170px;width:255px;background-image:url(http://www.evro-almaz.by/images/app/deleft_1.png);background-size:cover"></div>'  
+        else:
+            banner_code = 'no banner with specified banner_id'
+        time.sleep(1)
+        return banner_code
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}))
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
