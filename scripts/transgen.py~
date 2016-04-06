@@ -34,7 +34,7 @@ def transgen():
         fullarr = []
         conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
-        cursor.execute('SELECT max(TransID) FROM TRANSData.Transaction')
+        cursor.execute('SELECT max(TransID) FROM TRANSData.TRANSACTIONS')
         data = cursor.fetchall()
         print data
         while i ==0 :
