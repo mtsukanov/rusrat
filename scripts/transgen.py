@@ -57,8 +57,8 @@ def transgen():
                 data = cursor.fetchone()
                 cardnumber = data[0]
             else:
-                cardid=""
-                cardnumber=""
+                cardid="none"
+                cardnumber="none"
             terminalid = randint(1,100)
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
