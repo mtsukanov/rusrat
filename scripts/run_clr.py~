@@ -847,7 +847,18 @@ def transgenerate():
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
 
-
+@app.route('/mssql', methods=['GET','POST'])
+def mssql():
+    try:
+        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM [TRANSData].[TRANSACTION]')
+        data = cursor.fetchall()
+        for row in data:
+            print 'transid= '+str(int(row[0]))
+        return make_response(jsonify({'Ratatoskr':'ok'}),200)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ACTIVE_QUEUE                                                                                                                                     #
