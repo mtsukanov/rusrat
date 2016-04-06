@@ -34,12 +34,11 @@ def transgen():
         fullarr = []
         conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM [TRANSData].[TRANSACTION]')
-        data = cursor.fetchall()
-        for row in data:
-            print row[0]
-        while i ==0 :
-            transid = randint(1,1000)
+        cursor.execute('SELECT Max(TransID) FROM [TRANSData].[TRANSACTION]')
+        data = cursor.fetchone()
+        maxtrans = int(data[0])
+        while i == 0 :
+            transid = maxtrans
             cardid = randint(1,10)
             cardnumber = randint(10**15,10**16-1)
             accountid = randint(1,100)
