@@ -850,11 +850,26 @@ def transgenerate():
 @app.route('/mssql', methods=['GET','POST'])
 def mssql():
     try:
+        accountid = 69
         conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
-        cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT]')
+        cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
         data = cursor.fetchone()
-        print int(data[0]),int(data[1])
+        acctype = data[0]
+        if acctype == 'card':
+                cursor = conn.cursor()
+                cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
+                data = cursor.fetchone()
+                maxcardid = data[0]
+                mincardid = data[1]
+                cardid = randint(mincardid,maxcardid)
+                cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
+                data = cursor.fetchone()
+                cardnumber = data[0]
+        else:
+            cardid=""
+            cardnumber=""
+        print 'cardid= '+str(cardid)+", cardnumber= "+str(cardnumber)
         return make_response(jsonify({'Ratatoskr':'ok'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
