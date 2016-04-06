@@ -36,7 +36,8 @@ def transgen():
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM TRANSData.Transaction')
         data = cursor.fetchall()
-        print data
+        for row in data:
+            print row[0]
         while i ==0 :
             transid = randint(1,1000)
             cardid = randint(1,10)
