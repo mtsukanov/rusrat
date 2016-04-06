@@ -847,6 +847,17 @@ def transgenerate():
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
 
+@app.route('/mssql', methods=['GET','POST'])
+def mssql():
+    try:
+        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        cursor = conn.cursor()
+        cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT]')
+        data = cursor.fetchone()
+        print int(data[0]),int(data[1])
+        return make_response(jsonify({'Ratatoskr':'ok'}),200)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ACTIVE_QUEUE                                                                                                                                     #

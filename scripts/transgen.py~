@@ -37,6 +37,11 @@ def transgen():
         cursor.execute('SELECT Max(TransID) FROM [TRANSData].[TRANSACTION]')
         data = cursor.fetchone()
         maxtrans = int(data[0])
+        cursor = conn.cursor()
+        cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT]')
+        data = cursor.fetchone()
+        maxacc = int(data[0])
+        minacc = int(data[1])
         while i == 0 :
             transid = maxtrans
             cardid = randint(1,10)
@@ -57,7 +62,7 @@ def transgen():
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
             print 'id= '+transgen.request.id
             fullarr.append(fulltrans)
-            maxtrans=maxtrans+1
+            maxtrans+=1
             #i+=1
         return fullarr
     except Exception as e:

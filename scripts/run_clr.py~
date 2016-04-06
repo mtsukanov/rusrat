@@ -852,9 +852,9 @@ def mssql():
     try:
         conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
-        cursor.execute('SELECT MAX(TransID) FROM [TRANSData].[TRANSACTION]')
+        cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [CI FS Data Mart].[ACCOUNT]')
         data = cursor.fetchone()
-        print int(data[0])
+        print int(data[0]),int(data[1])
         return make_response(jsonify({'Ratatoskr':'ok'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)

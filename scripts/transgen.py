@@ -37,11 +37,16 @@ def transgen():
         cursor.execute('SELECT Max(TransID) FROM [TRANSData].[TRANSACTION]')
         data = cursor.fetchone()
         maxtrans = int(data[0])
+        cursor = conn.cursor()
+        cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT]')
+        data = cursor.fetchone()
+        maxacc = int(data[0])
+        minacc = int(data[1])
         while i == 0 :
             transid = maxtrans
             cardid = randint(1,10)
             cardnumber = randint(10**15,10**16-1)
-            accountid = randint(1,100)
+            accountid = randint(minacc,maxacc)
             terminalid = randint(1,100)
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
