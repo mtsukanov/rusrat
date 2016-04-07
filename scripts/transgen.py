@@ -61,7 +61,11 @@ def transgen():
             else:
                 cardid="none"
                 cardnumber="none"
-            terminalid = randint(1,100)
+            cursor.execute('SELECT MAX(TermID),MIN(TermID) FROM [TRANSData].[TERMINAL]')
+            data = cursor.fetchone()
+            maxtermid = data[0]
+            mintermid = data[1]
+            terminalid = randint(mintermid,maxtermid)
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
             transstatus = choice(['ok','refusal','error'])
