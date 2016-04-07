@@ -69,10 +69,31 @@ def transgen():
                 prodlimit = data[0]
                 transsum = int(accamount)+int(prodlimit)+50000
                 if cardtype == 'credit':
-                    if transsum>cardcashlimit or transsum>accamount+prodlimit:
+                    if transsum > cardcashlimit: 
                         transstatus = "reject"
-                    if transsum<=cardcashlimit and transsum<=accamount+prodlimit:
+                        transinfo = "cardcashlimit"
+                    if transsum > accamount+prodlimit:
+                        transstatus = "reject"
+                        transinfo = "proddetlimit"
+                    if transsum <= cardcashlimit and transsum <= accamount+prodlimit:
                         transstatus = choice(['ok','error'])
+                        if transstatus == 'ok':
+                            transinfo = 'ok'
+                        else:
+                            transinfo = 'atmerror'
+                else:
+                    if transsum > cardcashlimit: 
+                        transstatus = "reject"
+                        transinfo = "cardcashlimit"
+                    if transsum > accamount: 
+                        transstatus = "reject"
+                        transinfo = "proddetlimit"  
+                    if transsum <= cardcashlimit and transsum <= accamount:
+                        transstatus = choice(['ok','error'])
+                        if transstatus == 'ok':
+                            transinfo = 'ok'
+                        else:
+                            transinfo = 'atmerror'
             else:
                 cardid="none"
                 cardnumber="none"
@@ -83,14 +104,12 @@ def transgen():
             maxtermid = data[0]
             mintermid = data[1]
             terminalid = randint(mintermid,maxtermid)
-            
-            #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
-            #mcc = randint(1000,9999)
-            #transstatus = choice(['ok','refusal','error'])
             transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
             transcur = choice(['rub','eur','usd','kzt'])
             transtype = randint(0,5)
-            transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
+            #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
+            #mcc = randint(1000,9999)
+
             fulltrans = {'TransID':transid,'CardID':cardid,'CardNumber':cardnumber,'AccountID':accountid,'TermID':terminalid,
 'TransStatus':transstatus,'TransDate':transdate,'TransSum':transsum,'TransCurrency':transcur,'TransType':transtype,
 'TransInfo':transinfo,'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
