@@ -60,10 +60,14 @@ def transgen():
                     return 'cardid ok'
                 except:
                     return 'cardid ne ok'
-                cardid = randint(mincardid,maxcardid)
-                cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
-                data = cursor.fetchone()
-                cardnumber = data[0]
+                try:
+                    cardid = randint(mincardid,maxcardid)
+                    cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
+                    data = cursor.fetchone()
+                    cardnumber = data[0]
+                    return 'cardnumber ok'
+                except:
+                    return 'cardnumber ne ok'
             else:
                 cardid="none"
                 cardnumber="none"
