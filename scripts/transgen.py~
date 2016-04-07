@@ -51,7 +51,7 @@ def transgen():
             #    print 'acounttype ok'
             #except:
             #    print 'acounttype ne ok'
-            #if acctype == 'card':
+            if i == 0:
                 try:
                     cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
                     data = cursor.fetchone()
