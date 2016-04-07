@@ -41,6 +41,11 @@ def transgen():
         data = cursor.fetchone()
         maxacc = int(data[0])
         minacc = int(data[1])
+        transid = 1
+        accountid = 1
+        acctype = "card"
+        cardid = 1
+        cardnumber = 1
         while i == 0 :
         #    transid = maxtrans
         #    accountid = randint(minacc,maxacc)
