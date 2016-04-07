@@ -49,18 +49,18 @@ def transgen():
             cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
             data = cursor.fetchone()
             acctype = data[0]
-        #    if acctype == 'card':
-        #        cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
-        #        data = cursor.fetchone()
-        #        maxcardid = data[0]
-        #        mincardid = data[1]
-        #        cardid = randint(mincardid,maxcardid)
-        #        cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
-        #        data = cursor.fetchone()
-        #        cardnumber = data[0]
-        #    else:
-        #        cardid="none"
-        #        cardnumber="none"
+            if acctype == 'card':
+                cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
+                data = cursor.fetchone()
+                maxcardid = data[0]
+                mincardid = data[1]
+                cardid = randint(mincardid,maxcardid)
+                cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
+                data = cursor.fetchone()
+                cardnumber = data[0]
+            else:
+                cardid="none"
+                cardnumber="none"
             terminalid = randint(1,100)
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
