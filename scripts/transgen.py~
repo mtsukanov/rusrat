@@ -49,9 +49,10 @@ def transgen():
             cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
             data = cursor.fetchone()
             acctype = data[0]
-            cursor.execute('SELECT AccountAmount FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
+            cursor.execute('SELECT AccountAmount,ProdDetID FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
             data = cursor.fetchone()
             accamount =  data[0]
+            proddetid = data[1]
             if acctype == 'card':
                 cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
                 data = cursor.fetchone()
@@ -61,12 +62,11 @@ def transgen():
                 cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
                 data = cursor.fetchone()
                 cardnumber = data[0]
-                cursor.execute('SELECT AccountAmount FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
-                data = cursor.fetchone()
-                accamount =  data[0]
+                transsum = accamount+proddetid+50000
             else:
                 cardid="none"
                 cardnumber="none"
+                transsum = accamount+50000
             cursor.execute('SELECT MAX(TermID),MIN(TermID) FROM [TRANSData].[TERMINAL]')
             data = cursor.fetchone()
             maxtermid = data[0]
@@ -76,7 +76,6 @@ def transgen():
             #mcc = randint(1000,9999)
             transstatus = choice(['ok','refusal','error'])
             transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
-            transsum = randint(100,20000)
             transcur = choice(['rub','eur','usd','kzt'])
             transtype = randint(0,5)
             transinfo = choice(['proddetlimit','atmerror','cardcashlimit'])
