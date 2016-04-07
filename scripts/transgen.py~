@@ -62,11 +62,11 @@ def transgen():
                 cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
                 data = cursor.fetchone()
                 cardnumber = data[0]
-                transsum = accamount+proddetid+50000
+                transsum = int(accamount)+int(proddetid)+50000
             else:
                 cardid="none"
                 cardnumber="none"
-                transsum = accamount+50000
+                transsum = int(accamount)+50000
             cursor.execute('SELECT MAX(TermID),MIN(TermID) FROM [TRANSData].[TERMINAL]')
             data = cursor.fetchone()
             maxtermid = data[0]

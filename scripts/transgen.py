@@ -62,7 +62,10 @@ def transgen():
                 cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
                 data = cursor.fetchone()
                 cardnumber = data[0]
-                transsum = int(accamount)+int(proddetid)+50000
+                cursor.execute('SELECT ProdDetLimit FROM [DataMart].[PRODUCTDETAILS] where ProdDetID='+str(proddetid))
+                data = cursor.fetchone()
+                prodlimit = data[0]
+                transsum = int(accamount)+int(prodlimit)+50000
             else:
                 cardid="none"
                 cardnumber="none"
@@ -72,6 +75,7 @@ def transgen():
             maxtermid = data[0]
             mintermid = data[1]
             terminalid = randint(mintermid,maxtermid)
+            
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
             transstatus = choice(['ok','refusal','error'])

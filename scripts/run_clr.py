@@ -850,26 +850,20 @@ def transgenerate():
 @app.route('/mssql', methods=['GET','POST'])
 def mssql():
     try:
-        accountid = 69
+        accountid = 13
         conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
         cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
         data = cursor.fetchone()
         acctype = data[0]
-        if acctype == 'card':
-                cursor = conn.cursor()
-                cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
-                data = cursor.fetchone()
-                maxcardid = data[0]
-                mincardid = data[1]
-                cardid = randint(mincardid,maxcardid)
-                cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
-                data = cursor.fetchone()
-                cardnumber = data[0]
-        else:
-            cardid=""
-            cardnumber=""
-        print 'cardid= '+str(cardid)+", cardnumber= "+str(cardnumber)
+        cursor.execute('SELECT AccountAmount,ProdDetID FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
+        data = cursor.fetchone()
+        accamm = data[0]
+        prodid = data[1]
+        cursor.execute('SELECT ProdDetLimit FROM [DataMart].[PRODUCTDETAILS] where ProdDetID='+str(prodid))
+        data = cursor.fetchone()
+        prodlmit = data[0]
+        print 'accamm= '+str(accamm)+", prod= "+str(prodlmit)
         return make_response(jsonify({'Ratatoskr':'ok'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
