@@ -59,17 +59,30 @@ def transgen():
                 maxcardid = data[0]
                 mincardid = data[1]
                 cardid = randint(mincardid,maxcardid)
-                cursor.execute('SELECT CardNumber FROM [DataMart].[Card] where CardID='+str(cardid))
+                cursor.execute('SELECT CardNumber,CardCashLImit,CardType FROM [DataMart].[Card] where CardID='+str(cardid))
                 data = cursor.fetchone()
                 cardnumber = data[0]
+                cardcashlimit = data[1]
+                cardtype = data[2]
                 cursor.execute('SELECT ProdDetLimit FROM [DataMart].[PRODUCTDETAILS] where ProdDetID='+str(proddetid))
                 data = cursor.fetchone()
                 prodlimit = data[0]
                 transsum = int(accamount)+int(prodlimit)+50000
+                if cardtype == 'credit':
+                    if transsum > cardcashlimit or transsum > accamount+prodlimit:
+                        transstatus = "reject"
+                    if transsum <= cardcashlimit and transsum <= accamount+prodlimit:
+                        transstatus = choice(['ok','error'])
+                else:
+                    if transsum > cardcashlimit or transsum > accamount:
+                        transstatus = "reject"
+                    if transsum <= cardcashlimit and transsum <= accamount:
+                        transstatus = choice(['ok','error'])
             else:
                 cardid="none"
                 cardnumber="none"
                 transsum = int(accamount)+50000
+                transstatus = "ok"
             cursor.execute('SELECT MAX(TermID),MIN(TermID) FROM [TRANSData].[TERMINAL]')
             data = cursor.fetchone()
             maxtermid = data[0]
@@ -78,7 +91,7 @@ def transgen():
             
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
-            transstatus = choice(['ok','refusal','error'])
+            #transstatus = choice(['ok','refusal','error'])
             transdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
             transcur = choice(['rub','eur','usd','kzt'])
             transtype = randint(0,5)
