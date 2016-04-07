@@ -43,10 +43,9 @@ def transgen():
         minacc = int(data[1])
         cardid = 1
         cardnumber = 1
-        accountid = 1
         while i == 0 :
             transid = maxtrans
-        #    accountid = randint(minacc,maxacc)
+            accountid = randint(minacc,maxacc)
         #    cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
         #    data = cursor.fetchone()
         #    acctype = data[0]
