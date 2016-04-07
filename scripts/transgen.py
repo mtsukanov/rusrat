@@ -44,14 +44,14 @@ def transgen():
         while i == 0 :
             transid = maxtrans
             accountid = randint(minacc,maxacc)
-            try:
-                cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
-                data = cursor.fetchone()
-                acctype = data[0]
-                print 'acounttype ok'
-            except:
-                print 'acounttype ne ok'
-            if acctype == 'card':
+            #try:
+            #    cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
+            #    data = cursor.fetchone()
+            #    acctype = data[0]
+            #    print 'acounttype ok'
+            #except:
+            #    print 'acounttype ne ok'
+            if i == 0:
                 try:
                     cursor.execute('SELECT MAX(CardID),MIN(CardID) FROM [DataMart].[Card]')
                     data = cursor.fetchone()
