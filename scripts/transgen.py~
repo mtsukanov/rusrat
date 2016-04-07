@@ -99,6 +99,7 @@ def transgen():
                 cardnumber="none"
                 transsum = int(accamount)+50000
                 transstatus = "ok"
+                transinfo = 'ok'
             cursor.execute('SELECT MAX(TermID),MIN(TermID) FROM [TRANSData].[TERMINAL]')
             data = cursor.fetchone()
             maxtermid = data[0]
