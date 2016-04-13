@@ -15,15 +15,16 @@
 from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
-from time import gmtime, strftime
+from time import gmtime, strftime,strptime
 from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
-from datetime import timedelta
+from datetime import timedelta,datetime
 from flask import make_response, request, current_app
 from functools import update_wrapper
 from random import randint,choice
 from transgen import transgen
 #import celeryconfig
 import  ctasks
+import datetime
 import time
 import pika
 import requests
@@ -850,7 +851,7 @@ def transgenerate():
 @app.route('/mssql', methods=['GET','POST'])
 def mssql():
     try:
-        accountid = 1
+        accountid = 13
         conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
         cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
@@ -873,12 +874,14 @@ def mssql():
 #                                                                                                                                                                                           #
 ########################################################################################################################################################
 Client_list = []
-i=1
+client_cnt=1
+updated = 0
 @app.route('/active_queue', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def active_queue():
-    global i
+    global client_cnt
     global Client_list
+    global updated
     try:
         client_fname = request.json['name']
         client_lname = request.json['surname']
@@ -889,34 +892,55 @@ def active_queue():
         client_reason = request.json['reason']
         client_location = request.json['location']
     except:
-        return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415)  
-    Client_profile = {'client #':str(i),'id':client_id,'name':client_fname,'last name':client_lname,'middle name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
-    Client_list.append(Client_profile)
-    i+=1
-    return make_response(jsonify({'Ratatoskr':'Client# '+str(i-1)+' successfully added to queue'}),200)
+        return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415) 
+    if Client_list == []:
+        Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last name':client_lname,'middle name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+        Client_list.append(Client_profile)
+        client_cnt+=1  
+    else:
+        updated = 0
+        for obj in Client_list:
+            if obj['id'] == client_id:
+                obj['location'] = client_location
+                obj['reason'] = client_reason
+                obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
+                updated = 1 
+        if updated == 0:
+            Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last name':client_lname,'middle name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+            Client_list.append(Client_profile)
+            client_cnt+=1     
+    return make_response(jsonify({'Ratatoskr':'good'}),200)
+
 
 @app.route('/active_queue', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def CList():
-    if Client_list != []:
-        return make_response(jsonify({'Ratatoskr':Client_list}),200)
+    currdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
+    Newcommers = []
+    opt = request.args.get('option')
+    if (opt is not None):
+        if (opt == "new"):
+            for obj in Client_list:
+                if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10):
+                    Newcommer_profile = {'client #':obj['client #'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last name':obj['last name'],'middle name':obj['middle name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25]}
+                    Newcommers.append(Newcommer_profile)
+            return make_response(jsonify({'Ratatoskr':Newcommers}),200)
     else:
-        return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
+        if Client_list != []:
+            return make_response(jsonify({'Ratatoskr':Client_list}),200)
+        else:
+            return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
 
-@app.route('/active_queue', methods=['PUT'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def Status_updt():
-    try:
-        client_id = request.json['id']
-        client_location = request.json['location']
-        client_reason = request.json['reason']
-    except:
-        return make_response(jsonify({'Ratatoskr':'Invalid client id'}),415)
-    for client in Client_list:
-        if client['id'] == client_id:
-            client['location'] = client_location
-            client['reason'] = client_reason
-    return make_response(jsonify({'Ratatoskr':'Client status has been successfully updated'}),200)
+
+
+
+
+
+
+
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /BEACONS                                                                                                                                                 #
