@@ -894,7 +894,7 @@ def active_queue():
     except:
         return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415) 
     if Client_list == []:
-        Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last name':client_lname,'middle name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+        Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
         Client_list.append(Client_profile)
         client_cnt+=1  
     else:
@@ -906,7 +906,7 @@ def active_queue():
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
                 updated = 1 
         if updated == 0:
-            Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last name':client_lname,'middle name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+            Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
             Client_list.append(Client_profile)
             client_cnt+=1     
     return make_response(jsonify({'Ratatoskr':'good'}),200)
@@ -917,14 +917,20 @@ def active_queue():
 def CList():
     currdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     Newcommers = []
+    Full = []
     opt = request.args.get('option')
     if (opt is not None):
         if (opt == "new"):
             for obj in Client_list:
-                if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10):
-                    Newcommer_profile = {'client #':obj['client #'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last name':obj['last name'],'middle name':obj['middle name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
+                if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and obj['location'] == 'terminal':
+                    Newcommer_profile = {'client #':obj['client #'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                     Newcommers.append(Newcommer_profile)
             return make_response(jsonify({'Ratatoskr':Newcommers}),200)
+        if (opt == "full"):
+            for obj in Client_list:
+                Full_profile = {'client #':obj['client #'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
+                Full.append(Full_profile)
+            return make_response(jsonify({'Ratatoskr':Full}),200)
     else:
         if Client_list != []:
             return make_response(jsonify({'Ratatoskr':Client_list}),200)
@@ -932,8 +938,19 @@ def CList():
             return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
 
 
-
-
+@app.route('/active_queue', methods=['PUT'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def dltclt():
+    try:
+         cid = request.json['id']
+    except:
+        return make_response(jsonify({'Ratatoskr':'No correct id'}),415)
+    for i in reversed(range(len(Client_list))):
+        if Client_list[i].get('id') == cid:
+            Client_list.pop(i)
+    return make_response(jsonify({'Ratatoskr':Client_list}),200)
+            
+            
 
 
 
@@ -1129,9 +1146,9 @@ def call_luna():
     except Exception:
         match_flg = False
 
-    url = "http://luna.visionlabs.ru:8082/templates?id="+str(rid)
-    usr = "SAS_LunaDemoAccess"
-    psw = "U8mD8Q"
+    url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
+    usr = "test"
+    psw = "password"
     
     payload = {"image":image, "bare":bare}
     try:
@@ -1165,7 +1182,7 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "http://luna.visionlabs.ru:8082/similar_templates?id="+str(rid)+"&candidates="+candidates
+        url_get = "https://172.28.104.180/similar_templates?id="+str(rid)+"&candidates="+candidates
         g = requests.get(url_get,auth=(usr,psw))
         
         try:
