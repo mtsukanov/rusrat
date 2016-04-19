@@ -894,7 +894,7 @@ def active_queue():
     except:
         return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415) 
     if Client_list == []:
-        Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+        Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
         Client_list.append(Client_profile)
         client_cnt+=1  
     else:
@@ -906,7 +906,7 @@ def active_queue():
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
                 updated = 1 
         if updated == 0:
-            Client_profile = {'client #':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+            Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
             Client_list.append(Client_profile)
             client_cnt+=1     
     return make_response(jsonify({'Ratatoskr':'good'}),200)
@@ -923,12 +923,12 @@ def CList():
         if (opt == "new"):
             for obj in Client_list:
                 if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and obj['location'] == 'terminal':
-                    Newcommer_profile = {'client #':obj['client #'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
+                    Newcommer_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                     Newcommers.append(Newcommer_profile)
             return make_response(jsonify({'Ratatoskr':Newcommers}),200)
         if (opt == "full"):
             for obj in Client_list:
-                Full_profile = {'client #':obj['client #'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
+                Full_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                 Full.append(Full_profile)
             return make_response(jsonify({'Ratatoskr':Full}),200)
     else:
