@@ -924,6 +924,7 @@ def active_queue():
     return make_response(jsonify({'Ratatoskr':'good','TEST': Client_list}),200)
 
 @app.route('/act', methods=['GET'])
+def rururu(): 
     return make_response(jsonify({'TEST': Client_list}),200)
 
 @app.route('/active_queue', methods=['GET'])
