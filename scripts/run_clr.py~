@@ -692,7 +692,7 @@ def sync_updt2():
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
     
-@app.route('/offer_accept2', methods=['OPTIONS'])
+@app.route('/offer_accept', methods=['OPTIONS'])
 @crossdomain(origin='*',content = 'application/json',headers = 'Content-Type')
 def send_options2():
     return make_response(jsonify({'Ratatoskr':'POST, GET'}))
@@ -701,7 +701,7 @@ def send_options2():
 
 
 
-@app.route('/offer_accept2', methods=['POST','GET'])
+@app.route('/offer_accept', methods=['POST','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_accept():
     try: 
@@ -920,7 +920,7 @@ def active_queue():
             Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
             Client_list.append(Client_profile)
             client_cnt+=1     
-    return make_response(jsonify({'Ratatoskr':'good'}),200)
+    return make_response(jsonify({'Ratatoskr':Client_list}),200)
 
 
 @app.route('/active_queue', methods=['GET'])
@@ -943,7 +943,7 @@ def CList():
                 Full.append(Full_profile)
             return make_response(jsonify({'Ratatoskr':Full}),200)
     else:
-        if Client_list != []:
+        if Client_list == []:
             return make_response(jsonify({'Ratatoskr':Client_list}),200)
         else:
             return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
