@@ -894,6 +894,7 @@ def active_queue():
     global client_cnt
     global Client_list
     global updated
+   
     try:
         client_fname = request.json['name']
         client_lname = request.json['surname']
@@ -1244,8 +1245,8 @@ def not_found(error):
     return make_response(jsonify({'Ratatoskr': 'Service not found'}), 404)
 
 if __name__ == '__main__':
-    app.run(host=server_ip,debug=True,processes = 4)
-#threaded = True
+    app.run(host=server_ip,debug=True)
+#threaded = True processes = 4
 
 
 
