@@ -923,6 +923,8 @@ def active_queue():
             client_cnt+=1     
     return make_response(jsonify({'Ratatoskr':'good','TEST': Client_list}),200)
 
+@app.route('/act', methods=['GET'])
+    return make_response(jsonify({'TEST': Client_list}),200)
 
 @app.route('/active_queue', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
