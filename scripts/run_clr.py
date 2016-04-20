@@ -921,7 +921,7 @@ def active_queue():
             Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
             Client_list.append(Client_profile)
             client_cnt+=1     
-    return make_response(jsonify({'Ratatoskr':'good'}),200)
+    return make_response(jsonify({'Ratatoskr':'good','TEST': Client_list}),200)
 
 
 @app.route('/active_queue', methods=['GET'])
