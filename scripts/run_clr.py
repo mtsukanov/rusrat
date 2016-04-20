@@ -887,6 +887,7 @@ def mssql():
 Client_list = []
 client_cnt=1
 updated = 0
+
 @app.route('/active_queue', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def active_queue():
@@ -926,6 +927,7 @@ def active_queue():
 @app.route('/active_queue', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def CList():
+    global Client_list
     currdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     Newcommers = []
     Full = []
