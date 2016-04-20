@@ -692,8 +692,8 @@ def sync_updt2():
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
     
-@app.route('/luna', methods=['OPTIONS'])
-@crossdomain(origin='*',headers = 'Content-Type')
+@app.route('/offer_accept', methods=['OPTIONS'])
+@crossdomain(origin='*',content = 'application/json',headers = 'Content-Type')
 def send_options2():
     return make_response(jsonify({'Ratatoskr':'POST, GET'}))
 
