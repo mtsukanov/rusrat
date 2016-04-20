@@ -943,7 +943,7 @@ def CList():
                 Full.append(Full_profile)
             return make_response(jsonify({'Ratatoskr':Full}),200)
     else:
-        if Client_list == []:
+        if Client_list != []:
             return make_response(jsonify({'Ratatoskr':Client_list}),200)
         else:
             return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
