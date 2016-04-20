@@ -691,7 +691,17 @@ def sync_updt2():
 #                         BLOCK OF /OFFER_ACCEPT                                                                                                                                            #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/offer_accept', methods=['POST','GET','OPTIONS'])
+    
+@app.route('/luna', methods=['OPTIONS'])
+@crossdomain(origin='*',headers = 'Content-Type')
+def send_options2():
+    return make_response(jsonify({'Ratatoskr':'POST, GET'}))
+
+
+
+
+
+@app.route('/offer_accept', methods=['POST','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_accept():
     try: 
@@ -699,6 +709,7 @@ def offer_accept():
         option = 0
     except:
         option = 1
+        #return make_response(jsonify({'Ratatoskr':'response you are looking for'}),518) 
     if option == 0:    
         try:
             context = request.json['type']
@@ -788,8 +799,8 @@ def offer_accept():
             #return make_response(jsonify({'Ratatoskr':inputs}),201)
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
-        result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
-        return make_response(jsonify(result),201)
+    result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
+    return make_response(jsonify(result),201)
         #[v for v in result.collect()
         #     if not isinstance(v, (ResultBase, tuple))]
         #return make_response(str(v[1]),201)
