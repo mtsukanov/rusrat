@@ -1127,7 +1127,7 @@ def send_options():
     return make_response(jsonify({'Ratatoskr':'PUT, GET'}))
 
 @app.route('/luna', methods=['PUT'])
-@crossdomain(origin='*')
+@crossdomain(origin='*',headers = 'Content-Type', content = 'application/json')
 def call_luna():
     global lunaresp
     global lunaans
@@ -1169,7 +1169,7 @@ def call_luna():
     
     payload = {"image":image, "bare":bare}
     try:
-        r = requests.put(url,auth=(usr,psw),json = payload)
+        r = requests.post(url,auth=(usr,psw),json = payload)
         lunaans = r.json()
         status = str(r)
     except Exception:
@@ -1199,21 +1199,21 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "https://172.28.104.180/similar_templates?id="+str(rid)+"&candidates="+candidates
+        url_get = "http://172.28.104.180:8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
         g = requests.get(url_get,auth=(usr,psw))
         
         try:
            v = []
            for item in g.json().iteritems():
                v.append(item) 
-           score = v[0][1][0]["similarity"]
-           photoid = v[0][1][0]["id"]
-           clientid = get_cid_byphotoid(photoid)
-           clientinfo = get_client(clientid)
+           score = v[0][1]["similarity"]
+           #photoid = v[0][1][0]["id"]
+           #clientid = get_cid_byphotoid(photoid)
+           #clientinfo = get_client(clientid)
            #clientinfo = json.loads(get_client(clientid))
         except Exception:
             lunaresp = 'Client photo not found in Luna. Check cid or photoid'
-            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':photoid}), 500) 
+            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json()}), 500) 
 
         lunaresp = 'Luna has saved and matched the image'
         name = clientinfo[1]
