@@ -1206,14 +1206,14 @@ def call_luna():
            v = []
            for item in g.json().iteritems():
                v.append(item) 
-           score = v[0][1]["similarity"]
+           score = v[0][1][0]["similarity"]
            #photoid = v[0][1][0]["id"]
            #clientid = get_cid_byphotoid(photoid)
            #clientinfo = get_client(clientid)
            #clientinfo = json.loads(get_client(clientid))
         except Exception:
             lunaresp = 'Client photo not found in Luna. Check cid or photoid'
-            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json()}), 500) 
+            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json().["matches"]}), 500) 
 
         lunaresp = 'Luna has saved and matched the image'
         name = clientinfo[1]
