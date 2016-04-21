@@ -1213,7 +1213,7 @@ def call_luna():
            #clientinfo = json.loads(get_client(clientid))
         except Exception:
             lunaresp = 'Client photo not found in Luna. Check cid or photoid'
-            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json().["matches"]}), 500) 
+            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json()["matches"]}), 500) 
 
         lunaresp = 'Luna has saved and matched the image'
         name = clientinfo[1]
