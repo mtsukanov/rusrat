@@ -1199,7 +1199,7 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "http://172.28.104.180:8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
+        url_get = "http://172.28.104.180:8083/4/similar_templates?id=30&candidates=40"
         g = requests.get(url_get,auth=(usr,psw))
         
         try:
@@ -1207,13 +1207,14 @@ def call_luna():
            for item in g.json().iteritems():
                v.append(item) 
            score = v[0][1][0]["similarity"]
-           #photoid = v[0][1][0]["id"]
+           photoid = v[0][1][0]["id"]
            #clientid = get_cid_byphotoid(photoid)
            #clientinfo = get_client(clientid)
            #clientinfo = json.loads(get_client(clientid))
+           return make_response(jsonify({'Ratatoskr': photoid}), 200)
         except Exception:
             lunaresp = 'Client photo not found in Luna. Check cid or photoid'
-            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json()["matches"]}), 500) 
+            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json()}), 500) 
 
         lunaresp = 'Luna has saved and matched the image'
         name = clientinfo[1]
