@@ -454,9 +454,9 @@ def mobile_get_all():
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
                 
-                offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["BriefDetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["Payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["Rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["Amountr"],'termination_dttm':'','type':'financial','visibility':1}
-                Offers.append(offer)
-                i += 1
+                #offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["BriefDetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["Payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["Rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["Amountr"],'termination_dttm':'','type':'financial','visibility':1}
+                #Offers.append(offer)
+                #i += 1
             return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
                   
             
