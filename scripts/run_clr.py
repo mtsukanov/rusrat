@@ -446,15 +446,17 @@ def mobile_get_all():
 
             rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+            
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
+            #return make_response(jsonify({'TEST':str(resp)}),201) 
             i = 0
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
                 
-                offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["BriefDetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["Payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["Rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["Amountr"],'termination_dttm':'','type':'financial','visibility':1}
-                Offers.append(offer)
-                i += 1
+                #offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["BriefDetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["Payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["Rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["Amountr"],'termination_dttm':'','type':'financial','visibility':1}
+                #Offers.append(offer)
+                #i += 1
             return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
                   
             
@@ -1199,7 +1201,7 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "http://172.28.104.180:8083/4/similar_templates?id=30&candidates=40"
+        url_get = "http://172.28.104.180:8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
         g = requests.get(url_get,auth=(usr,psw))
         
         try:
@@ -1208,13 +1210,13 @@ def call_luna():
                v.append(item) 
            score = v[0][1][0]["similarity"]
            photoid = v[0][1][0]["id"]
-           #clientid = get_cid_byphotoid(photoid)
-           #clientinfo = get_client(clientid)
+           clientid = get_cid_byphotoid(photoid)
+           clientinfo = get_client(clientid)
            #clientinfo = json.loads(get_client(clientid))
-           return make_response(jsonify({'Ratatoskr': photoid}), 200)
+           #return make_response(jsonify({'Ratatoskr': clientid}), 200)
         except Exception:
             lunaresp = 'Client photo not found in Luna. Check cid or photoid'
-            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':g.json()}), 500) 
+            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':photoid}), 500) 
 
         lunaresp = 'Luna has saved and matched the image'
         name = clientinfo[1]
