@@ -446,18 +446,14 @@ def mobile_get_all():
 
             rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-            
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
-            #return make_response(jsonify({'TEST':str(resp)}),201) 
             i = 0
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
-                
                 offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
                 Offers.append(offer)
                 i += 1
-                
             return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
                   
             
@@ -907,10 +903,11 @@ def active_queue():
         client_status = request.json['status']
         client_reason = request.json['reason']
         client_location = request.json['location']
+        client_area = request.json['area']
     except:
         return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415) 
     if Client_list == []:
-        Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+        Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
         Client_list.append(Client_profile)
         client_cnt+=1  
     else:
@@ -922,7 +919,7 @@ def active_queue():
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
                 updated = 1 
         if updated == 0:
-            Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location}
+            Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
             Client_list.append(Client_profile)
             client_cnt+=1     
     return make_response(jsonify({'Ratatoskr':'good','TEST': Client_list}),200)
@@ -943,12 +940,12 @@ def CList():
         if (opt == "new"):
             for obj in Client_list:
                 if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and obj['location'] == 'terminal':
-                    Newcommer_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
+                    Newcommer_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                     Newcommers.append(Newcommer_profile)
             return make_response(jsonify({'Ratatoskr':Newcommers}),200)
         if (opt == "full"):
             for obj in Client_list:
-                Full_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'photo':get_client(obj['id'])[25].replace(" ","+")}
+                Full_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                 Full.append(Full_profile)
             return make_response(jsonify({'Ratatoskr':Full}),200)
     else:
@@ -1166,13 +1163,15 @@ def call_luna():
     except Exception:
         match_flg = False
 
-    url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
-    usr = "test"
-    psw = "password"
+    #url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
+    url = "http://172.28.104.180:8083/4/templates"
+    #usr = "test"
+    #psw = "password"
     
     payload = {"image":image, "bare":bare}
     try:
-        r = requests.post(url,auth=(usr,psw),json = payload)
+        #r = requests.post(url,auth=(usr,psw),json = payload)
+        r = requests.post(url,json = payload)
         lunaans = r.json()
         status = str(r)
     except Exception:
@@ -1203,7 +1202,8 @@ def call_luna():
 
         rid = r.json()["id"]
         url_get = "http://172.28.104.180:8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
-        g = requests.get(url_get,auth=(usr,psw))
+        #g = requests.get(url_get,auth=(usr,psw))
+        g = requests.get(url_get)
         
         try:
            v = []
