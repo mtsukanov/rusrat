@@ -1141,7 +1141,7 @@ def card():
     
 
     dns = "172.28.106.245"
-    event = "scoringevent"
+    event = "scoringeventeno"
     #event = "SAS_Activity_echo_string"
     #inputs = {"in_string":"I rule"}
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
