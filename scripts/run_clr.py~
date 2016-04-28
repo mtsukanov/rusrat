@@ -1110,6 +1110,49 @@ def banner():
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}))
 
+
+
+
+
+
+
+
+@app.route('/ccard', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def card():
+    
+    IndivID = request.json["IndivID"]
+    AppForename = request.json["AppForename"]
+    AppSurname = request.json["AppSurname"]
+    AppMiddlename = request.json["AppMiddlename"]
+    AppEducation = request.json["AppEducation"]
+    AppAge = request.json["AppAge"]
+    AppPassportNumber = request.json["AppPassportNumber"]
+    AppFamilySize = request.json["AppFamilySize"]
+    AppCarOwner = request.json["AppCarOwner"]
+    AppMobile = request.json["AppMobile"]
+    AppEmail = request.json["AppEmail"]
+    AppJobPos = request.json["AppJobPos"]
+    AppIncome = request.json["AppIncome"]
+    AppJobExp = request.json["AppJobExp"]
+    
+    inputs = {"IndivID":IndivID,"AppForename":AppForename,"AppSurname":AppSurname,"AppMiddlename":AppMiddlename,"AppEducation":AppEducation,"AppAge":AppAge,"AppPassportNumber":AppPassportNumber,"AppFamilySize":AppFamilySize,
+"AppCarOwner":AppCarOwner,"AppMobile":AppMobile,"AppEmail":AppEmail,"AppJobPos":AppJobPos,"AppIncome":AppIncome,"AppJobExp":AppJobExp}
+    
+
+    dns = "172.28.106.245"
+    event = "frontmainevent"
+    #event = "SAS_Activity_echo_string"
+    #inputs = {"in_string":"I rule"}
+    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+    r = requests.post(rtdm_addr,json = payload)
+    resp = str(r)
+    return make_response(jsonify({"A":r.json()}),201)
+
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /LUNA                                                                                                                                                    #
