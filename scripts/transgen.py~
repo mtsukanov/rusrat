@@ -59,7 +59,7 @@ def transgen():
                 cardid = randint(mincardid,maxcardid)
                 cursor.execute('SELECT CardID FROM [DataMart].[Card] where AccountID='+str(accountid)) 
                 data = cursor.fetchone()
-                print data
+                cards= data
                 cursor.execute('SELECT CardNumber,CardCashLImit,CardType FROM [DataMart].[Card] where CardID='+str(cardid))
                 data = cursor.fetchone()
                 cardnumber = data[0]
@@ -112,7 +112,7 @@ def transgen():
             #terminaltype = choice(['atm','pos','mobapp','onlinebank'])
             #mcc = randint(1000,9999)
 
-            fulltrans = {'TransID':transid,'CardID':cardid,'AccountID':accountid,'TermID':terminalid,
+            fulltrans = {'cards':cards,'TransID':transid,'CardID':cardid,'AccountID':accountid,'TermID':terminalid,
 'TransStatus':transstatus,'TransDate':transdate,'TransSum':transsum,'TransCurrency':transcur,'TransType':transtype,
 'TransInfo':transinfo,'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(fulltrans,ensure_ascii=False),'application/json','trans_mq')
