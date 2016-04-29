@@ -41,8 +41,6 @@ def transgen():
         data = cursor.fetchone()
         maxacc = int(data[0])
         minacc = int(data[1])
-        cardid = 1
-        cardnumber = 1
         while i == 0 :
             transid = maxtrans
             accountid = randint(minacc,maxacc)
@@ -95,8 +93,8 @@ def transgen():
                         else:
                             transinfo = 'atmerror'
             else:
-                cardid="none"
-                cardnumber="none"
+                cardid=0
+                cardnumber=0
                 transsum = int(accamount)+50000
                 transstatus = "ok"
                 transinfo = 'ok'
