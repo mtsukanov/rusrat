@@ -884,6 +884,7 @@ def mssql():
 #                                                                                                                                                                                           #
 ########################################################################################################################################################
 Client_list = []
+Terminal =[]
 client_cnt=1
 updated = 0
 
@@ -892,7 +893,9 @@ updated = 0
 def active_queue():
     global client_cnt
     global Client_list
+    global Terminal
     global updated
+    global upd
    
     try:
         client_fname = request.json['name']
@@ -948,6 +951,8 @@ def CList():
                 Full_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                 Full.append(Full_profile)
             return make_response(jsonify({'Ratatoskr':Full}),200)
+        if (opt == "terminal"):
+            return make_response(jsonify({'Ratatoskr':Terminal}),200)
     else:
         if Client_list != []:
             return make_response(jsonify({'Ratatoskr':Client_list}),200)
@@ -958,14 +963,36 @@ def CList():
 @app.route('/active_queue', methods=['PUT'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def dltclt():
-    try:
-         cid = request.json['id']
-    except:
-        return make_response(jsonify({'Ratatoskr':'No correct id'}),415)
-    for i in reversed(range(len(Client_list))):
-        if Client_list[i].get('id') == cid:
-            Client_list.pop(i)
-    return make_response(jsonify({'Ratatoskr':Client_list}),200)
+    opt = request.args.get('option')
+    if (opt is not None):
+        if (opt == "terminal"):
+            try:
+                client_id = request.json['id']
+                client_image = request.json['image']
+            except:
+                return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415)
+            if Terminal == []:
+                Terminal_profile = {'client_id':client_id,'client_image':client_image}
+                Terminal.append(Terminal_profile)
+            else:
+                upd = 0
+                for obj in Terminal:
+                    if obj['client_id'] == client_id:
+                        obj['client_image'] = client_image
+                        upd = 1 
+                if upd == 0:
+                    Terminal_profile = {'client_id':client_id,'client_image':client_image}
+                    Terminal.append(Terminal_profile)
+            return make_response(jsonify({'Ratatoskr':'Success'}),200)
+    else:
+        try:
+            cid = request.json['id']
+        except:
+            return make_response(jsonify({'Ratatoskr':'No correct id'}),415)
+        for i in reversed(range(len(Client_list))):
+            if Client_list[i].get('id') == cid:
+                Client_list.pop(i)
+        return make_response(jsonify({'Ratatoskr':Client_list}),200)
             
             
 
@@ -1141,7 +1168,7 @@ def card():
     
 
     dns = "172.28.106.245"
-    event = "scoringevent"
+    event = "scoringeventeno"
     #event = "SAS_Activity_echo_string"
     #inputs = {"in_string":"I rule"}
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
