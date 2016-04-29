@@ -58,7 +58,7 @@ def transgen():
                 mincardid = data[1]
                 cardid = randint(mincardid,maxcardid)
                 cursor.execute('SELECT CardID FROM [DataMart].[Card] where AccountID='+str(accountid)) 
-                data = cursor.fetchone()
+                data = cursor.fetchall()
                 cards= data
                 cursor.execute('SELECT CardNumber,CardCashLImit,CardType FROM [DataMart].[Card] where CardID='+str(cardid))
                 data = cursor.fetchone()
