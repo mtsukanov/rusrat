@@ -979,7 +979,7 @@ def dltclt():
                 for obj in Terminal:
                     if obj['client_id'] == client_id:
                         obj['client_image'] = client_image
-                        upd] = 1 
+                        upd = 1 
                 if upd == 0:
                     Terminal_profile = {'client_id':client_id,'client_image':client_image}
                     Terminal.append(Terminal_profile)
