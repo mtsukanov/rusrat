@@ -811,7 +811,7 @@ def offer_accept():
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
         blat = call_rtdm.delay("172.28.106.245","responsehistoryevent",inputs)
-       return make_response(jsonify({'Ratatoskr':'OKAY'}),418) 
+       return make_response(jsonify({'Ratatoskr':'OKAY'}),200) 
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problem occures in delay()'}),418)  
     #return make_response(jsonify(result),201)
