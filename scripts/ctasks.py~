@@ -113,8 +113,6 @@ def call_rtdm(dns,event,inputs):
     r = requests.post(rtdm_addr, json = payload)
     resp = r.json()
     #resp = str(payload)+str(r.content)
-    print resp
-    zztop = payload
     return resp
 
 
