@@ -23,7 +23,7 @@ from functools import update_wrapper
 from random import randint,choice
 from transgen import transgen
 #import celeryconfig
-import  ctasks
+#import  ctasks
 import datetime
 import time
 import pika
