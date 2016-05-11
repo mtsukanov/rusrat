@@ -798,6 +798,7 @@ def offer_accept():
             #return make_response(jsonify({'Ratatoskr':inputs}),201)
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
+    print inputs
     result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     return make_response(jsonify(result),201)
         #[v for v in result.collect()
