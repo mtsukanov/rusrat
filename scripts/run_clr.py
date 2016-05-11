@@ -66,8 +66,8 @@ lunaans = 'never used'
 
 
 app_server = "ruscilab"
-web_server = "ruswbsrvr"
-soa_server = "rusrat:5000"
+web_server = "labinso.sas.com"
+soa_server = "172.28.104.171:5000"
 sync = 1
 freq_in = 30
 freq_out = 5
@@ -394,7 +394,7 @@ def test_rednet():
     return make_response(jsonify({'Ratatoskr':'Success!'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /MOBILE_GET                                                                                                                                              #
+#                         BLOCK OF /MOBILE_GET                                                                                                                                              #o
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 @app.route('/mobile_get', methods=['GET'])
@@ -492,6 +492,7 @@ def mobile_get_all():
     for row in result_mysql_sel:
         client = {}
         client["clientid"] = row[0]
+        client["clientimage"]=""
         client["name"] = row[1]
         client["surname"] = row[3]
         client["email"] = row[16]
@@ -506,10 +507,12 @@ def mobile_get_all():
         offer["clientid"] = row[0]
         offer["offerid"] = row[1]
         offer["name"] = row[3]
+        offer["duration"] = 12
         offer["type"] = 'financial'#row[9]
         offer["description"] = row[4]
         offer["sum"] = row[6]
-        offer["image"] = row[5]
+        #offer["image"] = row[5]
+        offer["image"] = ""
         offer["rate"] = row[7]
         offer["payment"] = row[19]
         offer["secret"] = row[15]
@@ -528,7 +531,9 @@ def mobile_get_all():
         product["type"] = 'financial'#row[9]
         product["description"] = row[2]
         product["sum"] = row[3]
-        product["image"] = row[4]
+        product["duration"] = 12
+        #product["image"] = row[4]
+        product["image"] = ""
         product["rate"] = row[5]
         product["payment"] = row[6]
         product["productid"] = row[7]
@@ -538,22 +543,25 @@ def mobile_get_all():
         Products.append(product)
 
 #GET SETTINGS
-    Settings =     {
+
+    Settings = []
+    setting =    {
     "app_server" : app_server,
     "web_server" : web_server,
-    "soa_server" : soa_server,
+    "soa_server" : "172.28.104.171:5000",
     "sync" : sync,
     "freq_in" : freq_in,
     "freq_out" : freq_out,
     "freq_sync" : freq_sync}
+    Settings.append(setting)
 #GET TRANSACTIONS
     for row in result_mysql_tranz:
         tranz = {}
         tranz["tranid"] = row[0]
         tranz["agent"] = row[1]
-        tranz["sum"] = row[2]
-        tranz["tran_dttm"] = row[3]
-        tranz["clientid"] = row[4]
+        tranz["sum"] = row[4]
+        tranz["tran_dttm"] = "1400000"
+        tranz["clientid"] = row[2]
         Transactions.append(tranz)
 #GET WIFI
     for row in result_mysql_wifi:
@@ -581,7 +589,7 @@ def mobile_get_all():
    
     response = {"Clients":Clients,"Products":Products,"Offers":Offers,"Transactions":Transactions,"Settings":Settings,"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
 
-    return make_response(jsonify(response, ensure_ascii=False),200)
+    return make_response(jsonify({"Ratatoskr":response}),200)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -723,10 +731,10 @@ def offer_accept():
             device = 'in future releases'
                    
             if (priority == 1): 
-                respname = "accepted"
+                respname = "Accepted"
                 respid = 1
             elif (visibility == 0 and priority == 0):
-                respname = "rejected"
+                respname = "Denied"
                 respid = 2
             else:
                 respname = "undefined"
@@ -773,8 +781,8 @@ def offer_accept():
             param5 = request.json['param5']
             param6 = request.json['param6']
             param7 = request.json['param7']
-        except Exception:
-            return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),406) 
+        except Exception as e:
+            return make_response(jsonify({'Ratatoskr':'input data is corrupted','e':str(e)}),406) 
         try:
             inputs = {"cid":cid,
 "channel": channel,
@@ -796,10 +804,15 @@ def offer_accept():
 "param7" : param7
 }
             #return make_response(jsonify({'Ratatoskr':inputs}),201)
+            
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
-    print inputs
+    strt = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
+    strt2 = strftime("%d.%m.%Y %H:%M:%S",gmtime())
+    result['input'] = inputs
+    result['start'] = strt
+    result['end'] = strt2
     return make_response(jsonify(result),201)
         #[v for v in result.collect()
         #     if not isinstance(v, (ResultBase, tuple))]
