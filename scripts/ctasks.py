@@ -114,7 +114,8 @@ def call_rtdm(dns,event,inputs):
     resp = r.json()
     #resp = str(payload)+str(r.content)
     #print 'xyi'
-    return str(rtdm_addr+payload)
+    zztop = payload
+    return resp
     #return resp
 
 

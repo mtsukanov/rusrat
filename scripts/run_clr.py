@@ -810,9 +810,9 @@ def offer_accept():
     strt = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     strt2 = strftime("%d.%m.%Y %H:%M:%S",gmtime())
-    result['input'] = inputs
-    result['start'] = strt
-    result['end'] = strt2
+    #result['input'] = inputs
+    #result['start'] = strt
+    #result['end'] = strt2
     return make_response(jsonify(result),201)
         #[v for v in result.collect()
         #     if not isinstance(v, (ResultBase, tuple))]

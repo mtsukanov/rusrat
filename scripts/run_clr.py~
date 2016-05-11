@@ -804,9 +804,10 @@ def offer_accept():
 "param7" : param7
 }
             #return make_response(jsonify({'Ratatoskr':inputs}),201)
-            strt = strftime("%d.%m.%Y %H:%M:%S",gmtime())
+            
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
+    strt = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     strt2 = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     result['input'] = inputs
