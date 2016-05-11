@@ -810,7 +810,7 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
-        blat = call_rtdm.delay("172.28.106.245","responsehistoryevent",inputs)
+        blat = call_rtdm.apple_async("172.28.106.245","responsehistoryevent",inputs)
         return make_response(jsonify({'Ratatoskr':str(blat)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problem occures in delay()'}),418)  
