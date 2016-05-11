@@ -809,7 +809,7 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
-        blat = call_rtdm.apply_async(("172.28.106.245","responsehistoryevent",inputs),retry=False)
+        blat = call_rtdm.delay("172.28.106.245","responsehistoryevent",inputs,kwarg1='dns',kwarg2='event',kwarg3='inputs')
         return make_response(jsonify(blat),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'ne ok'}),418)  
