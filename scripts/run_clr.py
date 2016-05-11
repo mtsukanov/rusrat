@@ -812,7 +812,7 @@ def offer_accept():
         blat = call_rtdm("172.28.106.245","responsehistoryevent",inputs).delay()
         return make_response(jsonify('ok'),201)
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),418)  
+        return make_response(jsonify({'Ratatoskr':'ok'}),418)  
     #return make_response(jsonify(result),201)
      
         #[v for v in result.collect-()
