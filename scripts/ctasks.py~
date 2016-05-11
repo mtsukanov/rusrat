@@ -115,7 +115,7 @@ def call_rtdm(dns,event,inputs):
     #resp = str(payload)+str(r.content)
     #print 'xyi'
     zztop = payload
-    return zztop
+    return resp
     #return resp
 
 

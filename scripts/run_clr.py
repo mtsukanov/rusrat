@@ -808,12 +808,14 @@ def offer_accept():
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     strt = strftime("%d.%m.%Y %H:%M:%S",gmtime())
-    result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
+    #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
+    blat = ctasks.call_rtdm("172.28.106.245","responsehistoryevent",inputs).delay()
     strt2 = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     #result['input'] = inputs
     #result['start'] = strt
     #result['end'] = strt2
-    return make_response(jsonify(result),201)
+    #return make_response(jsonify(result),201)
+     return make_response(jsonify(str(blat)),201)
         #[v for v in result.collect()
         #     if not isinstance(v, (ResultBase, tuple))]
         #return make_response(str(v[1]),201)
