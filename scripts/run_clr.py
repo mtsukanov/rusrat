@@ -811,8 +811,8 @@ def offer_accept():
     try:
         blat = transgen.delay()
         return make_response(jsonify(str(blat)),201)
-    except:
-        return make_response(jsonify({'Ratatoskr':'delay() - gavno'}),418)  
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':str(e)}),418)  
     #return make_response(jsonify(result),201)
      
         #[v for v in result.collect-()
