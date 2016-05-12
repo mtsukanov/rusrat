@@ -811,7 +811,7 @@ def offer_accept():
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
         blat = call_rtdm.apply_async(("172.28.106.245","responsehistoryevent",inputs),retry=True)
-        time.sleep(2)
+        time.sleep(5)
         status = blat.status
         return make_response(jsonify({'Ratatoskr':status}),201)
     except Exception as e:
