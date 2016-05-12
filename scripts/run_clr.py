@@ -1159,6 +1159,11 @@ def banner():
 
 
 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /CreditCard                                                                                                                                                #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
 
 @app.route('/ccard', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -1193,9 +1198,28 @@ def card():
     resp = str(r)
     return make_response(jsonify({"A":r.json()}),201)
 
-
-
-
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /LimitControl                                                                                                                                            #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/limit', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def limit():
+    try:
+        Limit = request.json["Limit"]
+        CID = request.json["CID"]
+    except:
+        return make_response(jsonify({"Ratatoskr":'Limit value is corrupt'}),400)
+    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
+    data = cursor.fetchone()
+    curlimit = int(data[0])
+    if curlimit-Limit > 0:
+        
+    else:
+        return make_response(jsonify({"Ratatoskr":curlimit-Limit}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /LUNA                                                                                                                                                    #
