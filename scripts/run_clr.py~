@@ -1216,7 +1216,10 @@ def limit():
     cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
     curlimit = int(data[0])
-    return make_response(jsonify({"Ratatoskr":curlimit-Limit}),201)
+    if curlimit-Limit > 0:
+        
+    else:
+        return make_response(jsonify({"Ratatoskr":'Limit is exceeded'}),201)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /LUNA                                                                                                                                                    #
