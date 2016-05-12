@@ -115,7 +115,7 @@ def call_rtdm(dns,event,inputs):
     #resp = str(payload)+str(r.content)
     print 'call_rtdm is succeed'
     isok = 'ok'
-    return resp
+    return isok
 
 
 
