@@ -811,7 +811,7 @@ def offer_accept():
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
         blat = call_rtdm.apply_async(("172.28.106.245","responsehistoryevent",inputs),retry=True)   
-        ska = blat.AsyncResult(str(blat)).state    
+        ska = str(blat).AsyncResult(str(blat)).state    
         return make_response(jsonify({'Ratatoskr':ska}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problem occures in delay()'}),418)  
