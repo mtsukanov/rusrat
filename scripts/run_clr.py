@@ -1217,7 +1217,7 @@ def limit():
     data = cursor.fetchone()
     curlimit = int(data[0])
     if curlimit-Limit > 0:
-        trans={'TransID':1,'CardID':1,'AccountID':1'TermID':1,
+        trans={'TransID':1,'CardID':1,'AccountID':1,'TermID':1,
 'TransStatus':1,'TransDate':1,'TransSum':Limit,'TransCurrency':1,'TransType':1,
 'TransInfo':1,'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
         que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
