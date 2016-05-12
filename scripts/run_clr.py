@@ -1209,6 +1209,7 @@ def limit():
     try:
         Limit = request.json["Limit"]
         CID = request.json["CID"]
+        TID = request.json["TID"]
     except:
         return make_response(jsonify({"Ratatoskr":'Limit value is corrupt'}),400)
     conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
@@ -1216,18 +1217,32 @@ def limit():
     cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
     curlimit = int(data[0])
-    if curlimit-Limit > 0:
-        trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':1,
+    cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
+    data = cursor.fetchone()
+    termstatus = int(data[0])
+    if termstatus == "nocash":
+        trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
+'TransInfo':"atmerror",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
+        que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
+        return make_response(jsonify({"Ratatoskr":'ATM has no money'}),202)
+    elif termstatus== "work":
+        if curlimit-Limit >= 0:
+            trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
 'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
 'TransInfo':"",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
-        que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
-        return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
-    else:
-        trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':1,
+            que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
+            return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
+        else:
+            trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
 'TransStatus':'refusal','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
 'TransInfo':"proddetlimit",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
-        que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
-        return make_response(jsonify({"Ratatoskr":'Limit is exceeded'}),201)
+            que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
+            return make_response(jsonify({"Ratatoskr":'Limit is exceeded'}),201)
+    else:
+        return make_response(jsonify({"Ratatoskr":'ATM is out of servce'}),203)
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /LUNA                                                                                                                                                    #
