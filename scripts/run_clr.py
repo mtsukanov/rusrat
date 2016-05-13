@@ -1198,9 +1198,11 @@ def card():
     #resp = str(r)
     try:
         result = call_rtdm.apply_async(("172.28.106.245","scoringevent",inputs),retry=True)    
-        return make_response(jsonify({'Ratatoskr':str(result)}),201)
+        res = call_rtdm.AsyncResult(str(result))
+        return make_response(jsonify({'Ratatoskr':str(res)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418) 
+
     #return make_response(jsonify({"A":r.json()}),201)
 
 #############################################################################################################################################################################################
