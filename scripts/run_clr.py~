@@ -1188,20 +1188,22 @@ def card():
 "AppCarOwner":AppCarOwner,"AppMobile":AppMobile,"AppEmail":AppEmail,"AppJobPos":AppJobPos,"AppIncome":AppIncome,"AppJobExp":AppJobExp}
     
 
-    dns = "172.28.106.245"
-    event = "scoringevent"
+    #dns = "172.28.106.245"
+    #event = "scoringevent"
     #event = "SAS_Activity_echo_string"
     #inputs = {"in_string":"I rule"}
-    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-    payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-    r = requests.post(rtdm_addr,json = payload)
-    resp = str(r)
-    #try:
-    #    result = call_rtdm.apply_async(("172.28.106.245","scoringevent",inputs),retry=True)    
-    #    return make_response(jsonify({'Ratatoskr':str(result)}),201)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':e}),418) 
-    return make_response(jsonify({"A":r.json()}),201)
+    #rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    #payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+    #r = requests.post(rtdm_addr,json = payload)
+    #resp = str(r)
+    try:
+        result = call_rtdm.apply_async(("172.28.106.245","scoringevent",inputs),retry=True)    
+        res = call_rtdm.AsyncResult(str(result))
+        return make_response(jsonify({'Ratatoskr':str(res)}),201)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),418) 
+
+    #return make_response(jsonify({"A":r.json()}),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
