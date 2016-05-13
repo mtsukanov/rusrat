@@ -1213,7 +1213,7 @@ def cardcheck():
     try:
         task = request.json["task_id"]
         res = call_rtdm.AsyncResult(task)
-        return make_response(jsonify({'Ratatoskr':res.get()}),201)
+        return make_response(jsonify({'Ratatoskr':res.ready()}),201)
     except:
         return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
 
