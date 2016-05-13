@@ -1218,7 +1218,7 @@ def cardcheck():
         return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
     while (isready == False):
         isready = res.ready()
-    if isready == True
+    if isready == True:
         return make_response(jsonify({'Ratatoskr':res.get()}),201)  
     
 
