@@ -1198,13 +1198,24 @@ def card():
     #resp = str(r)
     try:
         result = call_rtdm.apply_async(("172.28.106.245","scoringevent",inputs),retry=True)    
-        res = call_rtdm.AsyncResult(str(result))
-        time.sleep(15)
-        return make_response(jsonify({'Ratatoskr':res.result)}),201)
+        #res = call_rtdm.AsyncResult(str(result))
+        #time.sleep(15)
+        return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418) 
 
     #return make_response(jsonify({"A":r.json()}),201)
+
+
+@app.route('/ccard', methods=['PUT'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def cardcheck():
+    try:
+        task = request.json["task_id"]
+        res = AsyncResult(task).get()
+        return make_response(jsonify({'Ratatoskr':task}),201)
+    except:
+        return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
