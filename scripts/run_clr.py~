@@ -1219,7 +1219,7 @@ def limit():
     curlimit = int(data[0])
     cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
     data = cursor.fetchone()
-    termstatus = int(data[0])
+    termstatus = data[0]
     if termstatus == "nocash":
         trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
 'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
