@@ -1212,8 +1212,8 @@ def card():
 def cardcheck():
     try:
         task = request.json["task_id"]
-        res = AsyncResult(task).get()
-        return make_response(jsonify({'Ratatoskr':task}),201)
+        res = call_rtdm.AsyncResult(task)
+        return make_response(jsonify({'Ratatoskr':res.get()}),201)
     except:
         return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
 
