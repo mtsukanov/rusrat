@@ -67,7 +67,7 @@ lunaans = 'never used'
 
 
 app_server = "ruscilab"
-web_server = "labinso.sas.com"
+web_server = "172.28.104.171:5000"
 soa_server = "172.28.104.171:5000"
 sync = 1
 freq_in = 30
@@ -1212,15 +1212,14 @@ def card():
 def cardcheck():
     try:
         task = request.json["task_id"]
-        #res = call_rtdm.AsyncResult(task)
-        #isready = res.ready()
-        return make_response(jsonify({'Ratatoskr':task}),201)  
     except:
         return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
+    res = call_rtdm.AsyncResult(task)
+    #isready = res.ready()
     #while (isready == False):
         #isready = res.ready()
     #if isready == True:
-    #return make_response(jsonify({'Ratatoskr':task}),201)  
+    return make_response(jsonify({'Ratatoskr':res.get()}),201)  
     
 
 #############################################################################################################################################################################################
