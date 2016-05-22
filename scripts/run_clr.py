@@ -1,4 +1,5 @@
 #!/var/beacon/clr/bin/python 
+# coding: utf-8
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         RATATOSKR WEB SERVICES 0.01                                                                                                                                       #
@@ -31,6 +32,7 @@ import pika
 import requests
 import MySQLdb
 import pymssql
+import psycopg2;
 #import transgen
 #from celery.task.control import revoke
 #############################################################################################################################################################################################
@@ -67,12 +69,12 @@ lunaans = 'never used'
 
 
 app_server = "ruscilab"
-web_server = "172.28.104.171:5000"
+web_server = "http://labinfo.sas.com"
 soa_server = "172.28.104.171:5000"
 sync = 1
-freq_in = 30
-freq_out = 5
-freq_sync = 180
+freq_in = 15
+freq_out = 10
+freq_sync = 20
 
 
 #############################################################################################################################################################################################
@@ -177,6 +179,16 @@ def get_all_clients():
     return list_of_images
 
 
+def get_max_eventid_luna():
+    db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
+    cur = db.cursor()
+    query2 = "SELECT MAX(event_id) FROM event"
+    cur.execute(query2)
+    data = cur.fetchone()
+    max_eventid = data[0]
+    return max_eventid
+
+
 #Server start
 app = Flask(__name__)
 
@@ -262,24 +274,12 @@ def create_taskp():
     return msg
 
 
+@app.route('/rus', methods=['GET'])
+def test2rus():
+    Str = request.args.get('p')
+    return jsonify({'Response':'Русские — Википедия','RUS':Str})
 
-@app.route('/a', methods=['POST'])
-def create_task():
-    if not request.json or not 'title' in request.json:
-        abort(418)
-    ntime = strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
-    new_task = {
-    "opcode": "i",
-   # "Test_ID": tasks[-1]["id"] + 1,
-	"Test_ID": "shit",
-   # "": ntime,
-	#"Test_String": request.json["title"]}
-	"Test_String": "Fuck this"}
 
-    x = str(new_task)
-    x = x.replace("'",'"')
-    result = send_mq.delay(x)
-    return 'Success'
 
 
 @app.route('/send', methods=['POST'])
@@ -360,42 +360,240 @@ def test_rtdm():
        
     return o
 
-
-@app.route('/communication', methods=['POST','GET','OPTIONS'])
+@app.route('/geotrigger', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def test_rednet():
-    #global req_path
+def geotrigger():
     try:
-        login =  request.json["login"] 
-        login = request.json["login"]
-        psw = request.json["psw"]
-        phones = request.json["phones"]
-        mes = request.json["mes"]
-        sender = request.json["sender"]
-        try:
-            subj = request.json["subj"] 
-        except:
-            subj = 'undefined'
-        try:
-            mail = request.json["mail"] 
-            req_path = "https://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender+"&subj="+subj+"&mail="+str(mail)
-        except Exception:
-            req_path = "https://smsc.ru/sys/send.php?login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender    
+        cid =  request.json["cid"] 
+        scenario = request.json["scenario"] 
+        beaconid =  request.json["beaconid"] 
+        spotid =  request.json["spotid"] 
+        spotname =  request.json["spotname"] 
+        time =  request.json["time"] 
+        Geo = {
+        'cid' :  cid ,
+        'scenario' : scenario,
+        'beaconid' :  beaconid ,
+        'spotid' :  spotid,
+        'spotname' : spotname,
+        'time' :  time}
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Andrey, your data is corrupted. Look what you did:'+str(e)}),415)   
+
+    return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
+
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /EMAIL                                                                                                                                            #
+#                                                                                                                                                                                           #
+#####################################################################################################################################################
+@app.route('/email', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def email():
+    global req_path
+    try:
+        apikey =  request.args.get("apikey")
+        subject = request.args.get("subject")
+        fromw = request.args.get("from")
+        from_name = request.args.get("from_name")
+        tow = request.args.get("to")
+        charset = request.args.get("charset")
+        template = request.args.get("template")
+        merge_title =  request.args.get("merge_title")
+        merge_firstname = request.args.get("merge_firstname")
+        merge_lastname = request.args.get("merge_lastname")
+        merge_websiteurl = json.loads(request.args.get("merge_websiteurl"))
+        OfferImg = merge_websiteurl["offerimg"]
+        MainTxt = merge_websiteurl["maintxt"]
+        DescTxt = merge_websiteurl["desctxt"]
+        FName = merge_websiteurl["name"]
+        LName = merge_websiteurl["lname"]
+        MName = merge_websiteurl["mname"]
+        ID = merge_websiteurl["id"]
+        url = "http://thebank.sas.com/CreditScoring/creditcard.html%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID
+
+    except:
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
+    req_path =   "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
+    try:
+        r = requests.get(req_path) 
+        answer = r.content
+    except:
+        return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
+    return make_response(jsonify({'Ratatoskr':answer}),200)
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /PostgreSQL                                                                                                                                      #
+#                                                                                                                                                                                           #
+##################################################################################################################################################### 
+maxid = get_max_eventid_luna()
+@app.route('/decode', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def dc():
+    global maxid 
+    Out =[]
+    try:
+        db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),415)
+    cur = db.cursor()
+    query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
+    cur.execute(query)
+    for row in cur.fetchall():
+        Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
+    query2 = "SELECT MAX(event_id) FROM event"
+    cur.execute(query2)
+    data = cur.fetchone()
+    maxid = data[0]
+    #data = cur.fetchall()
+    #cnt = int(data[0][0])
+    return make_response(jsonify({'Ratatoskr':Out}),200)
+
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /SMS                                                                                                                                              #
+#                                                                                                                                                                                           #
+#####################################################################################################################################################
+@app.route('/sms', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def sms():
+    global req_path
+    try:
+        login =  request.args.get("login") 
+        psw = request.args.get("psw")
+        phones = request.args.get("phones")
+        mes = request.args.get("mes")
+        sender = request.args.get("sender")
         #param1 = request.json["param1"]
         #param2 = request.json["param2"]
         #param3 = request.json["param3"]
         #param4 = request.json["param4"] 
     except Exception:
-        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)           
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415) 
+    req_path = "https://smsc.ru/sys/send.php?charset=utf-8&login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender    
     try:
         r = requests.get(req_path) 
         answer = r.content
     except requests.exceptions.RequestException as e:
-        return make_response(jsonify({'Ratatoskr':'connection error'}),111)   
+        return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':'Success!'}),200)
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /MOBILE_GET                                                                                                                                              #o
+#                         BLOCK OF /
+#Save to MSSQL_SERVER                                                                                                                         #
+#                                                                                                                                                                                           #
+####################################################################################################################################################
+@app.route('/mssqlsave', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def mssqlsave():
+    try:
+        CID = request.json["CID"]
+        FirstName = request.args.get("FirstName").encode('utf-8')
+        LastName = request.args.get("LastName").encode('utf-8')
+        MiddleName = request.args.get("MiddleName").encode('utf-8')
+        Passport = request.json["Passport"] 
+        MobileNumber = request.json["MobileNumber"] 
+        Gender = request.json["Gender"] 
+        Age = request.json["Age"] 
+        AgeGroup = request.json["AgeGroup"] 
+        DateOfBirth = request.json["DateOfBirth"] 
+        MaritalStatus = request.json["MaritalStatus"] 
+        Children = request.json["Children"] 
+        Education = request.json["Education"] 
+        Occupation = request.json["Occupation"] 
+        Income = request.json["Income"] 
+        Email = request.json["Email"] 
+        PhoneNumber = request.json["PhoneNumber"] 
+        Vkontakte = request.json["Vkontakte"]
+        Facebook = request.json["Facebook"] 
+        Country = request.args.get("Country").encode('utf-8')
+        City = request.args.get("City").encode('utf-8') 
+        PhotoID = request.json["PhotoID"]  
+        Street = request.args.get("Street").encode('utf-8') 
+        State = request.args.get("State").encode('utf-8') 
+    except:
+        return make_response(jsonify({'Ratatoskr':'Input is incorrect'}),400)    
+    try:
+        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        cursor = conn.cursor()
+    except:
+        return make_response(jsonify({'Ratatoskr':'Connection failed'}),400)  
+    cursor.execute("SELECT COUNT(IndivID) FROM [DataMart].[INDIVIDUAL] WHERE IndivID="+str(CID))
+    data = cursor.fetchone()
+    count = data[0]
+    if count == 0:
+        query1=(
+        "INSERT INTO [DataMart].[INDIVIDUAL] (IndivID) VALUES ("+str(CID)+")"
+        "INSERT INTO [DataMart].[INDIVIDUAL_DEMOGRAPHIC] (IndivID) VALUES ("+str(CID)+")"
+        "INSERT INTO [DataMart].[INDIVIDUAL_SOCIAL] (IndivID) VALUES ("+str(CID)+")"
+        "INSERT INTO [DataMart].[INDIVIDUAL_PASSPORT] (IndivID) VALUES ("+str(CID)+")"
+        )
+        cursor.execute(query1)
+    sql1 = (
+    "UPDATE [DataMart].[INDIVIDUAL] SET "
+    "Forename = '"+str(FirstName)+"',"
+    "Surname='"+str(LastName)+"',"
+    "Middlename='"+str(MiddleName)+"',"
+    "Mobile='"+str(MobileNumber)+"',"
+    "Birthdate='"+str(DateOfBirth)+"',"
+    "Email='"+str(Email)+"',"
+    "Phone='"+str(PhoneNumber)+"',"
+    "PhotoID='"+str(PhotoID)+"'"
+    "WHERE IndivID="+str(CID)+"")
+    sql2 = (
+    "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET "
+    "Gender = '"+str(Gender)+"',"
+    "Age='"+str(Age)+"',"
+    "AgeGroupID='"+str(AgeGroup)+"',"
+    "MartialStatus='"+str(MaritalStatus)+"',"
+    "Children='"+str(Children)+"',"
+    "EducationID='"+str(Education)+"',"
+    "JobID='"+str(Occupation)+"',"
+    "Income='"+str(Income)+"'"
+    "WHERE IndivID="+str(CID)+"")
+    sql3 = (
+    "UPDATE [DataMart].[INDIVIDUAL_PASSPORT] SET "
+    "PassportNumber = '"+str(Passport)+"',"
+    "PassportCountry='"+str(Country)+"',"
+    "PassportCity='"+str(City)+"',"
+    "PassportState='"+str(State)+"',"
+    "PassportStreet='"+str(Street)+"' "
+    "WHERE IndivID="+str(CID)+"")
+    sql4 = (
+    "UPDATE [DataMart].[INDIVIDUAL_SOCIAL] SET "
+    "VkName = '"+str(Vkontakte)+"',"
+    "FacebookName='"+str(Facebook)+"'"
+    "WHERE IndivID="+str(CID)+" COMMIT ")
+    try:
+        cursor.execute(sql1)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL table failed'}),400)  
+    try:
+        cursor.execute(sql2)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_DEMOGRAPHIC table failed'}),400)  
+    try:
+        cursor.execute(sql3)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_PASSPORT table failed'}),400)  
+    try:
+        cursor.execute(sql4)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_SOCIAL table failed'}),400) 
+    return make_response(jsonify({'Ratatoskr':'ok'}),200)    
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /MOBILE_GET                                                                                                                                              #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 @app.route('/mobile_get', methods=['GET'])
@@ -1077,6 +1275,22 @@ def get_atm_status():
             atm_status = False
     return make_response(jsonify({'status':atm_status}),200)
 
+@app.route('/atm_status', methods=['POST'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def set_atm_status():
+    try:
+        TID= request.json["TID"]
+        Status = request.json["Status"]
+    except:
+        return make_response(jsonify({'Ratatoskr':'TID is incorrect'}),400)
+    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    sql=(
+        
+        "UPDATE [TRANSData].[TERMINAL] SET TermStatus='"+Status+"' WHERE TermID="+str(TID)+""
+        "COMMIT")
+    cursor.execute(sql)     
+    return make_response(jsonify({'Ratatoskr':'Terminal status has been updated'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ESP                                                                                                                                                     #
@@ -1215,11 +1429,11 @@ def cardcheck():
     except:
         return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
     res = call_rtdm.AsyncResult(task)
-    #isready = res.ready()
-    #while (isready == False):
-        #isready = res.ready()
-    #if isready == True:
-    return make_response(jsonify({'Ratatoskr':res.get()}),201)  
+    isready = res.ready()
+    while (isready == False):
+        isready = res.ready()
+    if isready == True:
+        return make_response(jsonify({'Ratatoskr':res.get()}),201)  
     
 
 #############################################################################################################################################################################################
