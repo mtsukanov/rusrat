@@ -179,14 +179,7 @@ def get_all_clients():
     return list_of_images
 
 
-def get_max_eventid_luna():
-    db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
-    cur = db.cursor()
-    query2 = "SELECT MAX(event_id) FROM event"
-    cur.execute(query2)
-    data = cur.fetchone()
-    max_eventid = data[0]
-    return max_eventid
+
 
 
 #Server start
