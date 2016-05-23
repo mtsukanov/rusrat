@@ -125,8 +125,9 @@ def post(maxevent):
     #maxid = get_max_eventid_luna()
     maxid = maxevent
     global maxid 
-    Out =[]
     while i==1:
+    time.sleep(4)
+    Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
         except Exception as e:
@@ -135,7 +136,7 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            Out={"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]}
+            Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
         cur.execute(query2)
         data = cur.fetchone()
