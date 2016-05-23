@@ -434,6 +434,7 @@ def email():
 #@app.route('/decode', methods=['POST','GET','OPTIONS'])
 #@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def deco():
+    sleep(3)
     maxid = get_max_eventid_luna()
     result = post.apply_async([maxid])    
     print 'ok'  
