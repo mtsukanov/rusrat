@@ -140,8 +140,8 @@ def post(maxevent):
         cur.execute(query2)
         data = cur.fetchone()
         maxid = data[0]
-        data = cur.fetchall()
-        cnt = int(data[0][0])
+        #data = cur.fetchall()
+        #cnt = int(data[0][0])
         print Out,maxid
         return Out
 
