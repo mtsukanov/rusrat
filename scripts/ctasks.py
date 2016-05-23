@@ -134,10 +134,10 @@ def post(maxevent):
         except Exception as e:
             return e
         cur = db.cursor()
-        query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
+        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            inputs = {"IndivID":int(row[0]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
+            inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
             k = call_rtdm("172.28.106.245","lunaevent",inputs)
             print k,inputs
             Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
