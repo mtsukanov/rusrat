@@ -122,7 +122,7 @@ def post():
     try:
         db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),415)
+        return e
     cur = db.cursor()
     query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
     cur.execute(query)

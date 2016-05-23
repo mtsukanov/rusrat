@@ -5,6 +5,7 @@ from flask import json
 import pika
 import requests
 import MySQLdb
+import psycopg2;
 #import celeryconfig
 from random import randint,choice
 #import transgen
