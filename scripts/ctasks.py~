@@ -135,7 +135,7 @@ def post():
     #data = cur.fetchall()
     #cnt = int(data[0][0])
     print Out
-    return make_response(jsonify({'Ratatoskr':Out}),200)
+    return Out
 
 
 
