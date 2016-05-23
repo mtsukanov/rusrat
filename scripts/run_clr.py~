@@ -16,6 +16,7 @@
 from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
+from celery.task import PeriodicTask
 from time import gmtime, strftime,strptime
 from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
 from datetime import timedelta,datetime
@@ -431,8 +432,8 @@ def email():
 #                                                                                                                                                                                           #
 ##################################################################################################################################################### 
 maxid = get_max_eventid_luna()
-@app.route('/decode', methods=['POST','GET','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+#@app.route('/decode', methods=['POST','GET','OPTIONS'])
+#@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def dc():
     global maxid 
     Out =[]
@@ -451,6 +452,7 @@ def dc():
     maxid = data[0]
     #data = cur.fetchall()
     #cnt = int(data[0][0])
+    print Out
     return make_response(jsonify({'Ratatoskr':Out}),200)
 
 

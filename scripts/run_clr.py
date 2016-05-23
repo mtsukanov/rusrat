@@ -16,6 +16,7 @@
 from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
+from celery.task import PeriodicTask
 from time import gmtime, strftime,strptime
 from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
 from datetime import timedelta,datetime
@@ -431,27 +432,30 @@ def email():
 #                                                                                                                                                                                           #
 ##################################################################################################################################################### 
 maxid = get_max_eventid_luna()
-@app.route('/decode', methods=['POST','GET','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def dc():
-    global maxid 
-    Out =[]
-    try:
-        db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),415)
-    cur = db.cursor()
-    query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
-    cur.execute(query)
-    for row in cur.fetchall():
-        Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
-    query2 = "SELECT MAX(event_id) FROM event"
-    cur.execute(query2)
-    data = cur.fetchone()
-    maxid = data[0]
-    #data = cur.fetchall()
-    #cnt = int(data[0][0])
-    return make_response(jsonify({'Ratatoskr':Out}),200)
+#@app.route('/decode', methods=['POST','GET','OPTIONS'])
+#@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+class ProcessClicksTask(PeriodicTask):
+    run_every = timedelta(seconds=10)
+    def dc():
+        global maxid 
+        Out =[]
+        try:
+            db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
+        except Exception as e:
+            return make_response(jsonify({'Ratatoskr':e}),415)
+        cur = db.cursor()
+        query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
+        cur.execute(query)
+        for row in cur.fetchall():
+            Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
+        query2 = "SELECT MAX(event_id) FROM event"
+        cur.execute(query2)
+        data = cur.fetchone()
+        maxid = data[0]
+        #data = cur.fetchall()
+        #cnt = int(data[0][0])
+        print Out
+        return make_response(jsonify({'Ratatoskr':Out}),200)
 
 
 
