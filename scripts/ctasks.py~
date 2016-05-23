@@ -136,7 +136,7 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            inputs = {"IndivID":row[0],"Channel":"Luna","FotoDT":row[1],"param1":"","param2":"","param3":"","param4":""}
+            inputs = {"IndivID":row[0],"Channel":"Luna","FotoDT":"1992-10-02","param1":"","param2":"","param3":"","param4":""}
             call_rtdm("172.28.106.245","scoringevent",inputs)
             Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
