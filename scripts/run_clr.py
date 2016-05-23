@@ -436,7 +436,8 @@ def email():
 def deco():
     maxid = get_max_eventid_luna()
     result = post.apply_async([maxid])      
-    return make_response(jsonify({'Ratatoskr':result.status}),201)
+    #return make_response(jsonify({'Ratatoskr':result.status}),201)
+deco()
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
