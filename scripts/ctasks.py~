@@ -143,7 +143,6 @@ def post(maxevent):
         #data = cur.fetchall()
         #cnt = int(data[0][0])
         print Out,maxid
-        return Out
 
 
 

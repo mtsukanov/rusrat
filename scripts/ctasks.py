@@ -135,7 +135,7 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
+            Out={"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]}
         query2 = "SELECT MAX(event_id) FROM event"
         cur.execute(query2)
         data = cur.fetchone()
