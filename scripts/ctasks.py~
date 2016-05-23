@@ -116,7 +116,7 @@ def call_rtdm(dns,event,inputs):
     return resp
 
 @app.task
-def postrge():
+def postrge(trail=True):
     global maxid 
     Out =[]
     try:
