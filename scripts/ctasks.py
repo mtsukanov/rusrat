@@ -128,7 +128,8 @@ def call_rtdm(dns,event,inputs):
 
 @app.task(trail=True)
 def post():
-    maxid = get_max_eventid_luna()
+    #maxid = get_max_eventid_luna()
+    maxid = 181
     global maxid 
     Out =[]
     try:
@@ -140,10 +141,10 @@ def post():
     cur.execute(query)
     for row in cur.fetchall():
         Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
-    query2 = "SELECT MAX(event_id) FROM event"
-    cur.execute(query2)
-    data = cur.fetchone()
-    maxid = data[0]
+    #query2 = "SELECT MAX(event_id) FROM event"
+    #cur.execute(query2)
+    #data = cur.fetchone()
+    #maxid = data[0]
     #data = cur.fetchall()
     #cnt = int(data[0][0])
     print Out
