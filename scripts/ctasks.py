@@ -141,7 +141,7 @@ def post(maxevent):
         #k = call_rtdm("172.28.106.245","scoringevent",inputs)
         #print k
         #Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
-        data = strptime(row[1],'%Y-%m-%d %H:%M:%S')
+        data = datetime.datetime.strptime(row[1],'%Y-%m-%d %H:%M:%S')
         print {"FotoDT":data}
     #query2 = "SELECT MAX(event_id) FROM event"
     #cur.execute(query2)
