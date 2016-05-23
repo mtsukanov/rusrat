@@ -433,27 +433,9 @@ def email():
 maxid = get_max_eventid_luna()
 @app.route('/decode', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def dc():
-    global maxid 
-    Out =[]
-    try:
-        db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),415)
-    cur = db.cursor()
-    query = "SELECT event_id,event_time,similarity,first_name,last_name FROM event WHERE event_id >"+str(maxid)
-    cur.execute(query)
-    for row in cur.fetchall():
-        Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
-    query2 = "SELECT MAX(event_id) FROM event"
-    cur.execute(query2)
-    data = cur.fetchone()
-    maxid = data[0]
-    #data = cur.fetchall()
-    #cnt = int(data[0][0])
-    print Out
-    return make_response(jsonify({'Ratatoskr':Out}),200)
-
+def deco():
+    result = dc.apply_async()      
+    return make_response(jsonify({'Ratatoskr':str(result)}),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -496,48 +478,48 @@ def sms():
 def mssqlsave():
     try:
         CID = request.json["CID"]
-        #FirstName = request.args.get("FirstName").encode('utf-8')
-        #LastName = request.args.get("LastName").encode('utf-8')
-        #MiddleName = request.args.get("MiddleName").encode('utf-8')
-        #Passport = request.json["Passport"] 
-        #MobileNumber = request.json["MobileNumber"] 
-        #Gender = request.json["Gender"] 
-        #Age = request.json["Age"] 
-        #AgeGroup = request.json["AgeGroup"] 
-        #DateOfBirth = request.json["DateOfBirth"] 
-        #MaritalStatus = request.json["MaritalStatus"] 
-        #Children = request.json["Children"] 
-        #Education = request.json["Education"] 
-        #Occupation = request.json["Occupation"] 
-        #Income = request.json["Income"] 
-        #Email = request.json["Email"] 
-        #PhoneNumber = request.json["PhoneNumber"] 
-        #Vkontakte = request.json["Vkontakte"]
-        #Facebook = request.json["Facebook"] 
-        #Country = request.args.get("Country").encode('utf-8')
-        #City = request.args.get("City").encode('utf-8') 
-        #PhotoID = request.json["PhotoID"]  
-        #Street = request.args.get("Street").encode('utf-8') 
-        #State = request.args.get("State").encode('utf-8') 
+        FirstName = request.args.get("FirstName").encode('utf-8')
+        LastName = request.args.get("LastName").encode('utf-8')
+        MiddleName = request.args.get("MiddleName").encode('utf-8')
+        Passport = request.json["Passport"] 
+        MobileNumber = request.json["MobileNumber"] 
+        Gender = request.json["Gender"] 
+        Age = request.json["Age"] 
+        AgeGroup = request.json["AgeGroup"] 
+        DateOfBirth = request.json["DateOfBirth"] 
+        MaritalStatus = request.json["MaritalStatus"] 
+        Children = request.json["Children"] 
+        Education = request.json["Education"] 
+        Occupation = request.json["Occupation"] 
+        Income = request.json["Income"] 
+        Email = request.json["Email"] 
+        PhoneNumber = request.json["PhoneNumber"] 
+        Vkontakte = request.json["Vkontakte"]
+        Facebook = request.json["Facebook"] 
+        Country = request.args.get("Country").encode('utf-8')
+        City = request.args.get("City").encode('utf-8') 
+        PhotoID = request.json["PhotoID"]  
+        Street = request.args.get("Street").encode('utf-8') 
+        State = request.args.get("State").encode('utf-8') 
     except:
         return make_response(jsonify({'Ratatoskr':'Input is incorrect'}),400)    
-    #try:
-    #    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
-    #    cursor = conn.cursor()
-    #except:
-    #    return make_response(jsonify({'Ratatoskr':'Connection failed'}),400)  
-    #cursor.execute("SELECT COUNT(IndivID) FROM [DataMart].[INDIVIDUAL] WHERE IndivID="+str(CID))
-    #data = cursor.fetchone()
-    #count = data[0]
-    #if count == 0:
-    #    query1=(
-    #    "INSERT INTO [DataMart].[INDIVIDUAL] (IndivID) VALUES ("+str(CID)+")"
-    #    "INSERT INTO [DataMart].[INDIVIDUAL_DEMOGRAPHIC] (IndivID) VALUES ("+str(CID)+")"
-    #    "INSERT INTO [DataMart].[INDIVIDUAL_SOCIAL] (IndivID) VALUES ("+str(CID)+")"
-    #    "INSERT INTO [DataMart].[INDIVIDUAL_PASSPORT] (IndivID) VALUES ("+str(CID)+")"
-    #    )
-    #    cursor.execute(query1)
-    """sql1 = (
+    try:
+        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        cursor = conn.cursor()
+    except:
+        return make_response(jsonify({'Ratatoskr':'Connection failed'}),400)  
+    cursor.execute("SELECT COUNT(IndivID) FROM [DataMart].[INDIVIDUAL] WHERE IndivID="+str(CID))
+    data = cursor.fetchone()
+    count = data[0]
+    if count == 0:
+        query1=(
+        "INSERT INTO [DataMart].[INDIVIDUAL] (IndivID) VALUES ("+str(CID)+")"
+        "INSERT INTO [DataMart].[INDIVIDUAL_DEMOGRAPHIC] (IndivID) VALUES ("+str(CID)+")"
+        "INSERT INTO [DataMart].[INDIVIDUAL_SOCIAL] (IndivID) VALUES ("+str(CID)+")"
+        "INSERT INTO [DataMart].[INDIVIDUAL_PASSPORT] (IndivID) VALUES ("+str(CID)+")"
+        )
+        cursor.execute(query1)
+    sql1 = (
     "UPDATE [DataMart].[INDIVIDUAL] SET "
     "Forename = '"+str(FirstName)+"',"
     "Surname='"+str(LastName)+"',"
@@ -571,23 +553,23 @@ def mssqlsave():
     "UPDATE [DataMart].[INDIVIDUAL_SOCIAL] SET "
     "VkName = '"+str(Vkontakte)+"',"
     "FacebookName='"+str(Facebook)+"'"
-    "WHERE IndivID="+str(CID)+" COMMIT ")"""
-    #try:
-    #    cursor.execute(sql1)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL table failed'}),400)  
-    #try:
-    #    cursor.execute(sql2)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_DEMOGRAPHIC table failed'}),400)  
-    #try:
-    #    cursor.execute(sql3)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_PASSPORT table failed'}),400)  
-    #try:
-    #    cursor.execute(sql4)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_SOCIAL table failed'}),400) 
+    "WHERE IndivID="+str(CID)+" COMMIT ")
+    try:
+        cursor.execute(sql1)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL table failed'}),400)  
+    try:
+        cursor.execute(sql2)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_DEMOGRAPHIC table failed'}),400)  
+    try:
+        cursor.execute(sql3)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_PASSPORT table failed'}),400)  
+    try:
+        cursor.execute(sql4)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_SOCIAL table failed'}),400) 
     return make_response(jsonify({'Ratatoskr':'ok'}),200)    
 
 
