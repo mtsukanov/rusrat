@@ -434,7 +434,7 @@ maxid = get_max_eventid_luna()
 @app.route('/decode', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def deco():
-    result = ctasks.postrge.apply_async()      
+    result = postrge.apply_async()      
     return make_response(jsonify({'Ratatoskr':str(result)}),201)
 
 #############################################################################################################################################################################################
