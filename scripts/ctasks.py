@@ -138,7 +138,7 @@ def post(maxevent):
         cur.execute(query)
         for row in cur.fetchall():
             inputs = {"IndivID":1,"Channel":"Luna","PhotoDT":'2016-05-23T18:50:11.123456',"param1":"","param2":"","param3":0,"param4":0}
-            k = call_rtdm("172.28.106.245","scoringevent",inputs)
+            k = call_rtdm("172.28.106.245","lunaevent",inputs)
             print k,inputs
             Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
