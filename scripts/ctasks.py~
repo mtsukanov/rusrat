@@ -127,9 +127,9 @@ def call_rtdm(dns,event,inputs):
     return resp
 
 @app.task(trail=True)
-def post():
+def post(maxevent):
     #maxid = get_max_eventid_luna()
-    maxid = 181
+    maxid = maxevent
     global maxid 
     Out =[]
     try:

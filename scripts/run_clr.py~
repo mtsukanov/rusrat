@@ -427,7 +427,8 @@ def email():
 @app.route('/decode', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def deco():
-    result = post.apply_async()      
+    maxid = get_max_eventid_luna()
+    result = post.apply_async((maxid))      
     return make_response(jsonify({'Ratatoskr':str(result)}),201)
 
 #############################################################################################################################################################################################
