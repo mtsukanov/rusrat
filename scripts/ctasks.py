@@ -124,8 +124,7 @@ def call_rtdm(dns,event,inputs):
 @app.task(trail=True)
 def post(maxevent):
     i = 1
-    maxid = get_max_eventid_luna()
-    maxid = 200
+    maxid = maxevent
     global maxid 
     while i==1:
         sleep(7)
