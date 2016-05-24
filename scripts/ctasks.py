@@ -134,12 +134,14 @@ def post(maxevent):
         except Exception as e:
             return e
         cur = db.cursor()
-        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name FROM event WHERE event_id >"+str(maxid)
+        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,photo FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
             if row[2] > 85.00:
-                payload = {"name":row[3],"surname":row[4],"middlename":row[5],"dob":"","id":row[5],"status":"processing","reason":"unknown","location":"camera","area":"retail"}
-                r = requests.post("http://172.28.104.171:5000/active_queue",json = payload)
+                payload1 = {"id":row[5],"image":row[6]}
+                r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
+                payload2 = {"name":row[3],"surname":row[4],"middlename":row[5],"dob":"","id":row[5],"status":"processing","reason":"unknown","location":"camera","area":"retail"}
+                r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
             inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
             k = call_rtdm("172.28.106.245","lunaevent",inputs)
             print k,inputs
