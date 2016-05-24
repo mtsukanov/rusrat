@@ -138,7 +138,7 @@ def post(maxevent):
         cur.execute(query)
         for row in cur.fetchall():
             if row[2] > 85.00:
-                payload = {"name":row[3],"surname":row[4],"middlename":"","dob":"","id":row[5],"status":"camera","reason":"","location":"","area":"retail"}
+                payload = {"name":row[3],"surname":row[4],"middlename":"","dob":"","id":row[5],"status":"","reason":"","location":"camera","area":"retail"}
                 r = requests.post("http://172.28.104.171:5000/active_queue",json = payload)
             inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
             k = call_rtdm("172.28.106.245","lunaevent",inputs)
