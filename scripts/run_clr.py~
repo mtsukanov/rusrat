@@ -151,8 +151,7 @@ def get_client(cid):
     cur.execute(query)
     photoid = 0
     for row in cur.fetchall():
-        output = row
-    
+        output = row 
     return output
 
 def get_cid_byphotoid(photoid):
