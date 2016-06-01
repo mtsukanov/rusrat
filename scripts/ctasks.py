@@ -7,7 +7,8 @@ from flask import json
 import pika
 import requests
 import MySQLdb
-import psycopg2;
+import psycopg2
+import pymssql
 #import celeryconfig
 from random import randint,choice
 #import transgen
@@ -85,6 +86,23 @@ def mysql_select(db_,select_, from_, where_):
     return dataset
 
 
+@app.task(trail=True)
+def mssql_select(schema_,db_,select_, from_, where_):
+    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database=schema_,charset='UTF8')
+    cur = db.cursor()
+    if select_ is None or select_ == '':
+        select_ = '*'
+    if from_ is None or from_ == '':
+        return 'Invalid SQL'
+    query = "SELECT "+select_+" FROM "+db_+"."+from_
+    if (where_ is not None) and (where_ != ''):
+        query += " WHERE "+where_
+    cur.execute(query)
+    dataset = []
+    for row in cur.fetchall():
+        dataset.append(row)
+    return dataset
+
 @app.task
 def send_mq(arg):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -120,6 +138,18 @@ def call_rtdm(dns,event,inputs):
     #resp = str(payload)+str(r.content)
     print 'call_rtdm is succeed'
     return resp
+
+
+@app.task(trail=True)
+def call_service(service,inputs):
+    service_adr = "http://172.28.104.171:5000/"+service
+    payload = inputs
+    r = requests.post(service_adr, json = payload)
+    resp = r.json()
+    #resp = str(payload)+str(r.content)
+    print 'call_service '+service +' is succeed'
+    return resp
+
 
 @app.task(trail=True)
 def post(maxevent):

@@ -17,7 +17,7 @@ from flask import Flask, jsonify, abort,make_response,request,json
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime,strptime
-from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm
+from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm,mssql_select
 from datetime import timedelta,datetime
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -365,7 +365,8 @@ def geotrigger():
     try:
         cid =  request.json["cid"] 
         scenario = request.json["scenario"] 
-        beaconid =  request.json["beaconid"] 
+        beaconid =  request.json["beaconid"]
+        trigger = request.json["trigger"]  
         spotid =  request.json["spotid"] 
         spotname =  request.json["spotname"] 
         time =  request.json["time"] 
@@ -375,11 +376,27 @@ def geotrigger():
         'beaconid' :  beaconid ,
         'spotid' :  spotid,
         'spotname' : spotname,
-        'time' :  time}
+        'time' :  time,
+        'trigger':trigger}
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'Andrey, your data is corrupted. Look what you did:'+str(e)}),415)   
-
-    return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
+        return make_response(jsonify({'Ratatoskr':'Andrey, your data is corrupted. Look what you did:'+str(e)}),415)    
+    try:
+        result_mysql_custdet = mysql_select('thebankfront','FirstName,MiddleName,LastName,CAST(DateOfBirth AS CHAR) ','customers',"CID="+str(cid))
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'SQL request seems to be incorrect. Here is details:'+str(e)}),415) 
+    if spotname == "The Bank":
+        area = "bank"
+    elif spotname == "The Store":
+        area = "retail"
+    for row in result_mysql_custdet:
+        payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"unknown","location":"beacon","area":area}
+    try:
+        result = call_service.apply_async(("active_queue",payload),retry=True)    
+        return make_response(jsonify({'Ratatoskr':str(result)}),201)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),418)   
+    #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
+    return make_response(jsonify({'Ratatoskr':r.json()}),200)
 
 
 
@@ -469,11 +486,38 @@ def sms():
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':'Success!'}),200)
 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /
+#FasetZ                                                                                                                     #
+#                                                                                                                                                                                           #
+####################################################################################################################################################
+
+@app.route('/fasetz', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def fasetz():
+    Arr1 = [1,2,3,4,5,6]
+    Arr2 = [4,5,3,8,11,12,33,1]
+    ArrOut=[]
+    for i in Arr1:
+        for l in Arr2:
+             if i==l:
+                  ArrOut.append(l)
+    return make_response(jsonify({'Ratatoskr':ArrOut}),200)
+
+
+
+
+
+
+
+
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /
-#Save to MSSQL_SERVER                                                                                                                         #
+#Save in MSSQL_SERVER                                                                                                                         #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
 @app.route('/mssqlsave', methods=['POST','GET','OPTIONS'])
@@ -502,6 +546,7 @@ def mssqlsave():
         Country = request.args.get("Country").encode('utf-8')
         City = request.args.get("City").encode('utf-8') 
         PhotoID = request.json["PhotoID"]  
+        LanguageID = request.json["LanguageID"]  
         Street = request.args.get("Street").encode('utf-8') 
         State = request.args.get("State").encode('utf-8') 
     except:
@@ -542,7 +587,8 @@ def mssqlsave():
     "Children='"+str(Children)+"',"
     "EducationID='"+str(Education)+"',"
     "JobID='"+str(Occupation)+"',"
-    "Income='"+str(Income)+"'"
+    "Income='"+str(Income)+"',"
+    "LanguageID='"+str(LanguageID)+"'"
     "WHERE IndivID="+str(CID)+"")
     sql3 = (
     "UPDATE [DataMart].[INDIVIDUAL_PASSPORT] SET "
@@ -584,6 +630,7 @@ def mssqlsave():
 @app.route('/mobile_get', methods=['GET'])
 
 def mobile_get_all():
+    global LastMobileGet
     cid = request.args.get('client_id')
     context = "sync"
     channel = "mobile"
@@ -606,28 +653,51 @@ def mobile_get_all():
     WIFI = []
     GPS = []
     Beacon = []
+    LastMobileGet = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}
     if cid is None:
         query_customers = 'Login is not null'
-        query_tranz = None
+        query_tranz = ''
         query_offers = None
-        query_prods = 't1.PID = t2.PID'
+        query_prods = "WHERE IndivID > 0"
+        query_prods_det = None
         query_beacon = None
         query_wifi = None
         query_gps = None
         try:
-            result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-        except Exception:
-            response = {"Ratatoskr":"Something wrong with offline offers"}
+            #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
+            result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
+            #GET OFFERS
+            for row in result_mssql_offers:
+                offer = {}
+                offer["clientid"] = row[0]
+                offer["offerid"] = row[1]
+                offer["name"] = row[3]
+                offer["duration"] = 12
+                offer["type"] = 'financial'#row[9]
+                offer["description"] = row[4]
+                offer["sum"] = row[6]
+                #offer["image"] = row[5]
+                offer["image"] = ""
+                offer["rate"] = row[7]
+                offer["payment"] = row[19]
+                offer["secret"] = row[15]
+                offer["visibility"] = row[16]
+                offer["priority"] = row[12]
+                offer["generated_dttm"] = row[17]
+                offer["recieved_dttm"] = row[0]
+                offer["termination_dttm"] = row[18]
+                offer["sent_dttm"] = int(round(time.time()*1))
+                Offers.append(offer)
+        except Exception as e:
+            response = {"Ratatoskr":e}
             return make_response(jsonify(response),500)
     else:
         try:
-            dns = "http://"+server_ip+":5000/nbo"
+            #dns = "http://"+server_ip+":5000/nbo"
             inputs = {"cid":int(cid),"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
-"param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
-        
+"param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}       
             dns = "172.28.106.245"
             event = "frontmainevent"
-
             rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
@@ -635,43 +705,49 @@ def mobile_get_all():
             i = 0
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
-                offer = {'i':i,'clientid': resp["outputs"]["cid"], 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
+                #offer = {'i':i,'clientid': int(resp["outputs"]["cid"]), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
+                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priority':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"][i],'termination_dttm':'','type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
-            return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
+            #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
                   
             
         except Exception as e:
             response = {"Ratatoskr":"R:"+str(e)}
-            return make_response(jsonify(response),500)
-      
+            return make_response(jsonify(response),500)      
         try:
             resp = r.json()
             response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(dns)}
-            return make_response(jsonify(response),500)
+            #return make_response(jsonify(response),500)
         except Exception:
             response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(dns)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
-        query_tranz = 'CID ='+cid
-        #query_offers = 'CustomerID ='+cid
-        query_prods = 't1.PID = t2.PID and t1.CID ='+cid
+        query_tranz = "AccountID IN (SELECT AccountID from [DataMart].[Account] WHERE IndivID= "+cid+")"
+        query_offers = 'IndivID ='+cid
+        query_prods = "WHERE IndivID ="+cid
         query_beacon = None
         query_wifi = None
         query_gps = None
     try:
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
-        result_mysql_tranz = mysql_select('thebankfront',None,'transhistory',query_tranz)
-        #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
-        result_mysql_prods = mysql_select('thebankfront','t1.CID, t2.PName, t2.PDesc, t1.PAmount,t2.PImage, t1.PRate, t1.PPayment, t2.PID, t1.PStart, t1.PEnd','customers as t0 inner join productdetails as t1 inner join products as t2',query_prods)
+        result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
+        result_mssql_tranz = mssql_select('CIDB','TRANSData','TermID,TransSum,TransDate,TransID,AccountID','[TRANSACTION]',query_tranz)
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
-    except Exception:
-        response = {"Ratatoskr":"Your request made me sick. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."}
+        db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+        cur = db.cursor()
+        query = (
+        " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t3.IndivId,t1.ProdDetValidFrom,t1.ProdDetValidTo,t2.ProdType "
+        " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID"
+        " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT]"+query_prods+")")
+        cur.execute(query)
+    except Exception as e:
+        response = {"Ratatoskr":e}
         return make_response(jsonify(response),500)
-
+        #"Your request made me sicks. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."
 #GET CLIENTS
     for row in result_mysql_sel:
         client = {}
@@ -685,45 +761,22 @@ def mobile_get_all():
         client["password"] = row[28]
         client["loyaltyscore"] = row[29]
         Clients.append(client)
-#GET OFFERS
-    for row in result_mysql_offers:
-        offer = {}
-        offer["clientid"] = row[0]
-        offer["offerid"] = row[1]
-        offer["name"] = row[3]
-        offer["duration"] = 12
-        offer["type"] = 'financial'#row[9]
-        offer["description"] = row[4]
-        offer["sum"] = row[6]
-        #offer["image"] = row[5]
-        offer["image"] = ""
-        offer["rate"] = row[7]
-        offer["payment"] = row[19]
-        offer["secret"] = row[15]
-        offer["visibility"] = row[16]
-        offer["priority"] = row[12]
-        offer["generated_dttm"] = row[17]
-        offer["recieved_dttm"] = row[0]
-        offer["termination_dttm"] = row[18]
-        offer["sent_dttm"] = int(round(time.time()*1))
-        Offers.append(offer)
 #GET PRODUCTS
-    for row in result_mysql_prods:
+    for row in cur.fetchall():
         product = {} 
-        product["clientid"] = row[0]
-        product["name"] = row[1]
-        product["type"] = 'financial'#row[9]
-        product["description"] = row[2]
-        product["sum"] = row[3]
-        product["duration"] = 12
+        product["clientid"] = int(row[10])
+        product["sum"] = row[1]
+        product["duration"] = row[3]
         #product["image"] = row[4]
         product["image"] = ""
-        product["rate"] = row[5]
-        product["payment"] = row[6]
-        product["productid"] = row[7]
-        product["purchased_dttm"] = str(row[8])#str(row[8].day)+"."+str(row[8].month)+"."+str(row[8].year)
-        product["exparation_dttm"] = str(row[9])
-
+        product["rate"] = row[0]
+        product["payment"] = row[2]
+        product["productid"] = row[5]
+        product["purchased_dttm"] = row[11]#str(row[8].day)+"."+str(row[8].month)+"."+str(row[8].year)
+        product["exparation_dttm"] = row[12]#str(row[9])
+        product["name"] = row[4]    
+        product["type"] = row[13]#row[9]
+        product["description"] = row[7]
         Products.append(product)
 
 #GET SETTINGS
@@ -739,13 +792,13 @@ def mobile_get_all():
     "freq_sync" : freq_sync}
     Settings.append(setting)
 #GET TRANSACTIONS
-    for row in result_mysql_tranz:
+    for row in result_mssql_tranz:
         tranz = {}
-        tranz["tranid"] = row[0]
-        tranz["agent"] = row[1]
-        tranz["sum"] = row[4]
-        tranz["tran_dttm"] = "1400000"
-        tranz["clientid"] = row[2]
+        tranz["tranid"] = row[3]
+        tranz["agent"] = row[0]
+        tranz["sum"] = row[1]
+        tranz["tran_dttm"] ="140451295"
+        tranz["clientid"] =  mssql_select('CIDB','DataMart','CAST(IndivID AS INT)','[ACCOUNT]','AccountID='+str(row[4]))[0][0]
         Transactions.append(tranz)
 #GET WIFI
     for row in result_mysql_wifi:
@@ -767,7 +820,7 @@ def mobile_get_all():
         gps = {}
         gps["id"] = row[0]
         gps["latitude"] = row[1]
-        gps["longitude"] = row[3]
+        gps["longitude"] = row[2]
         GPS.append(gps)
 
    
@@ -798,11 +851,15 @@ def getresponsehistory():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /MOBILE_POST                                                                                                                                             #
+#                         BLOCK OF /mtsukanov                                                                                                                                             #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/mobile_post', methods=['POST'])
+HistArr=[]
+@app.route('/mobile_post', methods=['POST','GET'])
 def mobile_post_all():
+    global LastMobile
+    global HistArr
+    HistArr.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):request.data})
     try:
         sys = request.json['sys']
         wifi = request.json['wifi']
@@ -810,21 +867,142 @@ def mobile_post_all():
         gps = request.json['gps']
         trigger =  request.json['trigger']
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
+        LastMobile = message
         result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
+@app.route('/hist', methods=['GET'])
+def hist():
+    var = HistArr
+    return make_response(jsonify({"Ratatoskr":var}),200)
+
+
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
+#                         BLOCK OF /GET LAST RESULTS                                                                                                                                           #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/rtdm_test', methods=['POST'])
-def testis():
-    zayka = ''
-    zayka = str(request)
-    return make_response(jsonify({'Ratatoskr':zayka}),418)
+@app.route('/getlast', methods=['GET'])
+def lastrequest():
+    try:
+        launch = LastLaunch
+    except:
+        launch = "The service hasn't been requested after server reboot"
+    try:
+        offer = LastOffer
+    except:
+        offer = "The service hasn't been requested after server reboot"
+    try:
+        mobile = LastMobile
+    except:
+        mobile = "The service hasn't been requested after server reboot"
+    try:
+        sync = LastSync
+    except:
+        sync = "The service hasn't been requested after server reboot"
+    try:
+        mobileget = LastMobileGet
+    except:
+        mobileget = "The service hasn't been requested after server reboot"
+    try:
+        return make_response(jsonify({'launch':launch,'offer_accept':offer,'mobile_post':mobile,'sync_updt':sync,'mobile_get':mobileget}),200)
+    except Exception:
+        return make_response(jsonify({'Ratatoskr':'Some error occures'}),415)
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /GET ANALYTICS DATA                                                                                                                                         #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/get_analytics', methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def get_analytics():
+    try:
+        cid = request.json['cid']
+    except Exception:
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
+    tr = []
+    aggr = []
+    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    mssql_accid = ("SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid)
+    cur = db.cursor()
+    cur.execute(mssql_accid)  
+    for row in cur.fetchall(): 
+        msssql_trans_query = "AccountID = "+ str(int(row[0]))+"AND TransStatus = 'ok'"
+        mssql_trans = mssql_select('CIDB','[TRANSData]','TransDate,TransSum,TransType,TermID','[TRANSACTION]', msssql_trans_query)
+        for row2 in mssql_trans:
+             trans = {}
+             trans['TransData'] = row2[0]
+             trans['Sum'] = row2[1]
+             trans['Type'] = row2[2]
+             trans['TermID'] = row2[3]
+             trans['MCC'] = int(mssql_select('CIDB','[TRANSData]','MCC','[Terminal]','TermID = '+str(trans['TermID']))[0][0])
+             trans['Category'] = mssql_select('CIDB','[TRANSData]','MCCName','[MCC]','MCC = '+str(int(trans['MCC'])))[0][0]
+             trans['Lat'] = mssql_select('CIDB','[TRANSData]','TermLatitude','[Terminal]','TermID = '+str(trans['TermID']))[0][0]
+             trans['Lon'] = mssql_select('CIDB','[TRANSData]','TermLongitude','[Terminal]','TermID = '+str(trans['TermID']))[0][0]
+             trans['Account'] = int(row[0])
+             tr.append(trans)     
+    mssql_agrr = (
+    "SELECT SUM(TransSum)/(SELECT SUM(TransSum) from [CIDB].[TRANSData].[TRANSACTION] WHERE TransType =1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+") AND TransStatus = 'ok')*100,SUM(TransSum) as Sum,t2.MCC,t3.MCCName "
+    "FROM [CIDB].[TRANSData].[TRANSACTION] as t1 inner join [CIDB].[TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [CIDB].[TRANSData].[MCC] as t3 on t2.MCC=t3.MCC "
+    "WHERE t1.TransType =1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+") AND TransStatus = 'ok'"
+    "GROUP BY t1.TermID,t2.MCC,t3.MCCName")
+    cur = db.cursor()
+    cur.execute(mssql_agrr)
+    for row in cur.fetchall():
+        aggegate = {}
+        aggegate['Percent'] = row[0]
+        aggegate['Sum'] = row[1]  
+        aggegate['Category'] = row[3]
+        aggr.append(aggegate)
+    return make_response(jsonify({'Transaction_list':tr,'Aggregate':aggr}),200)
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /NEW PRODUCTS                                                                                                                                    #
+#                                                                                                                                                                                           #
+#############################################################################################################################################################################################
+@app.route('/new_products', methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def new_products():
+    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cid = request.args.get('cid')
+    proddetid = request.args.get('proddetid')
+    if (proddetid is not None):
+        cur = db.cursor()
+        query = (
+        " SELECT ProdImgID FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID =  t2.ProdID WHERE t1.ProdDetId = "+proddetid)
+        cur.execute(query)
+        details = cur.fetchone()
+        proddet = {}
+        proddet['ImageID'] = details[0]
+        return make_response(jsonify({'ProductsDetails':proddet}),200)
+    if (cid is not None):
+        Products=[]         
+        cur = db.cursor()
+        query = (
+        " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t1.ProdDetValidFrom,t1.ProdDetValidTo"
+        " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID"
+        " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        cur.execute(query)
+        for row in cur.fetchall():
+            prods = {}
+            prods['Rate'] = row[0]
+            prods['Amount'] = row[1]
+            prods['Payment'] = row[2]
+            prods['Duration'] = row[3]
+            prods['Name'] = row[4]
+            prods['ProductID'] = row[5]
+            prods['Description'] = row[7]
+            prods['FromDate'] = row[10]
+            prods['ToDate'] = row[11]
+            Products.append(prods)
+        return make_response(jsonify({'Products':Products}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
@@ -832,7 +1010,7 @@ def testis():
 #############################################################################################################################################################################################
 @app.route('/sync_updt', methods=['POST'])
 def sync_updt():
-
+    global LastSync
     global app_server
     global web_server
     global soa_server
@@ -840,6 +1018,7 @@ def sync_updt():
     global freq_in
     global freq_out
     global freq_sync
+    global Settings
     try:
         app_server = request.json['app_server']
         web_server = request.json['web_server']
@@ -848,7 +1027,7 @@ def sync_updt():
         freq_in = request.json['freq_in']
         freq_out = request.json['freq_out']
         freq_sync = request.json['freq_sync']
-
+        LastSync = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"app_server":app_server,"web_server":web_server,"soa_server":soa_server,"sync":sync,"freq_in":freq_in,"freq_out":freq_out,"freq_sync":freq_sync}
         Settings =     {
     "app_server" : app_server,
     "web_server" : web_server,
@@ -895,6 +1074,7 @@ def send_options2():
 @app.route('/offer_accept', methods=['POST','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_accept():
+    global LastOffer
     try: 
         visibility = request.json['visibility']
         option = 0
@@ -909,7 +1089,8 @@ def offer_accept():
             accepted_dttm = request.json['accepted_dttm']
             cid = request.json['clientid']
             offerid = request.json['offerid']
-        
+            #LastOffer = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"type":context,"visibility":visibility,"priority":priority,"accepted_dttm":accepted_dttm,"cid":cid,"offerid":offerid}
+            LastOffer = request.data
             channel = 'mobile_app'
             resptype = 'direct'
             device = 'in future releases'
@@ -923,7 +1104,7 @@ def offer_accept():
             else:
                 respname = "undefined"
                 respid = None
-    
+    #.isoformat(sep='T')
             inputs = {"cid":cid,
 "channel": channel,
 "context" : context,
@@ -932,7 +1113,7 @@ def offer_accept():
 "resptype" : resptype,
 "respname" : respname,
 "respid" : respid,
-"resptime" : accepted_dttm,
+"resptime" : datetime.datetime.now().isoformat(sep='T'),
 "resptimestr" : str(accepted_dttm),
 "param1" : None,
 "param2" : None,
@@ -942,8 +1123,8 @@ def offer_accept():
 "param6" : None,
 "param7" : None}
             #return make_response(jsonify({'Ratatoskr':'request processed'}),201)
-        except Exception:
-            return make_response(jsonify({'Ratatoskr':'error processing mobile'}),415)       
+        except Exception as e:
+            return make_response(jsonify({'Ratatoskr':e}),415)       
     else:
         try:
             cid = request.json['cid']
@@ -1011,13 +1192,14 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
+    global LastLaunch
     try:
         clientid = request.json['clientid']
         login = request.json['login']
         password = request.json['password']
         scenario = request.json['scenario']
         Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
-
+        LastLaunch = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"clientid":clientid,"login":login,"password":password,"scenario":scenario}
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
 
@@ -1057,26 +1239,6 @@ def transgenerate():
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
 
-@app.route('/mssql', methods=['GET','POST'])
-def mssql():
-    try:
-        accountid = 13
-        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
-        cursor = conn.cursor()
-        cursor.execute('SELECT AccountType FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
-        data = cursor.fetchone()
-        acctype = data[0]
-        cursor.execute('SELECT AccountAmount,ProdDetID FROM [DataMart].[ACCOUNT] where AccountID='+str(accountid))
-        data = cursor.fetchone()
-        accamm = data[0]
-        prodid = data[1]
-        cursor.execute('SELECT ProdDetLimit FROM [DataMart].[PRODUCTDETAILS] where ProdDetID='+str(prodid))
-        data = cursor.fetchone()
-        prodlmit = data[0]
-        print 'accamm= '+str(accamm)+", prod= "+str(prodlmit)
-        return make_response(jsonify({'Ratatoskr':'ok'}),200)
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),415)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ACTIVE_QUEUE                                                                                                                                     #
@@ -1342,7 +1504,7 @@ def banner():
         elif banner_id == 'right':
             banner_code = '<div style="height:400px;width:350px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'  
         elif banner_id == 'leftdown':
-            banner_code = '<div style="height:400px;width:250px;background-image:url(http://www.evro-almaz.by/images/app/leftdown_1.png);background-size:cover"><div style="background-color:white;opacity:0.5;border-radius:14px;position:relative;text-align:center;top:80%"><h3>Do not miss</h3></div></div>'  
+            banner_code = '<div style="heighOrion123t:400px;width:250px;background-image:url(http://www.evro-almaz.by/images/app/leftdown_1.png);background-size:cover"><div style="background-color:white;opacity:0.5;border-radius:14px;position:relative;text-align:center;top:80%"><h3>Do not miss</h3></div></div>'  
         elif banner_id == 'left':
             banner_code = '<div style="height:170px;width:255px;background-image:url(http://www.evro-almaz.by/images/app/deleft_1.png);background-size:cover"></div>'  
         else:
@@ -1433,6 +1595,7 @@ def limit():
         Limit = request.json["Limit"]
         CID = request.json["CID"]
         TID = request.json["TID"]
+        Type = request.json["Type"]
     except:
         return make_response(jsonify({"Ratatoskr":'input values are corrupt'}),400)
     conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
@@ -1445,20 +1608,20 @@ def limit():
     termstatus = data[0]
     if termstatus == "nocash":
         trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
-'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
+'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"atmerror",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
         que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
         return make_response(jsonify({"Ratatoskr":'ATM has no money'}),202)
     elif termstatus == "work":
         if curlimit-Limit >= 0:
             trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
-'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
+'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
             return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
         else:
             trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
-'TransStatus':'refusal','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':2,
+'TransStatus':'refusal','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"proddetlimit",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
             return make_response(jsonify({"Ratatoskr":'Limit is exceeded'}),201)
