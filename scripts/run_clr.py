@@ -389,12 +389,15 @@ def geotrigger():
     elif spotname == "The Store":
         area = "retail"
     for row in result_mysql_custdet:
-        payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"unknown","location":"beacon","area":area}
+        payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"unknown","location":spotname,"area":area}
     try:
         result = call_service.apply_async(("active_queue",payload),retry=True)    
-        return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),418)   
+        return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),418)  
+    try:
+        rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),418)    
     #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
     return make_response(jsonify({'Ratatoskr':r.json()}),200)
 
