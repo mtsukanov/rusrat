@@ -397,9 +397,9 @@ def geotrigger():
     try:
         rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),418)    
-    #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
-    return make_response(jsonify({'Ratatoskr':r.json()}),200)
+        return make_response(jsonify({'Ratatoskr':'Some problems with RTDM request.Further details: '+str(e)}),418)    
+    return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
+    #return make_response(jsonify({'Ratatoskr':r.json()}),200)
 
 
 
