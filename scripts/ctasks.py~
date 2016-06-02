@@ -167,10 +167,13 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
+            sleep(1)
             timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = '"+str(row[5])+"' ORDER BY event_time DESC"
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
+            print lasttimereq+timedelta(minutes=5)
+            print datetime.now()
             print lasttimereq+timedelta(minutes=5) > datetime.now()
             #if row[2] > 85.00:
             #    payload1 = {"id":row[5],"image":str(row[6])}

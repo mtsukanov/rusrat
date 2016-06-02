@@ -157,7 +157,7 @@ def post(maxevent):
     maxid = maxevent
     global maxid 
     while i==1:
-        sleep(7)
+        sleep(5)
         Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
@@ -167,6 +167,7 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
+            sleep(1)
             timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = '"+str(row[5])+"' ORDER BY event_time DESC"
             cur.execute(timequery)
             data = cur.fetchone()
