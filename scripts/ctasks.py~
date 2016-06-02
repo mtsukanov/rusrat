@@ -165,7 +165,7 @@ def post(maxevent):
         except Exception as e:
             return e
         cur = db.cursor()
-        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,photo,birth_date FROM event WHERE event_id >"+str(maxid)
+        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
             sleep(1)
