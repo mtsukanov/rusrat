@@ -167,7 +167,7 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = "+str(row[5])+" ORDER BY event_time DESC"
+            timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = '"+str(row[5])+"' ORDER BY event_time DESC"
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
