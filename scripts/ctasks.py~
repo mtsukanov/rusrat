@@ -169,7 +169,7 @@ def post(maxevent):
         for row in cur.fetchall():
             sleep(1)
             timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = '"+str(row[5])+"' ORDER BY event_time DESC"
-            cur.execute(timequery)'
+            cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
             if datetime.now() - lasttimereq+ < timedelta(minutes=5) and row[2] > 85.00:
