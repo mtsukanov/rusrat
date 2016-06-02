@@ -173,15 +173,15 @@ def post(maxevent):
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
-            sleep(2)
-            if datetime.now() - lasttimereq > timedelta(minutes=5) and row[2] > 85.00:
-                payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
-                r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
-                payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
-                r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
+            sleep(2)           
+            payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
+            r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
+            payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
+            r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
+            if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now()),"trigger":"Luna"}
                 r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
                 Out.append({"event_id":row[0],"event_time":str(row[1]),"similarity":row[2],"first_name":row[3],"last_name":row[4]})
