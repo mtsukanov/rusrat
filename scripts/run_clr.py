@@ -371,10 +371,10 @@ def geotrigger():
         spotname =  request.json["spotname"] 
         time =  request.json["time"] 
         Geo = {
-        'cid' :  cid ,
+        'cid' :  int(cid) ,
         'scenario' : scenario,
         'beaconid' :  beaconid ,
-        'spotid' :  spotid,
+        'spotid' :  int(spotid),
         'spotname' : spotname,
         'time' :  datetime.datetime.strptime(time,"%Y-%m-%d %H:%M:%S.%f").isoformat(sep='T'),
         'trigger':trigger}
