@@ -139,6 +139,18 @@ def call_rtdm(dns,event,inputs):
     print 'call_rtdm is succeed'
     return resp
 
+
+@app.task(trail=True)
+def call_service(service,inputs):
+    service_adr = "http://172.28.104.171:5000/"+service
+    payload = inputs
+    r = requests.post(service_adr, json = payload)
+    resp = r.json()
+    #resp = str(payload)+str(r.content)
+    print 'call_service '+service +' is succeed'
+    return resp
+
+
 @app.task(trail=True)
 def post(maxevent):
     i = 1
