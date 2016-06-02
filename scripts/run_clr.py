@@ -376,7 +376,7 @@ def geotrigger():
         'beaconid' :  beaconid ,
         'spotid' :  spotid,
         'spotname' : spotname,
-        'time' :  time,
+        'time' :  time.isoformat(sep="T"),
         'trigger':trigger}
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Andrey, your data is corrupted. Look what you did:'+str(e)}),415)    
