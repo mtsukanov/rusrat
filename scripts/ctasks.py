@@ -160,7 +160,7 @@ def post(maxevent):
     while i==1:
         sleep(10)
         Out =[] 
-        try:
+        try:d
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
         except Exception as e:
             return e
@@ -176,8 +176,8 @@ def post(maxevent):
             if row[2] > 85.00:
                 payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
                 r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
-                #payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":row[5],"status":"processing","reason":"unknown","location":"camera","area":"retail"}
-                #r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
+                payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":row[5],"status":"processing","reason":"unknown","location":"camera","area":"retail"}
+                r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
