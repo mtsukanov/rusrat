@@ -157,7 +157,7 @@ def post(maxevent):
     maxid = maxevent
     global maxid 
     while i==1:
-        sleep(7)
+        sleep(5)
         Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
@@ -172,18 +172,15 @@ def post(maxevent):
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
-            print lasttimereq+timedelta(minutes=5)
-            print datetime.now()
-            print lasttimereq+timedelta(minutes=5) > datetime.now()
-            #if row[2] > 85.00:
-            #    payload1 = {"id":row[5],"image":str(row[6])}
-            #    r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
-            #    payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":row[5],"status":"processing","reason":"unknown","location":"camera","area":"retail"}
-            #    r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
-            #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
-            #k = call_rtdm("172.28.106.245","lunaevent",inputs)
-            #print k,inputs
-            #Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
+            if lasttimereq+timedelta(minutes=5) < datetime.now() and row[2] > 85.00:
+                payload1 = {"id":row[5],"image":str(row[6])}
+                r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
+                payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":row[5],"status":"processing","reason":"unknown","location":"camera","area":"retail"}
+                r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
+                #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
+                #k = call_rtdm("172.28.106.245","lunaevent",inputs)
+                #print k,inputs
+                #Out.append({"event_id":row[0],"event_time":row[1],"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
         cur.execute(query2)
         data = cur.fetchone()
