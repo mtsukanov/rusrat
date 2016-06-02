@@ -383,13 +383,13 @@ def geotrigger():
     try:
         result_mysql_custdet = mysql_select('thebankfront','FirstName,MiddleName,LastName,CAST(DateOfBirth AS CHAR) ','customers',"CID="+str(cid))
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'SQL request seems to be incorrect. Here is details:'+str(e)}),416) 
+        return make_response(jsonify({'Ratatoskr':'SQL request seems to be incorrect. Here are details:'+str(e)}),416) 
     if spotname == "The Bank":
         area = "bank"
     elif spotname == "The Store":
         area = "retail"
     for row in result_mysql_custdet:
-        payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"unknown","location":spotname,"area":area}
+        payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"visit","location":spotname,"area":area}
     try:
         result = call_service.apply_async(("active_queue",payload),retry=True)    
     except Exception as e:

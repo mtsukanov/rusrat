@@ -371,10 +371,10 @@ def geotrigger():
         spotname =  request.json["spotname"] 
         time =  request.json["time"] 
         Geo = {
-        'cid' :  cid ,
+        'cid' :  int(cid) ,
         'scenario' : scenario,
         'beaconid' :  beaconid ,
-        'spotid' :  spotid,
+        'spotid' :  int(spotid),
         'spotname' : spotname,
         'time' :  datetime.datetime.strptime(time,"%Y-%m-%d %H:%M:%S.%f").isoformat(sep='T'),
         'trigger':trigger}
@@ -383,7 +383,7 @@ def geotrigger():
     try:
         result_mysql_custdet = mysql_select('thebankfront','FirstName,MiddleName,LastName,CAST(DateOfBirth AS CHAR) ','customers',"CID="+str(cid))
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'SQL request seems to be incorrect. Here is details:'+str(e)}),416) 
+        return make_response(jsonify({'Ratatoskr':'SQL request seems to be incorrect. Here are details:'+str(e)}),416) 
     if spotname == "The Bank":
         area = "bank"
     elif spotname == "The Store":
