@@ -158,7 +158,7 @@ def post(maxevent):
     maxid = maxevent
     global maxid 
     while i==1:
-        sleep(10)
+        sleep(5)
         Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
@@ -181,6 +181,7 @@ def post(maxevent):
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
+            sleep(2)
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now()),"trigger":"Luna"}
                 r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
