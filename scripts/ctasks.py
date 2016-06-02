@@ -171,8 +171,7 @@ def post(maxevent):
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
-            print lasttimereq+timedelta(minutes=5)
-            print datetime.now()
+            print lasttimereq+timedelta(minutes=5) > datetime.now()
             #if row[2] > 85.00:
             #    payload1 = {"id":row[5],"image":str(row[6])}
             #    r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
