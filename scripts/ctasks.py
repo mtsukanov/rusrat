@@ -168,12 +168,13 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            sleep(1)
+            sleep(2)
             timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = '"+str(row[5])+"' ORDER BY event_time DESC"
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
-            if row[2] > 85.00:
+            sleep(2)
+            if datetime.now() - lasttimereq < timedelta(minutes=5) and row[2] > 85.00:
                 payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
                 r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
                 payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
@@ -191,7 +192,7 @@ def post(maxevent):
         #data = cur.fetchall()
         #cnt = int(data[0][0])
         print Out,maxid
-#datetime.now() - lasttimereq < timedelta(minutes=5) and
+
 
 
 if __name__ == '__main__':
