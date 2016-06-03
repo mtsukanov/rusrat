@@ -388,12 +388,13 @@ def geotrigger():
         area = "bank"
     elif spotname == "The Store":
         area = "retail"
-    for row in result_mysql_custdet:
-        payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"visit","location":spotname,"area":area}
-    try:
-        result = call_service.apply_async(("active_queue",payload),retry=True)    
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),417)  
+    if trigger != 'Luna':
+        for row in result_mysql_custdet:
+            payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"visit","location":spotname,"area":area}
+        try:
+            result = call_service.apply_async(("active_queue",payload),retry=True)    
+        except Exception as e:
+            return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),417)  
     try:
         rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
     except Exception as e:
