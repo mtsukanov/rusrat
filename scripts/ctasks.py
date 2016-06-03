@@ -167,9 +167,9 @@ def post(maxevent):
         cur = db.cursor()
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
-        query2 = "SELECT count(*) FROM event WHERE event_id >"+str(maxid)
-        cur.execute(query2)
-        data = cur.fetchone()
+        #query2 = "SELECT count(*) FROM event WHERE event_id >"+str(maxid)
+        #cur.execute(query2)
+        #data = cur.fetchone()
         print "count = "+str(data[0])
         for row in cur.fetchall():
             cur2 = db.cursor()
