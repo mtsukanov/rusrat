@@ -183,7 +183,6 @@ def post(maxevent):
             sleep(1)
             lasttimereq = data[0]
             sleep(1)
-            print row[8]
             #sleep(2)           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
             sleep(1)
