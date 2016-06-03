@@ -155,8 +155,8 @@ def call_service(service,inputs):
 @app.task(trail=True)
 def post(maxevent):
     i = 1
-    maxid = maxevent
-    global maxid 
+    maxid = 7
+    #global maxid 
     while i==1:
         sleep(10)
         Out =[] 
