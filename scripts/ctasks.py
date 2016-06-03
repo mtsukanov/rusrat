@@ -165,7 +165,7 @@ def post(maxevent):
         except Exception as e:
             return e
         cur = db.cursor()
-        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
+        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date,count(*) as cnt FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
             sleep(1)
@@ -179,7 +179,7 @@ def post(maxevent):
             sleep(1)
             lasttimereq = data[0]
             sleep(1)
-            print "CID= "+str(row[5])+" ; time= "+str(lasttimereq)
+            print row[8]
             #sleep(2)           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
             sleep(1)
