@@ -186,7 +186,7 @@ def post(maxevent):
             print "it works"
                 #print k,inputs
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
-                payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().strftime("%m/%d/%y %H:%M:%S")),"trigger":"Luna"}
+                payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
                 r3= call_rtdm.apply_async(("172.28.106.245","geomainevent",payload3),retry=False)
                 Out.append({"event_id":row[0],"event_time":str(row[1]),"similarity":row[2],"first_name":row[3],"last_name":row[4]})
