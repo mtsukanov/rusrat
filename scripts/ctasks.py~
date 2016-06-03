@@ -173,7 +173,7 @@ def post(maxevent):
         #print "count = "+str(data[0])
         for row in cur.fetchall():
             cur2 = db.cursor()
-            timequery = "SELECT MAX(event_time) FROM event WHERE middle_name = '"+str(row[5])+"'"
+            timequery = "SELECT MAX(event_time) FROM event WHERE middle_name = '"+str(row[5])+"' and event_id <> "+str(row[0])
             cur2.execute(timequery)
             data = cur2.fetchone()
             lasttimereq = data[0]        
