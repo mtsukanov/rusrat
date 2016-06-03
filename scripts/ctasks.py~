@@ -169,10 +169,9 @@ def post(maxevent):
         cur.execute(query)
         for row in cur.fetchall():
             #sleep(2)
-            cur2 = db.cursor()
             timequery = "SELECT max(event_time) FROM event WHERE middle_name = '"+str(row[5])
-            cur2.execute(timequery)
-            data = cur2.fetchone()
+            cur.execute(timequery)
+            data = cur.fetchone()
             lasttimereq = data[0]
             #sleep(2)           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
