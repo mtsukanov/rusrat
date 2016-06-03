@@ -155,10 +155,10 @@ def call_service(service,inputs):
 @app.task(trail=True)
 def post(maxevent):
     i = 1
-    maxid = 7
-    #global maxid 
+    maxid = maxevent
+    global maxid 
     while i==1:
-        sleep(10)
+        sleep(5)
         Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
@@ -182,11 +182,10 @@ def post(maxevent):
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
             sleep(2)
-        if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
-            payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().strftime("%m/%d/%y %H:%M:%S")),"trigger":"Luna"}
-            #rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",payload3),retry=True)
-            r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
-            Out.append({"event_id":row[0],"event_time":str(row[1]),"similarity":row[2],"first_name":row[3],"last_name":row[4]})
+            if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
+                payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().strftime("%m/%d/%y %H:%M:%S")),"trigger":"Luna"}
+                r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
+                Out.append({"event_id":row[0],"event_time":str(row[1]),"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
         cur.execute(query2)
         data = cur.fetchone()

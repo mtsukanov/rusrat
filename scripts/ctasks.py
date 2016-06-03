@@ -158,7 +158,7 @@ def post(maxevent):
     maxid = maxevent
     global maxid 
     while i==1:
-        sleep(5)
+        sleep(10)
         Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
@@ -168,12 +168,12 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            sleep(2)
+            #sleep(2)
             timequery = "SELECT event_time,middle_name FROM event WHERE middle_name = '"+str(row[5])+"' ORDER BY event_time DESC"
             cur.execute(timequery)
             data = cur.fetchone()
             lasttimereq = data[0]
-            sleep(2)           
+            #sleep(2)           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
             r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
             payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
@@ -181,7 +181,7 @@ def post(maxevent):
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
-            sleep(2)
+            #sleep(2)
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().strftime("%m/%d/%y %H:%M:%S")),"trigger":"Luna"}
                 r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
