@@ -188,7 +188,7 @@ def post(maxevent):
             date_e = datetime.strftime(lasttimereq,"%m/%d/%y %H:%M:%S")
             date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
             date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
-            print date_ss-date_ee
+            print (date_ss-date_ee).seconds
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
