@@ -167,6 +167,9 @@ def post(maxevent):
         cur = db.cursor()
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
+        query2 = "SELECT count(*) FROM event WHERE event_id >"+str(maxid)
+        data = cur.fetchone()
+        print data[0]
         for row in cur.fetchall():
             sleep(1)
             cur2 = db.cursor()
@@ -179,7 +182,7 @@ def post(maxevent):
             sleep(1)
             lasttimereq = data[0]
             sleep(1)
-            print "CID= "+str(row[5])+" ; time= "+str(lasttimereq)
+            print row[8]
             #sleep(2)           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
             sleep(1)
