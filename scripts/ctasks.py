@@ -185,7 +185,7 @@ def post(maxevent):
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
-            date_s = datetime.datetime.strftime(datetime.now(),"%m/%d/%y %H:%M:%S")
+            date_s = datetime.datetime.strftime(datetime.datetime.now(),"%m/%d/%y %H:%M:%S")
             date_e = datetime.datetime.strftime(lasttimereq,"%m/%d/%y %H:%M:%S")
             print date_s-date_e
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
