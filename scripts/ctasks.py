@@ -168,25 +168,37 @@ def post(maxevent):
         query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
         cur.execute(query)
         for row in cur.fetchall():
-            #sleep(2)
+            sleep(1)
             cur2 = db.cursor()
+            sleep(1)
             timequery = "SELECT MAX(event_time) FROM event WHERE middle_name = '"+str(row[5])+"'"
+            sleep(1)
             cur2.execute(timequery)
+            sleep(1)
             data = cur2.fetchone()
+            sleep(1)
             lasttimereq = data[0]
-            print "CID= "+str(row[5])+" ; time= "+lasttimereq
+            sleep(1)
+            print "CID= "+str(row[5])+" ; time= "+str(lasttimereq)
             #sleep(2)           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
+            sleep(1)
             r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
+            sleep(1)
             payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
+            sleep(1)
             r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
+            sleep(1)
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
             #sleep(2)
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
+                sleep(1)
                 payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().strftime("%m/%d/%y %H:%M:%S")),"trigger":"Luna"}
+                sleep(1)
                 r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
+                sleep(1)
                 Out.append({"event_id":row[0],"event_time":str(row[1]),"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
         cur.execute(query2)
