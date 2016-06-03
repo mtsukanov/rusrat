@@ -170,7 +170,7 @@ def post(maxevent):
         query2 = "SELECT count(*) FROM event WHERE event_id >"+str(maxid)
         cur.execute(query2)
         data = cur.fetchone()
-        print data[0]
+        print "count = "+str(data[0])
         for row in cur.fetchall():
             sleep(1)
             cur2 = db.cursor()
