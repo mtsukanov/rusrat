@@ -158,7 +158,7 @@ def post(maxevent):
     global maxid 
     maxid = maxevent  
     while i==1:
-        sleep(10)
+        sleep(7)
         Out =[] 
         try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
