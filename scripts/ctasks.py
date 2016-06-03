@@ -183,6 +183,7 @@ def post(maxevent):
             r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
+            print "it works"
                 #print k,inputs
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":row[5],"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().strftime("%m/%d/%y %H:%M:%S")),"trigger":"Luna"}
