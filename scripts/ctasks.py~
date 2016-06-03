@@ -170,6 +170,7 @@ def post(maxevent):
         #query2 = "SELECT count(*) FROM event WHERE event_id >"+str(maxid)
         #cur.execute(query2)
         #data = cur.fetchone()
+        #print "count = "+str(data[0])
         for row in cur.fetchall():
             cur2 = db.cursor()
             timequery = "SELECT MAX(event_time) FROM event WHERE middle_name = '"+str(row[5])+"'"
