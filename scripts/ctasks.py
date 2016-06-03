@@ -185,7 +185,8 @@ def post(maxevent):
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
             date_s = datetime.strftime(datetime.now(),"%m/%d/%y %H:%M:%S")
-            print date_s
+            date_e = lasttimereq
+            print date_e
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
