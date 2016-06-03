@@ -457,8 +457,8 @@ def deco():
     time.sleep(3)
     maxid = get_max_eventid_luna()
     result = post.apply_async([maxid])    
-    print 'ok'  
-    #return make_response(jsonify({'Ratatoskr':result.status}),201)
+    #print 'ok'  
+    return make_response(jsonify({'Ratatoskr':str(result)}),200)
 deco()
 
 #############################################################################################################################################################################################
