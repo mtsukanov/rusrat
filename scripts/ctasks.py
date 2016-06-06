@@ -160,7 +160,7 @@ def post(maxevent):
     while i==1:
         sleep(7)
         Out =[] 
-        try:Orion123
+        try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
         except Exception as e:
             return e
