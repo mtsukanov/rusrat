@@ -222,7 +222,7 @@ def facetztask(cid):
             Formatted.append(formatted_el)
             i+=1
         que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Formatted,ensure_ascii=False),'application/json','facetz_mq')
-        print "facetztask: "+Formatted
+        print Formatted
 
 
 

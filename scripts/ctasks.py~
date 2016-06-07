@@ -10,6 +10,7 @@ import MySQLdb
 import psycopg2
 import pymssql
 import base64
+import urllib
 #import celeryconfig
 from random import randint,choice
 #import transgen
