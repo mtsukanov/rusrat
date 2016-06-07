@@ -22,8 +22,8 @@ from datetime import timedelta,datetime
 from flask import make_response, request, current_app
 from functools import update_wrapper
 from random import randint,choice
-from transgen import transgen
-from ctasks import call_rtdm,post,facetztask
+#from transgen import transgen
+from ctasks import call_rtdm,post,facetztask,transgen
 #import celeryconfig
 #import  ctasks
 import datetime
