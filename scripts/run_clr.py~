@@ -32,7 +32,8 @@ import pika
 import requests
 import MySQLdb
 import pymssql
-import psycopg2;
+import psycopg2
+import urllib
 #import transgen
 #from celery.task.control import revoke
 #############################################################################################################################################################################################
@@ -451,8 +452,8 @@ def email():
 #                                                                                                                                                                                           #
 ##################################################################################################################################################### 
 
-#@app.route('/decode', methods=['POST','GET','OPTIONS'])
-#@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+@app.route('/decode', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def deco():
     time.sleep(3)
     maxid = get_max_eventid_luna()
@@ -497,17 +498,12 @@ def sms():
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
 
-@app.route('/fasetz', methods=['GET','OPTIONS'])
+@app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def fasetz():
-    Arr1 = [1,2,3,4,5,6]
-    Arr2 = [4,5,3,8,11,12,33,1]
-    ArrOut=[]
-    for i in Arr1:
-        for l in Arr2:
-             if i==l:
-                  ArrOut.append(l)
-    return make_response(jsonify({'Ratatoskr':ArrOut}),200)
+def facetz():
+    cid =  request.args.get("cid") 
+    result = facetztask.apply_async([cid])   
+    return make_response(jsonify({'Ratatoskr':str(result)}),200)
 
 
 

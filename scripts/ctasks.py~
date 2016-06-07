@@ -160,7 +160,7 @@ def post(maxevent):
     while i==1:
         sleep(7)
         Out =[] 
-        try:Orion123
+        try:
             db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
         except Exception as e:
             return e
@@ -199,6 +199,30 @@ def post(maxevent):
         data = cur.fetchone()
         maxid = data[0]
         print Out,maxid
+
+
+
+
+@app.task(trail=True)
+def facetztask(cid):
+    url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
+    k =1 
+    while k == 1:
+        sleep(10)
+        Formatted = []
+        r = requests.get(url)
+        Formatted.append({"id":r.json()['id']})
+        i=1
+        for el in r.json()['visits']:
+            formatted_el = {}
+            formatted_el['number'] = i
+            formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+            formatted_el['url'] = urllib.unquote(el['url'])
+            Formatted.append(formatted_el)
+            i+=1
+        que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Formatted,ensure_ascii=False),'application/json','facetz_mq')
+        print Formatted
+
 
 
 
