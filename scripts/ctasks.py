@@ -216,7 +216,7 @@ def facetztask(cid):
         for el in r.json()['visits']:
             formatted_el = {}
             formatted_el['number'] = i
-            formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+            formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
             formatted_el['url'] = urllib.unquote(el['url'])
             Formatted.append(formatted_el)
             i+=1
