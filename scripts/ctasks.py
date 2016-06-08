@@ -31,10 +31,9 @@ def publish(x):
 	publish.apply_async(args=[x],queue='android_mq',routing_key='android_mq')
 	return x
 
-@app.task
+@app.task(trail=True)
 def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
     try:
-       #connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
        channel = connection.channel()
        channel.queue_declare(queue=queue, durable=True)
@@ -43,7 +42,7 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
        #channel.exchange_bind(queue = queue, exchange = exchange_name)
        channel.basic_publish(exchange=exchange_name,routing_key=routing_key,body=message_body,properties=pika.BasicProperties(content_type=content_type))
        connection.close()
-       return 'Succed adding to rabbitmq'
+       #return 'Succed adding to rabbitmq'
     except Exception:
         return 'Failed adding to rabbitmq'
 
