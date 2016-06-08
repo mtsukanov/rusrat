@@ -1394,7 +1394,7 @@ def register_beacon():
     message = {"opcode": "i","beacon_uuid":beacon_uuid,'spot_id':spot_id, 'major':major, 'minor':minor,'detection_dttm':detection_dttm,'detection_lvl':detection_lvl,'registration_dttm':ntime}
     message = str(message)
     message = message.replace("'",'"')
-    result_mq = rabbitmq_add.delay('beacons_mq','_mq',message,'application/json','beacons_mq')
+    #result_mq = rabbitmq_add.delay('beacons_mq','_mq',message,'application/json','beacons_mq')
   
     return make_response(jsonify({'Ratatoskr':'Beacon registered'}),201)
 

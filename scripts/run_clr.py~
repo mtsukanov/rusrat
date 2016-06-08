@@ -393,11 +393,11 @@ def geotrigger():
         for row in result_mysql_custdet:
             payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"visit","location":spotname,"area":area}
         try:
-            #result = call_service.apply_async(("active_queue",payload),retry=True)    
+            result = call_service.apply_async(("active_queue",payload),retry=True)    
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),417)  
     try:
-        #rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
+        rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problems with RTDM request.Further details: '+str(e)}),418)    
     #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
@@ -868,7 +868,7 @@ def mobile_post_all():
         trigger =  request.json['trigger']
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         LastMobile = message
-        #result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
+        result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
@@ -1225,7 +1225,7 @@ def transgenerate():
             time.sleep(2)
             status = taskid.status
             while status == 'SUCCESS':
-                #taskid=transgen.delay()
+                taskid=transgen.delay()
                 time.sleep(2)
                 status = taskid.status
             #taskid = transgen.delay().id
