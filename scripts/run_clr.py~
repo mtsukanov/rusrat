@@ -868,7 +868,7 @@ def mobile_post_all():
         trigger =  request.json['trigger']
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         LastMobile = message
-        #result_mq = rabbitmq_add.delay('geo_mq','g_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
+        result_mq = rabbitmq_add.delay('geo_mq','g_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
@@ -1394,7 +1394,7 @@ def register_beacon():
     message = {"opcode": "i","beacon_uuid":beacon_uuid,'spot_id':spot_id, 'major':major, 'minor':minor,'detection_dttm':detection_dttm,'detection_lvl':detection_lvl,'registration_dttm':ntime}
     message = str(message)
     message = message.replace("'",'"')
-    result_mq = rabbitmq_add.delay('beacons_mq','_mq',message,'application/json','beacons_mq')
+    #result_mq = rabbitmq_add.delay('beacons_mq','_mq',message,'application/json','beacons_mq')
   
     return make_response(jsonify({'Ratatoskr':'Beacon registered'}),201)
 
