@@ -31,7 +31,7 @@ def publish(x):
 	publish.apply_async(args=[x],queue='android_mq',routing_key='android_mq')
 	return x
 
-"""@app.task(trail=True)
+@app.task(trail=True)
 def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
     try:
        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -44,7 +44,7 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
        connection.close()
        return 'Succed adding to rabbitmq'
     except Exception:
-        return 'Failed adding to rabbitmq'"""
+        return 'Failed adding to rabbitmq'
 
 @app.task(trail=True)
 def mysql_add():
