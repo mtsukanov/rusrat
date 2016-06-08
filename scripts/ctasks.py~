@@ -35,7 +35,7 @@ def publish(x):
 def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
     try:
        #connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-       connection = pika.BlockingConnection()
+       connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
        channel = connection.channel()
        channel.queue_declare(queue=queue, durable=True)
        channel.exchange_declare(exchange=exchange_name, durable=True, type='topic')
