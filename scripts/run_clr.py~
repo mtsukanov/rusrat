@@ -1225,7 +1225,7 @@ def transgenerate():
             time.sleep(2)
             status = taskid.status
             while status == 'SUCCESS':
-                taskid=transgen.delay()
+                #taskid=transgen.delay()
                 time.sleep(2)
                 status = taskid.status
             #taskid = transgen.delay().id

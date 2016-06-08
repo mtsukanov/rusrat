@@ -393,7 +393,7 @@ def geotrigger():
         for row in result_mysql_custdet:
             payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"visit","location":spotname,"area":area}
         try:
-            result = call_service.apply_async(("active_queue",payload),retry=True)    
+            #result = call_service.apply_async(("active_queue",payload),retry=True)    
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),417)  
     try:
