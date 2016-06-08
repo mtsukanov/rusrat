@@ -40,7 +40,7 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
         channel.exchange_declare(exchange=exchange_name, durable=True, type='topic')
         channel.queue_bind(queue = queue, exchange = exchange_name, routing_key=routing_key)
         #channel.exchange_bind(queue = queue, exchange = exchange_name)
-        channel.basic_publish(exchange=exchange_name,routing_key=routing_key,body=message_body,properties=pika.BasicProperties(content_type=content_type))
+        #channel.basic_publish(exchange=exchange_name,routing_key=routing_key,body=message_body,properties=pika.BasicProperties(content_type=content_type))
         connection.close()
         return 'Succed adding to rabbitmq'
     except Exception:
