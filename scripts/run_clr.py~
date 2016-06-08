@@ -868,7 +868,7 @@ def mobile_post_all():
         trigger =  request.json['trigger']
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         LastMobile = message
-        result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
+        #result_mq = rabbitmq_add.delay('geo_mq','_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
