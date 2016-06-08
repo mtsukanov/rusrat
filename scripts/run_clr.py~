@@ -1500,7 +1500,7 @@ def banner():
         if banner_id == 'cabinet':
             banner_code = '<div style="height:270px;width:825px;background:linear-gradient(to right,#DDDCD9,white 600px)"><div style="height:270px;width:230px;float:left"><img id="label_img" src="http://www.evro-almaz.by/images/app/label_2.png" style="width:307px;height:200px;position:relative;right:25%;transform:rotate(25deg)"></img></div><div style="heigth:270px;width:315px;float:left"><h2 style="text-align:center;position:relative;margin-top:70px;color:blue">New Collection.<br>Try it now.</h2></div><div style="height:270px;width:275px;float:left"><img id="prod_img" src="http://www.evro-almaz.by/images/app/girl_jeans_1.png" style="height:100%;float:right"></img></div></div>'
         elif banner_id == 'slider':
-            banner_code = '<div style="height:400px;width:760px;background-image:url(http://www.evro-almaz.by/images/app/slider_1.png);background-size:cover"></div>'
+            banner_code = '<div style="height:400px;width:760px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'
         elif banner_id == 'right':
             banner_code = '<div style="height:400px;width:350px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'  
         elif banner_id == 'leftdown':
