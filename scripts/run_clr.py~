@@ -508,6 +508,26 @@ def facetz():
 
 
 
+@app.route('/facetz2', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def facetz2():
+    cid =  request.args.get("cid") 
+    url = "http://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
+    Formatted = []
+    r = requests.get(url)
+    #Formatted.append({"id":r.json()['id']})
+    #i=1
+    #for el in r.json()['visits']:
+    #    formatted_el = {}
+    #    formatted_el['number'] = i
+    #    formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+    #    formatted_el['url'] = urllib.unquote(el['url'])
+    #    Formatted.append(formatted_el)
+    #    i+=1
+    return make_response(jsonify({'Ratatoskr':'ok'}),200)
+
+
+
 
 
 
@@ -1500,7 +1520,7 @@ def banner():
         if banner_id == 'cabinet':
             banner_code = '<div style="height:270px;width:825px;background:linear-gradient(to right,#DDDCD9,white 600px)"><div style="height:270px;width:230px;float:left"><img id="label_img" src="http://www.evro-almaz.by/images/app/label_2.png" style="width:307px;height:200px;position:relative;right:25%;transform:rotate(25deg)"></img></div><div style="heigth:270px;width:315px;float:left"><h2 style="text-align:center;position:relative;margin-top:70px;color:blue">New Collection.<br>Try it now.</h2></div><div style="height:270px;width:275px;float:left"><img id="prod_img" src="http://www.evro-almaz.by/images/app/girl_jeans_1.png" style="height:100%;float:right"></img></div></div>'
         elif banner_id == 'slider':
-            banner_code = '<div style="height:400px;width:760px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'
+            banner_code = '<div style="height:400px;width:760px;background-image:url(http://www.evro-almaz.by/images/app/slider_1.png);background-size:cover"></div>'
         elif banner_id == 'right':
             banner_code = '<div style="height:400px;width:350px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'  
         elif banner_id == 'leftdown':
