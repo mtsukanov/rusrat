@@ -515,16 +515,16 @@ def facetz2():
     url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
     Formatted = []
     r = requests.get(url)
-    #Formatted.append({"id":r.json()['id']})
-    #i=1
-    #for el in r.json()['visits']:
-    #    formatted_el = {}
-    #    formatted_el['number'] = i
-    #    formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
-    #    formatted_el['url'] = urllib.unquote(el['url'])
-    #    Formatted.append(formatted_el)
-    #    i+=1
-    return make_response(jsonify({'Ratatoskr':'ok'}),200)
+    Formatted.append({"id":r.json()['id']})
+    i=1
+    for el in r.json()['visits']:
+        formatted_el = {}
+        formatted_el['number'] = i
+        formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+        formatted_el['url'] = urllib.unquote(el['url'])
+        Formatted.append(formatted_el)
+        i+=1
+    return make_response(jsonify({'Ratatoskr':Formatted}),200)
 
 
 
