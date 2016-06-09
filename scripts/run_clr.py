@@ -887,7 +887,7 @@ def mobile_post_all():
         gps = request.json['gps']
         trigger =  request.json['trigger']
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
-        LastMobile = message
+        LastMobile = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         result_mq = rabbitmq_add.delay('geo_mq','g_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
