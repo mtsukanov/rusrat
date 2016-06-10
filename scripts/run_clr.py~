@@ -1034,11 +1034,14 @@ def new_products():
 @app.route('/offer_img', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_img():
-
-
-
-
-
+    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    offerid = request.args.get('offerid')
+    cur = db.cursor()
+    query = (
+    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
+    cur.execute(query)
+    img = cur.fetchone()
+    return make_response(jsonify({'ProductsDetails':proddet}),200)
 
 
 #############################################################################################################################################################################################
