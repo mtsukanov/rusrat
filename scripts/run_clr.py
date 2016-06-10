@@ -996,11 +996,11 @@ def new_products():
     if (proddetid is not None):
         cur = db.cursor()
         query = (
-        " SELECT ProdImgID FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID =  t2.ProdID WHERE t1.ProdDetId = "+proddetid)
+        " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[PRODUCTDETAILS] WHERE ProdDetId = "+proddetid+")")
         cur.execute(query)
         details = cur.fetchone()
         proddet = {}
-        proddet['ImageID'] = details[0]
+        proddet['ProdImg'] = details[0]
         return make_response(jsonify({'ProductsDetails':proddet}),200)
     if (cid is not None):
         Products=[]         
@@ -1023,6 +1023,27 @@ def new_products():
             prods['ToDate'] = row[11]
             Products.append(prods)
         return make_response(jsonify({'Products':Products}),200)
+
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /GET OFFER IMAGES                                                                                                                                    #
+#                                                                                                                                                                                           #
+##############################################################################################################################################################
+@app.route('/offer_img', methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def offer_img():
+    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    offerid = request.args.get('offerid')
+    cur = db.cursor()
+    query = (
+    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
+    cur.execute(query)
+    img = cur.fetchone()
+    return make_response(jsonify({'ProductsDetails':proddet}),200)
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #

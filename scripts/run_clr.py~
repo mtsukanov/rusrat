@@ -887,7 +887,7 @@ def mobile_post_all():
         gps = request.json['gps']
         trigger =  request.json['trigger']
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
-        LastMobile = message
+        LastMobile = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         result_mq = rabbitmq_add.delay('geo_mq','g_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
@@ -996,11 +996,11 @@ def new_products():
     if (proddetid is not None):
         cur = db.cursor()
         query = (
-        " SELECT ProdImgID FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID =  t2.ProdID WHERE t1.ProdDetId = "+proddetid)
+        " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[PRODUCTDETAILS] WHERE ProdDetId = "+proddetid+")")
         cur.execute(query)
         details = cur.fetchone()
         proddet = {}
-        proddet['ImageID'] = details[0]
+        proddet['ProdImg'] = details[0]
         return make_response(jsonify({'ProductsDetails':proddet}),200)
     if (cid is not None):
         Products=[]         
@@ -1023,6 +1023,24 @@ def new_products():
             prods['ToDate'] = row[11]
             Products.append(prods)
         return make_response(jsonify({'Products':Products}),200)
+
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /GET OFFER IMAGES                                                                                                                                    #
+#                                                                                                                                                                                           #
+##############################################################################################################################################################
+@app.route('/offer_img', methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def offer_img():
+
+
+
+
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
