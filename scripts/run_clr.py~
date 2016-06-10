@@ -1038,7 +1038,7 @@ def offer_img():
     offerid = request.args.get('offerid')
     cur = db.cursor()
     query = (
-    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
+    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
     cur.execute(query)
     img = cur.fetchone()
     return make_response(jsonify({'ProductsDetails':proddet}),200)
