@@ -336,7 +336,7 @@ def get_nbo_req():
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
     r = requests.post(rtdm_addr,json = payload)
     resp = str(r)
-    return make_response(jsonify({"A":r.json()}),201)
+    return make_response(jsonify({"Ratatoskr":r.json()}),201)
 
 """
 def call_rtdm(dns,event,inputs):
@@ -1031,17 +1031,21 @@ def new_products():
 #                         BLOCK OF /GET OFFER IMAGES                                                                                                                                    #
 #                                                                                                                                                                                           #
 ##############################################################################################################################################################
-@app.route('/offer_img', methods=['GET'])
+@app.route('/offer_img',  methods=['POST','OPTIONS','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_img():
+    Images = []
     db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
-    offerid = request.args.get('offerid')
+    offerid = request.json['offerid']
     cur = db.cursor()
     query = (
-    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID = "+offerid+")")
+    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
     cur.execute(query)
-    img = cur.fetchone()
-    return make_response(jsonify({'ProductsDetails':proddet}),200)
+    for row in cur.fetchall()
+    Img = {}
+    Img['base64'] = row[0]
+    Images.append(Img)
+    return make_response(jsonify({'OfferImages':Images}),200)
 
 
 #############################################################################################################################################################################################
