@@ -1041,10 +1041,10 @@ def offer_img():
     query = (
     " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
     cur.execute(query)
-    for row in cur.fetchall()
-    Img = {}
-    Img['base64'] = row[0]
-    Images.append(Img)
+    for row in cur.fetchall():
+        Img = {}
+        Img['base64'] = row[0]
+        Images.append(Img)
     return make_response(jsonify({'OfferImages':Images}),200)
 
 

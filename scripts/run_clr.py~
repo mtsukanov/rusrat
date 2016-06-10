@@ -1045,7 +1045,7 @@ def offer_img():
     Img = {}
     Img['base64'] = row[0]
     Images.append(Img)
-    return make_response(jsonify({'OfferImages':img[0]}),200)
+    return make_response(jsonify({'OfferImages':Images}),200)
 
 
 #############################################################################################################################################################################################
