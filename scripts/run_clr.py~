@@ -996,9 +996,9 @@ def new_products():
     if (proddetid is not None):
         cur = db.cursor()
         query = (
-        " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[PRODUCTDETAILS] WHERE ProdDetId = "+proddetid+")")
+        " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[PRODUCTDETAILS] WHERE ProdDetId = "+proddetid+")")
         cur.execute(query)
-        details = cur.fetchone()
+        details = cur.fetchone()os
         proddet = {}
         proddet['ProdImg'] = details[0]
         return make_response(jsonify({'ProductsDetails':proddet}),200)
@@ -1034,18 +1034,15 @@ def new_products():
 @app.route('/offer_img',  methods=['POST','OPTIONS','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_img():
-    Images = []
     db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     offerid = request.json['offerid']
-    cur = db.cursor()
-    query = (
-    " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+")")
-    cur.execute(query)
-    for row in cur.fetchall()
-    Img = {}
-    Img['base64'] = row[0]
-    Images.append(Img)
-    return make_response(jsonify({'OfferImages':Images}),200)
+    if offerid != 0:
+        cur = db.cursor()
+        query = (
+        " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID = "+str(offerid)+")")
+        cur.execute(query)
+        return make_response(jsonify({'OfferImages':cur.fetchone()[0]}),200)
+    return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),200)
 
 
 #############################################################################################################################################################################################
