@@ -502,11 +502,13 @@ def sms():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
     cid =  request.args.get("cid") 
-    result = facetztask.apply_async([cid])   
-    return make_response(jsonify({'Ratatoskr':str(result)}),200)
-
-
-
+    param = request.args.get("param")
+    if param == "True":
+        result = facetztask.apply_async([cid])   
+        return make_response(jsonify({'Ratatoskr':'Task '+str(result)+' has been added to Redis'}),200)
+    else:
+        result.revoke(terminate=True)
+        return make_response(jsonify({'Ratatoskr':'Task '+str(result)+' has been terminated'}),200)
 
 @app.route('/facetz2', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -686,28 +688,36 @@ def mobile_get_all():
         try:
             #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
             result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
+            result_mssql_offimg = mssql_select('CIDB','DataMart','ProdImg','PRODIMG',query_offers)
+            db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            cur = db.cursor()
+            query = (
+            " SELECT t2.ProdType from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID")
+            cur.execute(query)
+            prodtype = cur.fetchall()
             #GET OFFERS
+            i = 0
             for row in result_mssql_offers:
                 offer = {}
-                offer["clientid"] = row[0]
-                offer["offerid"] = row[1]
-                offer["name"] = row[3]
+                offer["clientid"] = ''
+                offer["offerid"] = row[20]
+                offer["name"] = row[0]
                 offer["duration"] = 12
-                offer["type"] = 'financial'#row[9]
-                offer["description"] = row[4]
-                offer["sum"] = row[6]
-                #offer["image"] = row[5]
-                offer["image"] = ""
-                offer["rate"] = row[7]
-                offer["payment"] = row[19]
-                offer["secret"] = row[15]
-                offer["visibility"] = row[16]
-                offer["priority"] = row[12]
-                offer["generated_dttm"] = row[17]
-                offer["recieved_dttm"] = row[0]
-                offer["termination_dttm"] = row[18]
+                offer["type"] = prodtype[i][0]#'financial'#row[9]
+                offer["description"] = row[19]
+                offer["sum"] = row[3]
+                offer["image"] = result_mssql_offimg[i][0]
+                offer["rate"] = row[2]
+                offer["payment"] = row[4]
+                offer["secret"] = ''
+                offer["visibility"] = 1
+                offer["priority"] = row[22]
+                offer["generated_dttm"] = int(round(time.time()*1))
+                offer["recieved_dttm"] = int(round(time.time()*1))
+                offer["termination_dttm"] = int(round(time.time()*1))
                 offer["sent_dttm"] = int(round(time.time()*1))
                 Offers.append(offer)
+                i+=1
         except Exception as e:
             response = {"Ratatoskr":e}
             return make_response(jsonify(response),500)
@@ -722,11 +732,24 @@ def mobile_get_all():
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
+            #request for offer images
+            off = '('
+            for k in resp['outputs']['offercode']:
+                off+=str(int(k))+','
+            off = off[:-1]
+            off+=')'
+            db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            cur = db.cursor()
+            query = (
+            " WITH TEMP as (SELECT ProdID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+off+") " 
+            " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
+            cur.execute(query)
+            off_imgs = cur.fetchall()
             i = 0
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
                 #offer = {'i':i,'clientid': int(resp["outputs"]["cid"]), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
-                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priority':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"][i],'termination_dttm':'','type':resp["outputs"]["offertype"][i],'visibility':1}
+                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priority':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
             #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
@@ -760,8 +783,8 @@ def mobile_get_all():
         db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
         cur = db.cursor()
         query = (
-        " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t3.IndivId,t1.ProdDetValidFrom,t1.ProdDetValidTo,t2.ProdType "
-        " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID"
+        " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t3.IndivId,t1.ProdDetValidFrom,t1.ProdDetValidTo,t2.ProdType,t4.ProdImg "
+        " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID inner join [CIDB].[DataMart].[PRODIMG] as t4 on t1.ProdID = t4.ProdID"
         " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT]"+query_prods+")")
         cur.execute(query)
     except Exception as e:
@@ -772,7 +795,7 @@ def mobile_get_all():
     for row in result_mysql_sel:
         client = {}
         client["clientid"] = row[0]
-        client["clientimage"]=""
+        client["clientimage"]=row[25].replace(" ","+")
         client["name"] = row[1]
         client["surname"] = row[3]
         client["email"] = row[16]
@@ -787,8 +810,7 @@ def mobile_get_all():
         product["clientid"] = int(row[10])
         product["sum"] = row[1]
         product["duration"] = row[3]
-        #product["image"] = row[4]
-        product["image"] = ""
+        product["image"] = row[14]
         product["rate"] = row[0]
         product["payment"] = row[2]
         product["productid"] = row[5]
@@ -998,7 +1020,7 @@ def new_products():
         query = (
         " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID IN (SELECT ProdID FROM [CIDB].[DataMart].[PRODUCTDETAILS] WHERE ProdDetId = "+proddetid+")")
         cur.execute(query)
-        details = cur.fetchone()os
+        details = cur.fetchone()
         proddet = {}
         proddet['ProdImg'] = details[0]
         return make_response(jsonify({'ProductsDetails':proddet}),200)
@@ -1039,9 +1061,10 @@ def offer_img():
     if offerid != 0:
         cur = db.cursor()
         query = (
-        " SELECT ProdImg FROM [CIDB].[DataMart].[PRODIMG] WHERE ProdID = (SELECT ProdID FROM [CIDB].[DataMart].[OFFER] WHERE OfferID = "+str(offerid)+")")
+        " WITH TEMP as (SELECT ProdID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+") " 
+        " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
         cur.execute(query)
-        return make_response(jsonify({'OfferImages':cur.fetchone()[0]}),200)
+        return make_response(jsonify({'OfferImages':cur.fetchall()}),200)
     return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),200)
 
 

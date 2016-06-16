@@ -205,7 +205,7 @@ def post(maxevent):
 
 
 
-@app.task(trail=True)
+@app.task(throws=(Terminated,))
 def facetztask(cid):
     url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
     k =1 
