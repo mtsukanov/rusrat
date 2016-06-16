@@ -154,7 +154,7 @@ def call_service(service,inputs):
     return resp
 
 
-@app.task(trail=True)
+@app.task(throws=(Terminated,))
 def post(maxevent):
     i = 1
     global maxid 
@@ -186,10 +186,10 @@ def post(maxevent):
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
-            date_s = datetime.strftime(datetime.now(),"%m/%d/%y %H:%M:%S")
-            date_e = datetime.strftime(lasttimereq,"%m/%d/%y %H:%M:%S")
-            date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
-            date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
+            #date_s = datetime.strftime(datetime.now(),"%m/%d/%y %H:%M:%S")
+            #date_e = datetime.strftime(lasttimereq,"%m/%d/%y %H:%M:%S")
+            #date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
+            #date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
             print "difference = "+str((date_ss-date_ee).seconds)
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}

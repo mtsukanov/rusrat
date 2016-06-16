@@ -451,17 +451,49 @@ def email():
 #                         BLOCK OF /PostgreSQL                                                                                                                                      #
 #                                                                                                                                                                                           #
 ##################################################################################################################################################### 
-
-@app.route('/decode', methods=['POST','GET','OPTIONS'])
+resultcam = 0 
+@app.route('/cameracheck', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def deco():
-    time.sleep(3)
-    maxid = get_max_eventid_luna()
-    result = post.apply_async([maxid])    
-    #print 'ok'  
-    return make_response(jsonify({'Ratatoskr':str(result)}),200)
-#deco()
-
+    global resultcam
+    param = request.args.get('param')
+    if param == 'True': 
+        time.sleep(3)
+        maxid = get_max_eventid_luna()
+        resultcam = post.apply_async([maxid])    
+        return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been added to Redis'}),200)
+    else:
+        resultcam.revoke(terminate=True) 
+        return make_response(jsonify({'Ratatoskr':'Task '+str(resultcam)+' has been terminated'}),200)
+    
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /ServicesStatus                                                                                                                                  #
+#                                                                                                                                                                                           #
+####################################################################################################################################################
+@app.route('/ServicesStatus', methods=['POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def ServicesStatus():
+    Services = []
+    try:
+        transgen = request.json['transgen']
+    except: 
+        transgen = ''
+    try:
+        atm = request.json['atm']
+    except:
+        atm = ''
+    try:
+        facetz = request.json['facetz']
+    except:
+        facetz = ''
+    try:
+        luna = request.json['luna']
+    except:
+        luna = ''
+    for elem in Services:
+        
+    return make_response(jsonify({'Ratatoskr':request}),200)  
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SMS                                                                                                                                              #
@@ -497,19 +529,19 @@ def sms():
 #FasetZ                                                                                                                     #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
-result = 0
+resultface = 0
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
-    global result
+    global resultface
     cid =  request.args.get("cid") 
     param = request.args.get("param")
     if param == "True":
-        result = facetztask.apply_async([cid])   
-        return make_response(jsonify({'Ratatoskr':'Task '+str(result)+' has been added to Redis'}),200)
+        resultface = facetztask.apply_async([cid])   
+        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
     else:
-        result.revoke(terminate=True)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(result)+' has been terminated'}),200)
+        resultface.revoke(terminate=True)
+        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)
 
 @app.route('/facetz2', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
