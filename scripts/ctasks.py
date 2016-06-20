@@ -179,6 +179,7 @@ def post(maxevent):
             cur2.execute(timequery)
             data = cur2.fetchone()
             lasttimereq = data[0] 
+            print lasttimereq
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
             r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
             payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
