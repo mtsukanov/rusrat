@@ -196,7 +196,7 @@ def post(maxevent):
             #date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
             #date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
             #print "difference = "+str((date_ss-date_ee).seconds)
-            if (datetime.now() - lasttimereq >= timedelta(minutes=5) or fistcome is not None) and row[2] > 85.00:
+            if (datetime.now() - lasttimereq >= timedelta(minutes=5) or lasttimereq is None) and row[2] > 85.00:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
                 r3= call_rtdm.apply_async(("172.28.106.245","geomainevent",payload3),retry=False)
