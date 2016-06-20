@@ -26,6 +26,7 @@ from random import randint,choice
 from ctasks import call_rtdm,post,facetztask,transgen
 #import celeryconfig
 #import  ctasks
+import copy
 import datetime
 import time
 import pika
@@ -187,7 +188,24 @@ def get_max_eventid_luna():
     max_eventid = data[0]
     return max_eventid
 
-
+Services = {}
+def ServicesStatusPost(service,status):
+    global serviceupdt
+    global Services
+    serviceupdt = 0
+    servcopy = copy.deepcopy(Services)
+    if Services == {}:
+        servcopy.update({service:status})
+    else:
+        for k,v in Services.iteritems():
+            serviceupdt = 0
+            if k == service:
+                servcopy[k] = status
+                serviceupdt = 1     
+            if serviceupdt == 0:
+                servcopy.update({service:status})
+    Services = servcopy
+    return make_response(jsonify({'Ratatoskr':'Services have been updated'}),200) 
 
 #Server start
 app = Flask(__name__)
@@ -461,9 +479,11 @@ def deco():
         time.sleep(3)
         maxid = get_max_eventid_luna()
         resultcam = post.apply_async([maxid])    
+        ServicesStatusPost('luna',True)
         return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been added to Redis'}),200)
     else:
         resultcam.revoke(terminate=True) 
+        ServicesStatusPost('luna',False)
         return make_response(jsonify({'Ratatoskr':'Task '+str(resultcam)+' has been terminated'}),200)
     
 #############################################################################################################################################################################################
@@ -471,10 +491,13 @@ def deco():
 #                         BLOCK OF /ServicesStatus                                                                                                                                  #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
+"""Services = {}
 @app.route('/ServicesStatus', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def ServicesStatus():
-    Services = []
+def ServicesStatusPost():
+    global serviceupdt
+    global Services
+    serviceupdt = 0
     try:
         transgen = request.json['transgen']
     except: 
@@ -490,10 +513,54 @@ def ServicesStatus():
     try:
         luna = request.json['luna']
     except:
-        luna = ''
-    for elem in Services:
-        
-    return make_response(jsonify({'Ratatoskr':request}),200)  
+        luna = '' 
+    for key,value in request.json.iteritems():
+        serviceupdt = 0
+        for k,v in Services.iteritems():
+            if k == key:
+                Services[k] = value
+                serviceupdt = 1     
+        if serviceupdt == 0:
+            Services.update({key:value})
+    return make_response(jsonify({'Ratatoskr':'Services have been updated'}),200) """
+
+
+@app.route('/ServicesStatus', methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def ServicesStatusGET():
+     return make_response(jsonify({'Ratatoskr':Services}),200)  
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /SERVICE LIST                                                                                                    #
+#                                                                                                                                                                                           #
+##################################################################################################################################################
+ServiceList = {"Offurl":'',"Mesurl":'',"Infurl":''}
+@app.route('/service_list',  methods=['POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def service_list_post():
+    global ServiceList
+    try:
+        offurl = request.json['offurl']
+        mesurl = request.json['mesurl']
+        infurl = request.json['infurl']
+    except:
+        return make_response(jsonify({'Ratatoskr':'Input error'}),415)  
+    if offurl != "":
+         ServiceList['Offurl'] = offurl
+    if mesurl != "":
+         ServiceList['Mesurl'] = mesurl
+    if infurl != "":
+         ServiceList['Infurl'] = infurl
+    return make_response(jsonify({'Ratatoskr':'Service list has been successfully updated'}),200)  
+
+@app.route('/service_list',  methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def service_list_get():
+    return make_response(jsonify({'Ratatoskr':ServiceList}),200)  
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SMS                                                                                                                                              #
@@ -538,9 +605,11 @@ def facetz():
     param = request.args.get("param")
     if param == "True":
         resultface = facetztask.apply_async([cid])   
+        ServicesStatusPost('facetz',True)
         return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
     else:
         resultface.revoke(terminate=True)
+        ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)
 
 @app.route('/facetz2', methods=['GET','OPTIONS'])
@@ -1101,6 +1170,11 @@ def offer_img():
     return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),200)
 
 
+
+
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
@@ -1312,13 +1386,14 @@ status = ''
 #                         BLOCK OF /TRANSACTION GENERATOR                                                                                                                                        #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/transgenerate', methods=['GET','POST'])
+@app.route('/transgenerate', methods=['GET','POST','OPTIONS'])
+@crossdomain(origin='*',content = 'application/json',headers = 'Content-Type')
 def transgenerate():
     global taskid
     global status 
     try:
         param = request.json['param']
-        if param == True:      
+        if param == 'True':      
             taskid=transgen.delay()
             time.sleep(2)
             status = taskid.status
@@ -1326,6 +1401,7 @@ def transgenerate():
                 taskid=transgen.delay()
                 time.sleep(2)
                 status = taskid.status
+            ServicesStatusPost('transgen',True)
             #taskid = transgen.delay().id
             #print transgen.AsyncResult(transgen.request.id).state
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ. Status: '+status}),200)
@@ -1333,6 +1409,7 @@ def transgenerate():
             taskid.revoke(terminate=True)
             time.sleep(2)
             status = taskid.status
+            ServicesStatusPost('transgen',False)
             return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated. Status: '+status}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
@@ -1516,8 +1593,10 @@ def get_atm_status():
     if (change is not None):
         if (change == "true"):
             atm_status = True
+            ServicesStatusPost('atm',True)
         else:
             atm_status = False
+            ServicesStatusPost('atm',False)
     return make_response(jsonify({'status':atm_status}),200)
 
 @app.route('/atm_status', methods=['POST'])
@@ -1602,7 +1681,7 @@ def banner():
         elif banner_id == 'right':
             banner_code = '<div style="height:400px;width:350px;background-image:url(http://www.evro-almaz.by/images/app/right_finalsale_1.png);background-size:cover"></div>'  
         elif banner_id == 'leftdown':
-            banner_code = '<div style="heighOrion123t:400px;width:250px;background-image:url(http://www.evro-almaz.by/images/app/leftdown_1.png);background-size:cover"><div style="background-color:white;opacity:0.5;border-radius:14px;position:relative;text-align:center;top:80%"><h3>Do not miss</h3></div></div>'  
+            banner_code = '<div style="height:400px;width:250px;background-image:url(http://www.evro-almaz.by/images/app/leftdown_1.png);background-size:cover"><div style="background-color:white;opacity:0.5;border-radius:14px;position:relative;text-align:center;top:80%"><h3>Do not miss</h3></div></div>'  
         elif banner_id == 'left':
             banner_code = '<div style="height:170px;width:255px;background-image:url(http://www.evro-almaz.by/images/app/deleft_1.png);background-size:cover"></div>'  
         else:
