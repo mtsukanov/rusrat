@@ -179,7 +179,7 @@ def post(maxevent):
             cur2.execute(timequery)
             data = cur2.fetchone()
             lasttimereq = data[0] 
-            print lasttimereq
+           
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
             r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
             payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
@@ -192,6 +192,7 @@ def post(maxevent):
             #date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
             #date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
             #print "difference = "+str((date_ss-date_ee).seconds)
+            print lasttimereq
             if datetime.now() - lasttimereq >= timedelta(minutes=5) and row[2] > 85.00:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
