@@ -154,7 +154,7 @@ def call_service(service,inputs):
     return resp
 
 
-@app.task(trail=True)
+@app.task(throws=(Terminated,))
 def post(maxevent):
     i = 1
     global maxid 
