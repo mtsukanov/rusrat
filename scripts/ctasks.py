@@ -180,7 +180,7 @@ def post(maxevent):
             cur2.execute(timequery)
             data = cur2.fetchone()
             lasttimereq = data[0] 
-            if lasttimereq == "None":
+            if lasttimereq == None:
                 lasttimereq = datetime.now()
                 isfirts = 1
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
