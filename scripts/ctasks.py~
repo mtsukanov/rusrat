@@ -180,7 +180,7 @@ def post(maxevent):
             data = cur2.fetchone()
             lasttimereq = data[0] 
             if lasttimereq is None:
-                timequery = "SELECT MAX(event_time) FROM event WHERE middle_name = '"+str(row[5])+"'
+                timequery = "SELECT MAX(event_time) FROM event WHERE middle_name = '"+str(row[5])+"'"
                 cur2.execute(timequery)
                 data = cur2.fetchone()
                 lasttimereq = data[0] 
