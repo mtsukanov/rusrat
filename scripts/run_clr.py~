@@ -552,7 +552,7 @@ def service_list_post():
     if mesurl != "":
          ServiceList['Mesurl'] = mesurl
     if infurl != "":
-         ServiceListn['Infurl'] = infurl
+         ServiceList['Infurl'] = infurl
     return make_response(jsonify({'Ratatoskr':'Service list has been successfully updated'}),200)  
 
 @app.route('/service_list',  methods=['GET'])

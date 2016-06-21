@@ -72,7 +72,7 @@ lunaans = 'never used'
 
 app_server = "ruscilab"
 web_server = "http://labinfo.sas.com"
-soa_server = "172.28.104.171:5000"
+soa_server = "10.20.1.21:5000"
 sync = 1
 freq_in = 15
 freq_out = 10
