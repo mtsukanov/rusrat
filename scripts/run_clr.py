@@ -62,7 +62,7 @@ tasks = [
 ]
 
 
-server_ip = '172.28.104.171'
+server_ip = '10.20.1.21'
 rid = ''
 req_image = ''
 list_of_images = []
@@ -78,7 +78,10 @@ freq_in = 15
 freq_out = 10
 freq_sync = 20
 
-
+rtdmpath = ''
+mssqlpath = ''
+mysqlpath = ''
+lunapath= ''
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF COMMON FUNCTIONS                                                                                                                                         #
@@ -147,7 +150,7 @@ def make_celery(app):
 
 
 def get_client(cid):
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
     cur = db.cursor()
     query = "SELECT * FROM customers where CID="+str(cid)
     cur.execute(query)
@@ -157,7 +160,7 @@ def get_client(cid):
     return output
 
 def get_cid_byphotoid(photoid):
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
     cur = db.cursor()
     query = "SELECT * FROM customers where PhotoID="+str(photoid)
     cur.execute(query)
@@ -170,7 +173,7 @@ def get_cid_byphotoid(photoid):
     
 
 def get_all_clients():
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
     cur = db.cursor()
     query = "SELECT * FROM customers where PhotoId > 0"
     cur.execute(query)
@@ -180,7 +183,7 @@ def get_all_clients():
     return list_of_images
 
 def get_max_eventid_luna():
-    db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
+    db = psycopg2.connect(host=lunapath, port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
     cur = db.cursor()
     query2 = "SELECT MAX(event_id) FROM event"
     cur.execute(query2)
@@ -346,11 +349,11 @@ def get_nbo_req():
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
     
 
-    dns = "172.28.106.245"
+    #dns = "172.28.106.245"
     event = "frontmainevent"
     #event = "SAS_Activity_echo_string"
     #inputs = {"in_string":"I rule"}
-    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
     r = requests.post(rtdm_addr,json = payload)
     resp = str(r)
@@ -368,9 +371,9 @@ def call_rtdm(dns,event,inputs):
 
 @app.route('/test_rtdm', methods=['POST'])
 def test_rtdm():
-    rtdm_ip = "172.28.106.245"
+    #rtdm_ip = "172.28.106.245"
     rtdm_path = "/RTDM/rest/runtime/decisions/SAS_Activity_echo_string"
-    rtdm_url="http://"+rtdm_ip+rtdm_path
+    rtdm_url="http://"+rtdmpath+rtdm_path
     payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"in_string":"I rule"}}
     r = requests.post(rtdm_url,json = payload)
     resp = r.json()
@@ -415,7 +418,7 @@ def geotrigger():
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),417)  
     try:
-        rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
+        rtdm = call_rtdm.apply_async((rtdmpath,"geomainevent",Geo),retry=True)      
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problems with RTDM request.Further details: '+str(e)}),418)    
     #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
@@ -451,7 +454,7 @@ def email():
         LName = merge_websiteurl["lname"]
         MName = merge_websiteurl["mname"]
         ID = merge_websiteurl["id"]
-        url = "http://thebank.sas.com/CreditScoring/creditcard.html%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID
+        url = "http://thebank.sas-mic.local/CreditScoring/creditcard.html%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID
 
     except:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
@@ -676,7 +679,7 @@ def mssqlsave():
     except:
         return make_response(jsonify({'Ratatoskr':'Input is incorrect'}),400)    
     try:
-        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
     except:
         return make_response(jsonify({'Ratatoskr':'Connection failed'}),400)  
@@ -791,7 +794,7 @@ def mobile_get_all():
             #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
             result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
             result_mssql_offimg = mssql_select('CIDB','DataMart','ProdImg','PRODIMG',query_offers)
-            db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
             cur = db.cursor()
             query = (
             " SELECT t2.ProdType from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID")
@@ -828,9 +831,9 @@ def mobile_get_all():
             #dns = "http://"+server_ip+":5000/nbo"
             inputs = {"cid":int(cid),"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}       
-            dns = "172.28.106.245"
+            #dns = "172.28.106.245"
             event = "frontmainevent"
-            rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+            rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
@@ -840,7 +843,7 @@ def mobile_get_all():
                 off+=str(int(k))+','
             off = off[:-1]
             off+=')'
-            db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
             cur = db.cursor()
             query = (
             " WITH TEMP as (SELECT ProdID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+off+") " 
@@ -882,7 +885,7 @@ def mobile_get_all():
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
-        db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+        db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
         cur = db.cursor()
         query = (
         " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t3.IndivId,t1.ProdDetValidFrom,t1.ProdDetValidTo,t2.ProdType,t4.ProdImg "
@@ -929,7 +932,7 @@ def mobile_get_all():
     setting =    {
     "app_server" : app_server,
     "web_server" : web_server,
-    "soa_server" : "172.28.104.171:5000",
+    "soa_server" : "10.20.1.21:5000",
     "sync" : sync,
     "freq_in" : freq_in,
     "freq_out" : freq_out,
@@ -982,7 +985,7 @@ def mobile_get_all():
 def getresponsehistory():
     cid = request.args.get('cid')
     #cid = 1
-    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM RTData.RESPONSE_HISTORY where CID='+str(cid))
     data = cursor.fetchall()
@@ -1072,7 +1075,7 @@ def get_analytics():
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
     tr = []
     aggr = []
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     mssql_accid = ("SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid)
     cur = db.cursor()
     cur.execute(mssql_accid)  
@@ -1114,7 +1117,7 @@ def get_analytics():
 @app.route('/new_products', methods=['POST','OPTIONS','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def new_products():
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cid = request.args.get('cid')
     proddetid = request.args.get('proddetid')
     if (proddetid is not None):
@@ -1158,7 +1161,7 @@ def new_products():
 @app.route('/offer_img',  methods=['POST','OPTIONS','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_img():
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     offerid = request.json['offerid']
     if offerid != 0:
         cur = db.cursor()
@@ -1346,7 +1349,7 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
-        result = call_rtdm.apply_async(("172.28.106.245","responsehistoryevent",inputs),retry=True)    
+        result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True)    
         return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418)  
@@ -1607,7 +1610,7 @@ def set_atm_status():
         Status = request.json["Status"]
     except:
         return make_response(jsonify({'Ratatoskr':'TID is incorrect'}),400)
-    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     sql=(
         
@@ -1735,7 +1738,7 @@ def card():
     #r = requests.post(rtdm_addr,json = payload)
     #resp = str(r)
     try:
-        result = call_rtdm.apply_async(("172.28.106.245","scoringevent",inputs),retry=True)    
+        result = call_rtdm.apply_async((rtdmpath,"scoringevent",inputs),retry=True)    
         #res = call_rtdm.AsyncResult(str(result))
         #time.sleep(15)
         return make_response(jsonify({'Ratatoskr':str(result)}),201)
@@ -1775,7 +1778,7 @@ def limit():
         Type = request.json["Type"]
     except:
         return make_response(jsonify({"Ratatoskr":'input values are corrupt'}),400)
-    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
@@ -1860,7 +1863,7 @@ def call_luna():
         match_flg = False
 
     #url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
-    url = "http://172.28.104.180:8083/4/templates"
+    url = "http://"+lunapath+":8083/4/templates"
     #usr = "test"
     #psw = "password"
     
@@ -1897,7 +1900,7 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "http://172.28.104.180:8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
+        url_get = "http://"+lunapath+":8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
         #g = requests.get(url_get,auth=(usr,psw))
         g = requests.get(url_get)
         

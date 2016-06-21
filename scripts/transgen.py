@@ -6,6 +6,20 @@ from random import randint,choice
 from celery import Celery
 from flask import json
 from billiard.exceptions import Terminated
+
+
+
+
+rtdmpath = ''
+
+mssqlpath = ''
+
+mysqlpath = ''
+
+lunapath= ''
+
+
+
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 @app.task
@@ -32,7 +46,7 @@ def transgen():
     try:
         i=0
         fullarr = []
-        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
         cursor.execute('SELECT Max(TransID) FROM [TRANSData].[TRANSACTION]')
         data = cursor.fetchone()

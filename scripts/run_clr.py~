@@ -62,7 +62,7 @@ tasks = [
 ]
 
 
-server_ip = '172.28.104.171'
+server_ip = '10.20.1.21'
 rid = ''
 req_image = ''
 list_of_images = []
@@ -72,13 +72,14 @@ lunaans = 'never used'
 
 app_server = "ruscilab"
 web_server = "http://labinfo.sas.com"
-soa_server = "172.28.104.171:5000"
+soa_server = "10.20.1.21:5000"
 sync = 1
 freq_in = 15
 freq_out = 10
 freq_sync = 20
 
-
+rtdmpath = ''
+sqlpath = ''
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF COMMON FUNCTIONS                                                                                                                                         #

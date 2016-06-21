@@ -97,7 +97,7 @@ def transgen():
                             transinfo = 'atmerror'
             else:
                 cardid=0
-                cards =0
+                #cards =0
                 cardnumber=0
                 transsum = int(accamount)+50000
                 transstatus = "ok"
