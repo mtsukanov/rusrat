@@ -36,7 +36,7 @@ import pymssql
 import psycopg2
 import urllib
 #import transgen
-from celery.task.control import revoke
+from proj.celery import app
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
