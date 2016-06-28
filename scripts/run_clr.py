@@ -35,7 +35,7 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
-from ctasks import app
+from celery import app
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -625,7 +625,7 @@ def facetzmanage():
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
         for k,v in facetzstack.iteritems():
-            ctasks.control.revoke(facetzstack[k])
+            app.control.revoke(facetzstack[k])
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
