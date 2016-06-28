@@ -35,7 +35,7 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
-from ctasks.celery import app
+from ctasks.Celery import app
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
