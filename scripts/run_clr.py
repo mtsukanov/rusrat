@@ -12,7 +12,7 @@
 #############################################################################################################################################################################################
 
 
-
+from __future__ import absolute_import
 from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
@@ -35,7 +35,7 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
-from proj.celery import app
+from ctasks.celery import app
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
