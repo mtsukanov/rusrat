@@ -625,7 +625,7 @@ def facetzmanage():
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
         for k,v in facetzstack.iteritems():
-            app.control.revoke(facetzstack[k])
+            ctasks.control.revoke(facetzstack[k])
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
