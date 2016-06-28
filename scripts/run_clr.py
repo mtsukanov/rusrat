@@ -618,6 +618,7 @@ facetz_enable = False
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
+    ctrl = Control()
     global facetz_enable
     param = request.args.get("param")
     if param == "True": 
@@ -626,7 +627,7 @@ def facetzmanage():
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
         for k,v in facetzstack.iteritems():
-            revoke(facetzstack[k])
+            ctrl.revoke(facetzstack[k])
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)

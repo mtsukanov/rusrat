@@ -35,6 +35,8 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
+from celery.app.control import Control
+
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -616,6 +618,7 @@ facetz_enable = False
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
+    ctrl = Control()
     global facetz_enable
     param = request.args.get("param")
     if param == "True": 
