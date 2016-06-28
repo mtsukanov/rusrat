@@ -36,7 +36,7 @@ import pymssql
 import psycopg2
 import urllib
 #import transgen
-#from celery.task.control import revoke
+from celery.task.control import revoke
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
@@ -70,18 +70,22 @@ lunaresp = 'never used'
 lunaans = 'never used'
 
 
-app_server = "ruscilab"
-web_server = "http://labinfo.sas.com"
+app_server = "10.20.1.190"
+web_server = "labinfo.sas-mic.local"
 soa_server = "10.20.1.21:5000"
 sync = 1
 freq_in = 15
 freq_out = 10
 freq_sync = 20
 
-rtdmpath = ''
-mssqlpath = ''
-mysqlpath = ''
-lunapath= ''
+rtdmpath = '10.20.1.190'
+
+mssqlpath = '10.20.1.192'
+
+mysqlpath = '10.20.1.20'
+
+lunapath= '10.20.1.22'
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF COMMON FUNCTIONS                                                                                                                                         #
@@ -268,7 +272,13 @@ def get_offer():
     return jsonify({'offer':answer})
 
 
-
+@app.route('/tst', methods=['GET'])
+def get_offer222():
+    conn = pymssql.connect(server = "10.20.1.192",user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(IndivID) FROM [DataMart].[INDIVIDUAL] WHERE IndivID=150001")
+    data = cursor.fetchone() 
+    return jsonify({'offer':data[0]})
 
 
 
@@ -494,39 +504,6 @@ def deco():
 #                         BLOCK OF /ServicesStatus                                                                                                                                  #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
-"""Services = {}
-@app.route('/ServicesStatus', methods=['POST','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def ServicesStatusPost():
-    global serviceupdt
-    global Services
-    serviceupdt = 0
-    try:
-        transgen = request.json['transgen']
-    except: 
-        transgen = ''
-    try:
-        atm = request.json['atm']
-    except:
-        atm = ''
-    try:
-        facetz = request.json['facetz']
-    except:
-        facetz = ''
-    try:
-        luna = request.json['luna']
-    except:
-        luna = '' 
-    for key,value in request.json.iteritems():
-        serviceupdt = 0
-        for k,v in Services.iteritems():
-            if k == key:
-                Services[k] = value
-                serviceupdt = 1     
-        if serviceupdt == 0:
-            Services.update({key:value})
-    return make_response(jsonify({'Ratatoskr':'Services have been updated'}),200) """
-
 
 @app.route('/ServicesStatus', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -599,7 +576,7 @@ def sms():
 #FasetZ                                                                                                                     #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
-resultface = 0
+"""resultface = 0
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
@@ -613,7 +590,7 @@ def facetz():
     else:
         resultface.revoke(terminate=True)
         ServicesStatusPost('facetz',False)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)
+        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)"""
 
 @app.route('/facetz2', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -636,10 +613,40 @@ def facetz2():
 
 
 
+facetz_enable = False
+@app.route('/facetzmanage', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def facetzmanage(): 
+    global facetz_enable
+    param = request.args.get("param")
+    if param == "True": 
+        facetz_enable = True
+        ServicesStatusPost('facetz',True)
+        return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
+    else:
+        for k,v in facetzstack.iteritems():
+            revoke(facetzstack[k], terminate = True)
+        facetz_enable = False
+        ServicesStatusPost('facetz',False)
+        return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
 
-
-
-
+facetzstack = {}
+@app.route('/facetz', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def facetz():
+    global facetzstack
+    visitid =  request.args.get("visitid") 
+    if facetz_enable == True:
+        if visitid not in facetzstack:
+            resultface = facetztask.apply_async([visitid])  
+            facetzstack[visitid] = str(resultface) 
+        #ServicesStatusPost('facetz',True)
+        #return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
+            return make_response(jsonify({'Ratatoskr':facetzstack}),200)
+        else:
+            return make_response(jsonify({'Ratatoskr':'This visitid is already exists'}),200)
+    else:
+        return make_response(jsonify({'Ratatoskr':'Sorry, FacetZ service is disabled'}),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -850,11 +857,14 @@ def mobile_get_all():
             " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
             cur.execute(query)
             off_imgs = cur.fetchall()
+            if len(off_imgs) < 3:
+                for l in range(3-len(off_imgs)):
+                    off_imgs.append(" ");
             i = 0
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
                 #offer = {'i':i,'clientid': int(resp["outputs"]["cid"]), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
-                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priority':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
+                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priorigty':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
             #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
@@ -865,10 +875,10 @@ def mobile_get_all():
             return make_response(jsonify(response),500)      
         try:
             resp = r.json()
-            response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(dns)}
+            response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(rtdmpath)}
             #return make_response(jsonify(response),500)
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(dns)}
+            response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(rtdmpath)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
@@ -932,7 +942,7 @@ def mobile_get_all():
     setting =    {
     "app_server" : app_server,
     "web_server" : web_server,
-    "soa_server" : "10.20.1.21:5000",
+    "soa_server" : soa_server,
     "sync" : sync,
     "freq_in" : freq_in,
     "freq_out" : freq_out,
@@ -1175,9 +1185,36 @@ def offer_img():
 
 
 
-
-
-
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /NEW CUSTOMER PRODUCTS                                                                                                    #
+#                                                                                                                                                                                           #
+###################################################################################################################################################
+@app.route('/newcustoffers',  methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def freshmeatprods():
+    try:
+        cid = request.json['cid']
+    except:
+        return make_response(jsonify({"Ratatoskr":"It seems like no cid was send "}),400)
+    try:
+        is_newcust= mssql_select('CIDB','DataMart',None,'OFFER','IndivID ='+str(cid))
+    except:
+        return make_response(jsonify({"Ratatoskr":"Some problems with SQL request.First of all, check sql connection"}),400)
+    if is_newcust == []:
+        try:
+            insert_queue = (
+            "INSERT INTO [DataMart].[OFFER] SELECT *,'"+str(cid)+"' FROM [DataMart].[OFFER_TEMPLATE]" 
+            "COMMIT"
+            )
+            conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
+            cursor = conn.cursor()
+            cursor.execute(insert_queue) 
+            return make_response(jsonify({"Ratatoskr":"Offers for newcommer were succesfully created"}),200)
+        except:
+            return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
+    else:
+        return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
@@ -1786,21 +1823,32 @@ def limit():
     cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
     data = cursor.fetchone()
     termstatus = data[0]
+    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
+    data = cursor.fetchone()
+    maxacc = data[0]
+    minacc = data[1]
+    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
+    data = cursor.fetchone()
+    maxacc = data[0]
+    minacc = data[1]
+    cursor.execute('SELECT CardID FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
+    data = cursor.fetchall()
+    cardid = [int(i[0]) for i in data]
     if termstatus == "nocash":
-        trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+        trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
 'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"atmerror",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
         que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
         return make_response(jsonify({"Ratatoskr":'ATM has no money'}),202)
     elif termstatus == "work":
         if curlimit-Limit >= 0:
-            trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+            trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
 'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
             return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
         else:
-            trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+            trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
 'TransStatus':'refusal','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"proddetlimit",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')

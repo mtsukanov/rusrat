@@ -20,13 +20,13 @@ from time import gmtime, strftime
 
 
 
-rtdmpath = ''
+rtdmpath = '10.20.1.190'
 
-mssqlpath = ''
+mssqlpath = '10.20.1.192'
 
-mysqlpath = ''
+mysqlpath = '10.20.1.20'
 
-lunapath= ''
+lunapath= '10.20.1.22'
 
 
 

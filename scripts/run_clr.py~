@@ -70,16 +70,22 @@ lunaresp = 'never used'
 lunaans = 'never used'
 
 
-app_server = "ruscilab"
-web_server = "http://labinfo.sas.com"
+app_server = "10.20.1.190"
+web_server = "labinfo.sas-mic.local"
 soa_server = "10.20.1.21:5000"
 sync = 1
 freq_in = 15
 freq_out = 10
 freq_sync = 20
 
-rtdmpath = ''
-sqlpath = ''
+rtdmpath = '10.20.1.190'
+
+mssqlpath = '10.20.1.192'
+
+mysqlpath = '10.20.1.20'
+
+lunapath= '10.20.1.22'
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF COMMON FUNCTIONS                                                                                                                                         #
@@ -148,7 +154,7 @@ def make_celery(app):
 
 
 def get_client(cid):
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
     cur = db.cursor()
     query = "SELECT * FROM customers where CID="+str(cid)
     cur.execute(query)
@@ -158,7 +164,7 @@ def get_client(cid):
     return output
 
 def get_cid_byphotoid(photoid):
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
     cur = db.cursor()
     query = "SELECT * FROM customers where PhotoID="+str(photoid)
     cur.execute(query)
@@ -171,7 +177,7 @@ def get_cid_byphotoid(photoid):
     
 
 def get_all_clients():
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
     cur = db.cursor()
     query = "SELECT * FROM customers where PhotoId > 0"
     cur.execute(query)
@@ -181,7 +187,7 @@ def get_all_clients():
     return list_of_images
 
 def get_max_eventid_luna():
-    db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
+    db = psycopg2.connect(host=lunapath, port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
     cur = db.cursor()
     query2 = "SELECT MAX(event_id) FROM event"
     cur.execute(query2)
@@ -266,7 +272,13 @@ def get_offer():
     return jsonify({'offer':answer})
 
 
-
+@app.route('/tst', methods=['GET'])
+def get_offer222():
+    conn = pymssql.connect(server = "10.20.1.192",user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(IndivID) FROM [DataMart].[INDIVIDUAL] WHERE IndivID=150001")
+    data = cursor.fetchone() 
+    return jsonify({'offer':data[0]})
 
 
 
@@ -347,11 +359,11 @@ def get_nbo_req():
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
     
 
-    dns = "172.28.106.245"
+    #dns = "172.28.106.245"
     event = "frontmainevent"
     #event = "SAS_Activity_echo_string"
     #inputs = {"in_string":"I rule"}
-    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
     r = requests.post(rtdm_addr,json = payload)
     resp = str(r)
@@ -369,9 +381,9 @@ def call_rtdm(dns,event,inputs):
 
 @app.route('/test_rtdm', methods=['POST'])
 def test_rtdm():
-    rtdm_ip = "172.28.106.245"
+    #rtdm_ip = "172.28.106.245"
     rtdm_path = "/RTDM/rest/runtime/decisions/SAS_Activity_echo_string"
-    rtdm_url="http://"+rtdm_ip+rtdm_path
+    rtdm_url="http://"+rtdmpath+rtdm_path
     payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"in_string":"I rule"}}
     r = requests.post(rtdm_url,json = payload)
     resp = r.json()
@@ -416,7 +428,7 @@ def geotrigger():
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':'Some problems with python queue service.Further details: '+str(e)}),417)  
     try:
-        rtdm = call_rtdm.apply_async(("172.28.106.245","geomainevent",Geo),retry=True)      
+        rtdm = call_rtdm.apply_async((rtdmpath,"geomainevent",Geo),retry=True)      
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problems with RTDM request.Further details: '+str(e)}),418)    
     #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
@@ -452,7 +464,7 @@ def email():
         LName = merge_websiteurl["lname"]
         MName = merge_websiteurl["mname"]
         ID = merge_websiteurl["id"]
-        url = "http://thebank.sas.com/CreditScoring/creditcard.html%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID
+        url = "http://thebank.sas-mic.local/CreditScoring/creditcard.html%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID
 
     except:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
@@ -492,39 +504,6 @@ def deco():
 #                         BLOCK OF /ServicesStatus                                                                                                                                  #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
-"""Services = {}
-@app.route('/ServicesStatus', methods=['POST','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def ServicesStatusPost():
-    global serviceupdt
-    global Services
-    serviceupdt = 0
-    try:
-        transgen = request.json['transgen']
-    except: 
-        transgen = ''
-    try:
-        atm = request.json['atm']
-    except:
-        atm = ''
-    try:
-        facetz = request.json['facetz']
-    except:
-        facetz = ''
-    try:
-        luna = request.json['luna']
-    except:
-        luna = '' 
-    for key,value in request.json.iteritems():
-        serviceupdt = 0
-        for k,v in Services.iteritems():
-            if k == key:
-                Services[k] = value
-                serviceupdt = 1     
-        if serviceupdt == 0:
-            Services.update({key:value})
-    return make_response(jsonify({'Ratatoskr':'Services have been updated'}),200) """
-
 
 @app.route('/ServicesStatus', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -597,7 +576,7 @@ def sms():
 #FasetZ                                                                                                                     #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
-resultface = 0
+"""resultface = 0
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
@@ -611,7 +590,7 @@ def facetz():
     else:
         resultface.revoke(terminate=True)
         ServicesStatusPost('facetz',False)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)
+        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)"""
 
 @app.route('/facetz2', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -634,10 +613,40 @@ def facetz2():
 
 
 
+facetz_enable = False
+@app.route('/facetzmanage', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def facetzmanage(): 
+    global facetz_enable
+    param = request.args.get("param")
+    if param == "True": 
+        facetz_enable = True
+        ServicesStatusPost('facetz',True)
+        return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
+    else:
+        for k,v in facetzstack.iteritems():
+            revoke(facetzstack[k], terminate = True)
+        facetz_enable = False
+        ServicesStatusPost('facetz',False)
+        return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
 
-
-
-
+facetzstack = {}
+@app.route('/facetz', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def facetz():
+    global facetzstack
+    visitid =  request.args.get("visitid") 
+    if facetz_enable == True:
+        if visitid not in facetzstack:
+            resultface = facetztask.apply_async([visitid])  
+            facetzstack[visitid] = str(resultface) 
+        #ServicesStatusPost('facetz',True)
+        #return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
+            return make_response(jsonify({'Ratatoskr':facetzstack}),200)
+        else:
+            return make_response(jsonify({'Ratatoskr':'This visitid is already exists'}),200)
+    else:
+        return make_response(jsonify({'Ratatoskr':'Sorry, FacetZ service is disabled'}),201)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -677,7 +686,7 @@ def mssqlsave():
     except:
         return make_response(jsonify({'Ratatoskr':'Input is incorrect'}),400)    
     try:
-        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
     except:
         return make_response(jsonify({'Ratatoskr':'Connection failed'}),400)  
@@ -792,7 +801,7 @@ def mobile_get_all():
             #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
             result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
             result_mssql_offimg = mssql_select('CIDB','DataMart','ProdImg','PRODIMG',query_offers)
-            db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
             cur = db.cursor()
             query = (
             " SELECT t2.ProdType from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID")
@@ -829,9 +838,9 @@ def mobile_get_all():
             #dns = "http://"+server_ip+":5000/nbo"
             inputs = {"cid":int(cid),"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}       
-            dns = "172.28.106.245"
+            #dns = "172.28.106.245"
             event = "frontmainevent"
-            rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+            rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
@@ -841,18 +850,21 @@ def mobile_get_all():
                 off+=str(int(k))+','
             off = off[:-1]
             off+=')'
-            db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
             cur = db.cursor()
             query = (
             " WITH TEMP as (SELECT ProdID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+off+") " 
             " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
             cur.execute(query)
             off_imgs = cur.fetchall()
+            if len(off_imgs) < 3:
+                for l in range(3-len(off_imgs)):
+                    off_imgs.append(" ");
             i = 0
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
                 #offer = {'i':i,'clientid': int(resp["outputs"]["cid"]), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
-                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priority':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
+                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priorigty':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
             #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
@@ -863,10 +875,10 @@ def mobile_get_all():
             return make_response(jsonify(response),500)      
         try:
             resp = r.json()
-            response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(dns)}
+            response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(rtdmpath)}
             #return make_response(jsonify(response),500)
         except Exception:
-            response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(dns)}
+            response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(rtdmpath)}
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
@@ -883,7 +895,7 @@ def mobile_get_all():
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
-        db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+        db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
         cur = db.cursor()
         query = (
         " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t3.IndivId,t1.ProdDetValidFrom,t1.ProdDetValidTo,t2.ProdType,t4.ProdImg "
@@ -930,7 +942,7 @@ def mobile_get_all():
     setting =    {
     "app_server" : app_server,
     "web_server" : web_server,
-    "soa_server" : "172.28.104.171:5000",
+    "soa_server" : soa_server,
     "sync" : sync,
     "freq_in" : freq_in,
     "freq_out" : freq_out,
@@ -983,7 +995,7 @@ def mobile_get_all():
 def getresponsehistory():
     cid = request.args.get('cid')
     #cid = 1
-    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM RTData.RESPONSE_HISTORY where CID='+str(cid))
     data = cursor.fetchall()
@@ -1073,7 +1085,7 @@ def get_analytics():
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
     tr = []
     aggr = []
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     mssql_accid = ("SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid)
     cur = db.cursor()
     cur.execute(mssql_accid)  
@@ -1115,7 +1127,7 @@ def get_analytics():
 @app.route('/new_products', methods=['POST','OPTIONS','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def new_products():
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cid = request.args.get('cid')
     proddetid = request.args.get('proddetid')
     if (proddetid is not None):
@@ -1159,7 +1171,7 @@ def new_products():
 @app.route('/offer_img',  methods=['POST','OPTIONS','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_img():
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     offerid = request.json['offerid']
     if offerid != 0:
         cur = db.cursor()
@@ -1173,9 +1185,36 @@ def offer_img():
 
 
 
-
-
-
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /NEW CUSTOMER PRODUCTS                                                                                                    #
+#                                                                                                                                                                                           #
+###################################################################################################################################################
+@app.route('/newcustoffers',  methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def freshmeatprods():
+    try:
+        cid = request.json['cid']
+    except:
+        return make_response(jsonify({"Ratatoskr":"It seems like no cid was send "}),400)
+    try:
+        is_newcust= mssql_select('CIDB','DataMart',None,'OFFER','IndivID ='+str(cid))
+    except:
+        return make_response(jsonify({"Ratatoskr":"Some problems with SQL request.First of all, check sql connection"}),400)
+    if is_newcust == []:
+        try:
+            insert_queue = (
+            "INSERT INTO [DataMart].[OFFER] SELECT *,'"+str(cid)+"' FROM [DataMart].[OFFER_TEMPLATE]" 
+            "COMMIT"
+            )
+            conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
+            cursor = conn.cursor()
+            cursor.execute(insert_queue) 
+            return make_response(jsonify({"Ratatoskr":"Offers for newcommer were succesfully created"}),200)
+        except:
+            return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
+    else:
+        return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
@@ -1347,7 +1386,7 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
-        result = call_rtdm.apply_async(("172.28.106.245","responsehistoryevent",inputs),retry=True)    
+        result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True)    
         return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418)  
@@ -1608,7 +1647,7 @@ def set_atm_status():
         Status = request.json["Status"]
     except:
         return make_response(jsonify({'Ratatoskr':'TID is incorrect'}),400)
-    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     sql=(
         
@@ -1736,7 +1775,7 @@ def card():
     #r = requests.post(rtdm_addr,json = payload)
     #resp = str(r)
     try:
-        result = call_rtdm.apply_async(("172.28.106.245","scoringevent",inputs),retry=True)    
+        result = call_rtdm.apply_async((rtdmpath,"scoringevent",inputs),retry=True)    
         #res = call_rtdm.AsyncResult(str(result))
         #time.sleep(15)
         return make_response(jsonify({'Ratatoskr':str(result)}),201)
@@ -1776,7 +1815,7 @@ def limit():
         Type = request.json["Type"]
     except:
         return make_response(jsonify({"Ratatoskr":'input values are corrupt'}),400)
-    conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
@@ -1784,21 +1823,32 @@ def limit():
     cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
     data = cursor.fetchone()
     termstatus = data[0]
+    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
+    data = cursor.fetchone()
+    maxacc = data[0]
+    minacc = data[1]
+    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
+    data = cursor.fetchone()
+    maxacc = data[0]
+    minacc = data[1]
+    cursor.execute('SELECT CardID FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
+    data = cursor.fetchall()
+    cardid = [int(i[0]) for i in data]
     if termstatus == "nocash":
-        trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+        trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
 'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"atmerror",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
         que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
         return make_response(jsonify({"Ratatoskr":'ATM has no money'}),202)
     elif termstatus == "work":
         if curlimit-Limit >= 0:
-            trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+            trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
 'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
             return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
         else:
-            trans={'TransID':randint(1,10000),'CardID':1,'AccountID':1,'TermID':TID,
+            trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
 'TransStatus':'refusal','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"proddetlimit",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
@@ -1861,7 +1911,7 @@ def call_luna():
         match_flg = False
 
     #url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
-    url = "http://172.28.104.180:8083/4/templates"
+    url = "http://"+lunapath+":8083/4/templates"
     #usr = "test"
     #psw = "password"
     
@@ -1898,7 +1948,7 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "http://172.28.104.180:8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
+        url_get = "http://"+lunapath+":8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
         #g = requests.get(url_get,auth=(usr,psw))
         g = requests.get(url_get)
         

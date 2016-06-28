@@ -17,6 +17,19 @@ from random import randint,choice
 #import transgen
 from time import gmtime, strftime
 
+
+
+
+rtdmpath = '10.20.1.190'
+
+mssqlpath = '10.20.1.192'
+
+mysqlpath = '10.20.1.20'
+
+lunapath= ''
+
+
+
 app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 
@@ -49,7 +62,7 @@ def rabbitmq_add(queue,routing_key,message_body,content_type,exchange_name):
 @app.task(trail=True)
 def mysql_add():
     db_='thebankfront'
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db=db_)
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db=db_)
     cur = db.cursor()
     query = "SELECT * FROM customers where PhotoId > 0"
     cur.execute(query)
@@ -61,7 +74,7 @@ def mysql_add():
 @app.task(trail=True)
 def mysql_b_history_ins(db_,input_data):
 
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db=db_)
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db=db_)
     cur = db.cursor()
     variables = [str(input_data["beacon_uuid"]),input_data["major"],input_data["minor"],input_data["spot_id"],input_data["detection_dttm"],input_data["detection_lvl"]]
     
@@ -72,7 +85,7 @@ def mysql_b_history_ins(db_,input_data):
 
 @app.task(trail=True)
 def mysql_select(db_,select_, from_, where_):
-    db = MySQLdb.connect(host="172.28.104.170", port = 3306, user="rusrat",passwd="Orion123", db=db_,use_unicode = True,charset='UTF8')
+    db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db=db_,use_unicode = True,charset='UTF8')
     cur = db.cursor()
     if select_ is None or select_ == '':
         select_ = '*'
@@ -91,7 +104,7 @@ def mysql_select(db_,select_, from_, where_):
 
 @app.task(trail=True)
 def mssql_select(schema_,db_,select_, from_, where_):
-    db = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database=schema_,charset='UTF8')
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database=schema_,charset='UTF8')
     cur = db.cursor()
     if select_ is None or select_ == '':
         select_ = '*'
@@ -145,7 +158,7 @@ def call_rtdm(dns,event,inputs):
 
 @app.task(trail=True)
 def call_service(service,inputs):
-    service_adr = "http://172.28.104.171:5000/"+service
+    service_adr = "http://10.20.1.21:5000/"+service
     payload = inputs
     r = requests.post(service_adr, json = payload)
     resp = r.json()
@@ -163,7 +176,7 @@ def post(maxevent):
         sleep(7)
         Out =[] 
         try:
-            db = psycopg2.connect(host="172.28.104.180", port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
+            db = psycopg2.connect(host=lunapath, port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
         except Exception as e:
             return e
         cur = db.cursor()
@@ -184,9 +197,9 @@ def post(maxevent):
                 lasttimereq = datetime.now()
                 isfirts = 1
             payload1 = {"id":row[5],"image":base64.b64encode(str(row[6]))}
-            r1 = requests.put("http://172.28.104.171:5000/active_queue?option=terminal",json = payload1)
+            r1 = requests.put("http://10.20.1.21:5000/active_queue?option=terminal",json = payload1)
             payload2 = {"name":row[3],"surname":row[4],"middlename":"","dob":str(row[7]),"id":int(row[5]),"status":"processing","reason":"unknown","location":"camera","area":"retail"}
-            r2 = requests.post("http://172.28.104.171:5000/active_queue",json = payload2)
+            r2 = requests.post("http://10.20.1.21:5000/active_queue",json = payload2)
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
@@ -199,7 +212,7 @@ def post(maxevent):
             if datetime.now() - lasttimereq >= timedelta(minutes=5) or isfirts == 1:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
-                r3= call_rtdm.apply_async(("172.28.106.245","geomainevent",payload3),retry=False)
+                r3= call_rtdm.apply_async((rtdmpath,"geomainevent",payload3),retry=False)
                 Out.append({"event_id":row[0],"event_time":str(row[1]),"similarity":row[2],"first_name":row[3],"last_name":row[4]})
         query2 = "SELECT MAX(event_id) FROM event"
         cur.execute(query2)
@@ -240,7 +253,7 @@ def transgen():
     try:
         i=0
         fullarr = []
-        conn = pymssql.connect(server = '172.28.106.17',user = 'rtdm',password = 'Orion123',database='CIDB')
+        conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
         cursor = conn.cursor()
         cursor.execute('SELECT Max(TransID) FROM [TRANSData].[TRANSACTION]')
         data = cursor.fetchone()
