@@ -35,7 +35,6 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
-from celery.task.control import revoke
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #

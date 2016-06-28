@@ -226,7 +226,7 @@ app.config.update(
 
 celery = make_celery(app)
 
-
+app = Celery('proj',backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300,include=['proj.ctasks'])
 
 
 """
