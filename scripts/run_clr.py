@@ -36,7 +36,7 @@ import pymssql
 import psycopg2
 import urllib
 #import transgen
-from proj.celery import app
+from celery import app
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
@@ -625,7 +625,7 @@ def facetzmanage():
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
         for k,v in facetzstack.iteritems():
-            revoke(facetzstack[k], terminate = True)
+            app.control.revoke(facetzstack[k])
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
