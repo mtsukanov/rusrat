@@ -35,6 +35,8 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
+from celery.app.control import Control
+
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
