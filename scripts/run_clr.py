@@ -636,11 +636,12 @@ tasknum = 0
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():  
+    global tasknum
     global facetzstack
     visitid =  request.args.get("visitid") 
     if facetz_enable == True:
         if visitid not in visitids:
-            facetzstack[i] = facetztask.apply_async([visitid])  
+            facetzstack[tasknum] = facetztask.apply_async([visitid])  
             visitids.append(visitid)
             tasknum += 1 
         #ServicesStatusPost('facetz',True)

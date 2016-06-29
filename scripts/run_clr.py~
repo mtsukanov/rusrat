@@ -624,8 +624,8 @@ def facetzmanage():
         ServicesStatusPost('facetz',True)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
-        for k,v in facetzstack.iteritems():
-            revoke(facetzstack[k],terminate = True)
+        for l in facetzstack:
+            facetzstack[l].revoke()
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
