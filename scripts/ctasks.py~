@@ -16,7 +16,7 @@ from billiard.exceptions import Terminated
 from random import randint,choice
 #import transgen
 from time import gmtime, strftime
-
+from proj.celery import app
 
 
 
