@@ -626,6 +626,7 @@ def facetzmanage():
     else:
         for k,v in facetzstack.iteritems():
             AsyncResult(facetzstack[k]).revoke(terminate=True)
+            AsyncResult(facetzstack[k]).state = 'REVOKED'
             print facetzstack[k] + ": "+AsyncResult(facetzstack[k]).status
         facetz_enable = False
         ServicesStatusPost('facetz',False)
