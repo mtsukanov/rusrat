@@ -630,7 +630,6 @@ def facetzmanage():
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
 
-facetzstack = []
 visitids = []
 tasknum = 0
 @app.route('/facetz', methods=['GET','OPTIONS'])
@@ -641,7 +640,7 @@ def facetz():
     visitid =  request.args.get("visitid") 
     if facetz_enable == True:
         if visitid not in visitids:
-            facetzstack.append(facetztask.apply_async([visitid]))
+            facetztask_+tasknum = facetztask.apply_async([visitid])
             visitids.append(visitid)
             tasknum += 1 
         #ServicesStatusPost('facetz',True)
