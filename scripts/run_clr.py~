@@ -626,7 +626,7 @@ def facetzmanage():
     else:
         for k,v in facetzstack.iteritems():
             AsyncResult(facetzstack[k]).revoke(terminate=True)
-            sleep(5)
+            time.sleep(5)
             print facetzstack[k] + ": "+AsyncResult(facetzstack[k]).status
         facetz_enable = False
         ServicesStatusPost('facetz',False)
@@ -806,7 +806,8 @@ def mobile_get_all():
             db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
             cur = db.cursor()
             query = (
-            " SELECT t2.ProdType from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID")
+            " SELECT t2.ProdType,t3.ProdImg from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID "
+            " inner join [CIDB].[DataMart].[ProdImg]  as t3 on t2.ProdID = t3.ProdID")
             cur.execute(query)
             prodtype = cur.fetchall()
             #GET OFFERS
@@ -820,7 +821,7 @@ def mobile_get_all():
                 offer["type"] = prodtype[i][0]#'financial'#row[9]
                 offer["description"] = row[19]
                 offer["sum"] = row[3]
-                offer["image"] = result_mssql_offimg[i][0]
+                offer["image"] = result_mssql_offimg[i][1][0]
                 offer["rate"] = row[2]
                 offer["payment"] = row[4]
                 offer["secret"] = ''
