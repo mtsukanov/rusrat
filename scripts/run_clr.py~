@@ -1214,13 +1214,15 @@ def freshmeatprods():
             select_offer_temp = ("Select * from [DataMart].[OFFER_TEMPLATE]")
             cursor.execute(select_offer_temp)   
             templates = cursor.fetchall()   
-            i = maxoffer
+            i = maxoffer+1
             for row in templates:      
                 insert_queue = (
-                "INSERT INTO [DataMart].[OFFER] VALUES ("+row+",'"+cid+"',"+i+") " 
-                "COMMIT"
+
+                "INSERT INTO [DataMart].[OFFER](OfferName,OfferStatus,IndivID,OfferID) VALUES ( '"+row[0]+"' ,'"+row[1]+"' ,'"+str(cid)+"','"+str(i)+"') " 
+                " COMMIT"
                 )
-            #    i+=1
+                i+=1
+                cursor.execute(insert_queue)
             
             #cursor = conn.cursor()
             #cursor.execute(insert_queue) 
