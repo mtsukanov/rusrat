@@ -624,22 +624,25 @@ def facetzmanage():
         ServicesStatusPost('facetz',True)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
-        for k,v in facetzstack.iteritems():
-            revoke(facetzstack[k],terminate = True)
+        for l in facetzstack:
+            facetzstack[l].revoke()
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
 
-facetzstack = {}
+facetzstack = []
+visitids = []
+tasknum = 0
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def facetz():
+def facetz():  
     global facetzstack
     visitid =  request.args.get("visitid") 
     if facetz_enable == True:
-        if visitid not in facetzstack:
-            resultface = facetztask.apply_async([visitid])  
-            facetzstack[visitid] = str(resultface) 
+        if visitid not in visitids:
+            facetzstack[i] = facetztask.apply_async([visitid])  
+            visitids.append(visitid)
+            tasknum += 1 
         #ServicesStatusPost('facetz',True)
         #return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
             return make_response(jsonify({'Ratatoskr':facetzstack}),200)
