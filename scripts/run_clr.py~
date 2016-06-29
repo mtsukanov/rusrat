@@ -821,7 +821,7 @@ def mobile_get_all():
                 offer["type"] = prodtype[i][0]#'financial'#row[9]
                 offer["description"] = row[19]
                 offer["sum"] = row[3]
-                offer["image"] = result_mssql_offimg[i][1][0]
+                offer["image"] = prodtype[i][1]
                 offer["rate"] = row[2]
                 offer["payment"] = row[4]
                 offer["secret"] = ''
@@ -1179,8 +1179,8 @@ def offer_img():
     if offerid != 0:
         cur = db.cursor()
         query = (
-        " WITH TEMP as (SELECT ProdID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+") " 
-        " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
+        " WITH TEMP as (SELECT ProdID,IndivID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+") " 
+        " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID and t1.IndivID = t2.IndivID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
         cur.execute(query)
         return make_response(jsonify({'OfferImages':cur.fetchall()}),200)
     return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),200)
@@ -1206,16 +1206,29 @@ def freshmeatprods():
         return make_response(jsonify({"Ratatoskr":"Some problems with SQL request.First of all, check sql connection"}),400)
     if is_newcust == []:
         try:
-            insert_queue = (
-            "INSERT INTO [DataMart].[OFFER] SELECT *,'"+str(cid)+"' FROM [DataMart].[OFFER_TEMPLATE]" 
-            "COMMIT"
-            )
             conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
             cursor = conn.cursor()
-            cursor.execute(insert_queue) 
-            return make_response(jsonify({"Ratatoskr":"Offers for newcommer were succesfully created"}),200)
-        except:
-            return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
+            select_max_offer = ("Select MAX(OfferID) FROM [DataMart].[OFFER]")
+            cursor.execute(select_max_offer) 
+            maxoffer = cursor.fetchone()[0]
+            select_offer_temp = ("Select * from [DataMart].[OFFER_TEMPLATE]")
+            cursor.execute(select_offer_temp)   
+            templates = cursor.fetchall()   
+            i = maxoffer
+            for row in templates:      
+                insert_queue = (
+                "INSERT INTO [DataMart].[OFFER] VALUES ("+row+",'"+cid+"',"+i+") " 
+                "COMMIT"
+                )
+            #    i+=1
+            
+            #cursor = conn.cursor()
+            #cursor.execute(insert_queue) 
+            #return make_response(jsonify({"Ratatoskr":"Offers for newcommer were succesfully created"}),200)
+            return make_response(jsonify({"Ratatoskr":maxoffer}),200)
+        except Exception as e:
+            #return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
+            return make_response(jsonify({"Ratatoskr":e}),400)
     else:
         return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
 #############################################################################################################################################################################################
