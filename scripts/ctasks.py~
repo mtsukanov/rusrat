@@ -231,7 +231,6 @@ def facetztask(cid):
         sleep(10)
         Formatted = []
         r = requests.get(url)
-        Formatted.append({"id":r.json()['id']})
         i=1
         for el in r.json()['visits']:
             formatted_el = {}
@@ -240,7 +239,8 @@ def facetztask(cid):
             formatted_el['url'] = urllib.unquote(el['url'])
             Formatted.append(formatted_el)
             i+=1
-        que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Formatted,ensure_ascii=False),'application/json','facetz_mq')
+        Result = {"sys":{"id":r.json()['id']},"site":Formatted}
+        que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Result,ensure_ascii=False),'application/json','facetz_mq')
         
         print Formatted
 

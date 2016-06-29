@@ -242,7 +242,7 @@ def facetztask(cid):
         Result = {"sys":{"id":r.json()['id']},"site":Formatted}
         que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Result,ensure_ascii=False),'application/json','facetz_mq')
         
-        print Formatted
+        print Result
 
 
 
