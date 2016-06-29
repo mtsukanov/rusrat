@@ -16,7 +16,7 @@ from billiard.exceptions import Terminated
 from random import randint,choice
 #import transgen
 from time import gmtime, strftime
-from proj.celery import app
+
 
 
 
@@ -30,7 +30,7 @@ lunapath= '10.20.1.22'
 
 
 
-
+app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
 
 
