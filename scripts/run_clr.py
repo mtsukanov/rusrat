@@ -640,8 +640,7 @@ def facetz():
     visitid =  request.args.get("visitid") 
     if facetz_enable == True:
         if visitid not in visitids:
-            namespace = globals()
-            namespace["facetztask_%d" % tasknum] = facetztask.apply_async([visitid])
+            namespace = facetztask.apply_async([visitid])
             visitids.append(visitid)
             tasknum += 1 
         #ServicesStatusPost('facetz',True)

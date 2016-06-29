@@ -646,7 +646,7 @@ def facetz():
             tasknum += 1 
         #ServicesStatusPost('facetz',True)
         #return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
-            return make_response(jsonify({'Ratatoskr':facetzstack}),200)
+            return make_response(jsonify({'Ratatoskr':facetztask_0}),200)
         else:
             return make_response(jsonify({'Ratatoskr':'This visitid is already exists'}),200)
     else:
