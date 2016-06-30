@@ -35,7 +35,7 @@ import MySQLdb
 import pymssql
 import psycopg2
 import urllib
-
+import re
 #import transgen
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -523,6 +523,8 @@ def service_list_post():
     global ServiceList
     try:
         offurl = request.json['offurl']
+
+
         mesurl = request.json['mesurl']
         infurl = request.json['infurl']
     except:
@@ -848,18 +850,22 @@ def mobile_get_all():
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
             #request for offer images
-            off = '('
-            for k in resp['outputs']['offercode']:
-                off+=str(int(k))+','
-            off = off[:-1]
-            off+=')'
             db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
             cur = db.cursor()
+
+
+
+            temp_table =("CREATE TABLE #TEMP (offercode int,ord int)")
+            cur.execute(temp_table)
+            for k in range(len(resp['outputs']['offercode'])):
+                insert_order = "INSERT INTO #TEMP(offercode,ord) VALUES("+str(resp['outputs']['offercode'][k])+","+str(k)+")"
+                cur.execute(insert_order)
             query = (
-            " WITH TEMP as (SELECT ProdID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+off+") " 
-            " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
+            " WITH TEMP as (SELECT ProdID,offercode,ord,IndivID from [CIDB].[DataMart].[OFFER] as t1 INNER JOIN #TEMP as t2 on t1.OfferID =    t2.offercode)" 
+            " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID and t1.IndivID = t2.IndivID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID ORDER BY ord")
             cur.execute(query)
             off_imgs = cur.fetchall()
+            cur.execute("DROP TABLE #TEMP")   
             if len(off_imgs) < 3:
                 for l in range(3-len(off_imgs)):
                     off_imgs.append(" ");
@@ -1175,14 +1181,23 @@ def new_products():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_img():
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
     offerid = request.json['offerid']
     if offerid != 0:
-        cur = db.cursor()
+        offcodes = re.findall("\d+",offerid)
+        temp_table =("CREATE TABLE #TEMP (offercode int,ord int)")
+        cur.execute(temp_table)
+        for i in range(len(offcodes)):
+            insert_order = "INSERT INTO #TEMP(offercode,ord) VALUES("+str(offcodes[i])+","+str(i)+")"
+            cur.execute(insert_order)
         query = (
-        " WITH TEMP as (SELECT ProdID,IndivID from [CIDB].[DataMart].[OFFER] WHERE OfferID IN "+offerid+") " 
-        " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID and t1.IndivID = t2.IndivID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID")
+        " WITH TEMP as (SELECT ProdID,offercode,ord,IndivID from [CIDB].[DataMart].[OFFER] as t1 INNER JOIN #TEMP as t2 on t1.OfferID = t2.offercode)" 
+        " SELECT t3.ProdImg FROM TEMP as t1 inner join [CIDB].[DataMart].[OFFER] as t2 on t1.ProdID = t2.ProdID and t1.IndivID = t2.IndivID inner join [CIDB].[DataMart].[PRODIMG] as t3 on t1.ProdID = t3.ProdID ORDER BY ord")
         cur.execute(query)
-        return make_response(jsonify({'OfferImages':cur.fetchall()}),200)
+        tst = cur.fetchall()
+        cur.execute("DROP TABLE #TEMP")       
+        #return make_response(jsonify({'OfferImages':cur.fetchall()}),200)
+        return make_response(jsonify({'OfferImages':tst}),200)
     return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),200)
 
 
@@ -1206,7 +1221,7 @@ def freshmeatprods():
         return make_response(jsonify({"Ratatoskr":"Some problems with SQL request.First of all, check sql connection"}),400)
     if is_newcust == []:
         try:
-            conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
+            conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset="UTF-8")
             cursor = conn.cursor()
             select_max_offer = ("Select MAX(OfferID) FROM [DataMart].[OFFER]")
             cursor.execute(select_max_offer) 
@@ -1215,21 +1230,16 @@ def freshmeatprods():
             cursor.execute(select_offer_temp)   
             templates = cursor.fetchall()   
             i = maxoffer+1
-            for row in templates:      
+            for row in templates:  
+                print i    
                 insert_queue = (
-
-                "INSERT INTO [DataMart].[OFFER](OfferName,OfferStatus,IndivID,OfferID) VALUES ( '"+row[0]+"' ,'"+row[1]+"' ,'"+str(cid)+"','"+str(i)+"') " 
-                " COMMIT"
-                )
+                "INSERT INTO [DataMart].[OFFER](OfferName,OfferStatus,OfferRate,OfferAmount,OfferPayment,OfferPrice,OfferBalance,OfferLimit,OfferPeriod,CashBackRate,OfferDetValidFrom,OfferDetValidTo,OfferValidFrom,OfferValidTo,OfferParam1,OfferParam2,OfferParam3,OfferParam4,OfferLoyaltyScore,OfferDesc,OfferImgID,OfferPrio,ProdID,IndivID,OfferID) VALUES ( '"+row[0]+"' ,'"+row[1]+"' ,'"+str(row[2])+"' ,'"+str(row[3])+"' ,'"+str(row[4])+"' ,'"+str(row[5])+"' ,'"+str(row[6])+"' ,'"+str(row[7])+"' ,'"+str(row[8])+"' ,'"+str(row[9])+"' ,'"+str(row[10])+"' ,'"+str(row[11])+"' ,'"+str(row[12])+"' ,'"+str(row[13])+"' ,'"+row[14]+"' ,'"+row[15]+"' ,'"+str(row[16])+"' ,'"+str(row[17])+"' ,'"+str(row[18])+"' ,'"+row[19].encode("utf-8","ignore")+"' ,'"+str(row[20])+"' ,'"+str(row[21])+"' ,'"+str(row[22])+"' ,'"+str(cid)+"','"+str(i)+"')")
                 i+=1
                 cursor.execute(insert_queue)
-            #cursor = conn.cursor()
-            #cursor.execute(insert_queue) 
-            #return make_response(jsonify({"Ratatoskr":"Offers for newcommer were succesfully created"}),200)
-            return make_response(jsonify({"Ratatoskr":maxoffer}),200)
+            conn.commit()
+            return make_response(jsonify({"Ratatoskr":"Offers for newcommer were succesfully created"}),200)
         except Exception as e:
-            #return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
-            return make_response(jsonify({"Ratatoskr":e}),400)
+            return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
     else:
         return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
 #############################################################################################################################################################################################
@@ -1822,7 +1832,7 @@ def cardcheck():
 #                         BLOCK OF /LimitControl                                                                                                                                            #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-@app.route('/limit', methods=['POST','GET','OPTIONS'])
+@app.route('/limit', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def limit():
     try:
@@ -1836,6 +1846,8 @@ def limit():
     cursor = conn.cursor()
     cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
+    if data == None:
+        return make_response(jsonify({"Ratatoskr":'There is no client with specified id in database'}),204)
     curlimit = int(data[0])
     cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
     data = cursor.fetchone()
@@ -1872,6 +1884,25 @@ def limit():
             return make_response(jsonify({"Ratatoskr":'Limit is exceeded'}),201)
     else:
         return make_response(jsonify({"Ratatoskr":'ATM is out of servce'}),203)
+
+
+@app.route('/limit', methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def getlimit():
+    try:
+        cid = request.args.get('cid')
+    except:
+        return make_response(jsonify({"Ratatoskr":'Icorrect unput'}),400)
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(cid))
+    data = cursor.fetchone()
+    if data != None:
+        curlimit = int(data[0])   
+    else:
+        return make_response(jsonify({"Ratatoskr":'There is no account with specified client id in database'}),201) 
+    return make_response(jsonify({"Ratatoskr":curlimit}),200) 
+    
 
 
 #############################################################################################################################################################################################
