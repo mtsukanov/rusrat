@@ -631,6 +631,7 @@ def facetzmanage():
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
         for k,v in facetzstack.iteritems():
+            print str(facetzstack[k].taskresult)
             facetzstack[k].StopTask()
         facetz_enable = False
         ServicesStatusPost('facetz',False)
@@ -642,11 +643,6 @@ facetzstack = {}
 def facetz():
     global facetzstack
     visitid =  request.args.get("visitid") 
-    if visitid is None:
-        m = facetzstack
-        for k,v in facetzstack:
-            m[k] = str(v)
-        return make_response(jsonify({'Ratatoskr':m}),200)
     if facetz_enable == True:
         if visitid not in facetzstack:
             resultface = facetztask.apply_async([visitid])  

@@ -616,7 +616,7 @@ class FacetzTask(object):
     def __init__(self,taskresult):
         self.taskresult = taskresult
     def StopTask(self):
-        self.taskresult.revoke()
+        self.taskresult.revoke(terminate=True)
 
 
 facetz_enable = False
