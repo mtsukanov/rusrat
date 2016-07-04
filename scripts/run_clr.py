@@ -612,7 +612,11 @@ def facetz2():
         i+=1
     return make_response(jsonify({'Ratatoskr':Formatted}),200)
 
-
+class FacetzTask(object):
+    def __init__(self,taskresult):
+        self.taskresult = taskresult
+    def StopTask(self):
+        self.taskresult.revoke()
 
 
 facetz_enable = False
@@ -627,9 +631,8 @@ def facetzmanage():
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
     else:
         for k,v in facetzstack.iteritems():
-            AsyncResult(facetzstack[k]).revoke(terminate=True)
-            time.sleep(5)
-            print facetzstack[k] + ": "+AsyncResult(facetzstack[k]).status
+            print str(facetzstack[k].taskresult)
+            facetzstack[k].StopTask()
         facetz_enable = False
         ServicesStatusPost('facetz',False)
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
@@ -643,10 +646,10 @@ def facetz():
     if facetz_enable == True:
         if visitid not in facetzstack:
             resultface = facetztask.apply_async([visitid])  
-            facetzstack[visitid] = str(resultface) 
+            ftask = FacetzTask(resultface)
+            facetzstack[visitid] = ftask
         #ServicesStatusPost('facetz',True)
-        #return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
-            return make_response(jsonify({'Ratatoskr':facetzstack}),200)
+            return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
         else:
             return make_response(jsonify({'Ratatoskr':'This visitid is already exists'}),200)
     else:
