@@ -195,7 +195,7 @@ def get_max_eventid_luna():
     max_eventid = data[0]
     return max_eventid
 
-Services = {"atm":Trues,"transgen":False,"facetz":False,"luna":False}
+Services = {"atm":True,"transgen":False,"facetz":False,"luna":False}
 def ServicesStatusPost(service,status):
     global serviceupdt
     global Services
@@ -1976,7 +1976,7 @@ def call_luna():
         match_flg = False
 
     #url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
-    url = "http://"+lunapath+":8083/4/templates"
+    url = "http://"+lunapath+":8083/5/templates"
     #usr = "test"
     #psw = "password"
     
@@ -2013,7 +2013,7 @@ def call_luna():
          
 
         rid = r.json()["id"]
-        url_get = "http://"+lunapath+":8083/4/similar_templates?id="+str(rid)+"&candidates="+candidates
+        url_get = "http://"+lunapath+":8083/5/similar_templates?id="+str(rid)+"&candidates="+candidates
         #g = requests.get(url_get,auth=(usr,psw))
         g = requests.get(url_get)
         
