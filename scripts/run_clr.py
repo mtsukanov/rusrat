@@ -195,7 +195,7 @@ def get_max_eventid_luna():
     max_eventid = data[0]
     return max_eventid
 
-Services = {}
+Services = {"atm":Trues,"transgen":False,"facetz":False,"luna":False}
 def ServicesStatusPost(service,status):
     global serviceupdt
     global Services
@@ -420,6 +420,8 @@ def geotrigger():
         area = "bank"
     elif spotname == "The Store":
         area = "retail"
+    else:
+        area = "sasrussia"
     if trigger != 'Luna':
         for row in result_mysql_custdet:
             payload = {"name":row[0],"surname":row[2],"middlename":row[1],"dob":str(row[3]),"id":cid,"status":"processing","reason":"visit","location":spotname,"area":area}
@@ -618,12 +620,15 @@ class FacetzTask(object):
     def StopTask(self):
         self.taskresult.revoke(terminate=True)
 
-
+facetzstack = {}
+facetzstackstr = {}
 facetz_enable = False
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
     global facetz_enable
+    global facetzstack
+    global facetzstackstr
     param = request.args.get("param")
     if param == "True": 
         facetz_enable = True
@@ -635,19 +640,24 @@ def facetzmanage():
             facetzstack[k].StopTask()
         facetz_enable = False
         ServicesStatusPost('facetz',False)
+        facetzstack = {}
+        facetzstackstr = {}
         return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
 
-facetzstack = {}
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
     global facetzstack
+    global facetzstackstr
     visitid =  request.args.get("visitid") 
+    if visitid is None:
+        return make_response(jsonify({'Ratatoskr':facetzstackstr}),201)
     if facetz_enable == True:
         if visitid not in facetzstack:
             resultface = facetztask.apply_async([visitid])  
             ftask = FacetzTask(resultface)
             facetzstack[visitid] = ftask
+            facetzstackstr[visitid] = str(resultface)
         #ServicesStatusPost('facetz',True)
             return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
         else:
@@ -894,7 +904,7 @@ def mobile_get_all():
             return make_response(jsonify(response),500)
 
         query_customers = 'Login is not null AND CID ='+cid
-        query_tranz = "AccountID IN (SELECT AccountID from [DataMart].[Account] WHERE IndivID= "+cid+")"
+        query_tranz = " WHERE t2.AccountID IN (SELECT AccountID from [DataMart].[Account] WHERE IndivID= "+cid+")"
         query_offers = 'IndivID ='+cid
         query_prods = "WHERE IndivID ="+cid
         query_beacon = None
@@ -903,7 +913,7 @@ def mobile_get_all():
     try:
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
         result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
-        result_mssql_tranz = mssql_select('CIDB','TRANSData','TermID,TransSum,TransDate,TransID,AccountID','[TRANSACTION]',query_tranz)
+        #result_mssql_tranz = mssql_select('CIDB','TRANSData','TermID,TransSum,TransDate,TransID,AccountID','[TRANSACTION]',query_tranz)
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
@@ -914,6 +924,10 @@ def mobile_get_all():
         " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID inner join [CIDB].[DataMart].[PRODIMG] as t4 on t1.ProdID = t4.ProdID"
         " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT]"+query_prods+")")
         cur.execute(query)
+        prodqres = cur.fetchall()
+        transq = ("SELECT t1.TermID,t1.TransSum,t1.TransDate,t1.TransID,t2.IndivID FROM [CIDB].[TRANSData].[TRANSACTION] as t1 inner join [CIDB].[DataMart].[ACCOUNT] as t2 on t1.AccountID = t2.AccountID " + query_tranz)
+        cur.execute(transq)
+        transqres = cur.fetchall()
     except Exception as e:
         response = {"Ratatoskr":e}
         return make_response(jsonify(response),500)
@@ -932,7 +946,7 @@ def mobile_get_all():
         client["loyaltyscore"] = row[29]
         Clients.append(client)
 #GET PRODUCTS
-    for row in cur.fetchall():
+    for row in prodqres:
         product = {} 
         product["clientid"] = int(row[10])
         product["sum"] = row[1]
@@ -961,13 +975,13 @@ def mobile_get_all():
     "freq_sync" : freq_sync}
     Settings.append(setting)
 #GET TRANSACTIONS
-    for row in result_mssql_tranz:
+    for row in transqres:
         tranz = {}
         tranz["tranid"] = row[3]
         tranz["agent"] = row[0]
         tranz["sum"] = row[1]
         tranz["tran_dttm"] ="140451295"
-        tranz["clientid"] =  mssql_select('CIDB','DataMart','CAST(IndivID AS INT)','[ACCOUNT]','AccountID='+str(row[4]))[0][0]
+        tranz["clientid"] =  str(row[4])
         Transactions.append(tranz)
 #GET WIFI
     for row in result_mysql_wifi:
