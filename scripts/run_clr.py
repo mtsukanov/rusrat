@@ -697,7 +697,7 @@ def mssqlsave():
         Country = request.args.get("Country").encode('utf-8')
         City = request.args.get("City").encode('utf-8') 
         PhotoID = request.json["PhotoID"]  
-        LanguageID = request.json["LanguageID"]  
+        LanguageID = request.args.get("LanguageID")  
         Street = request.args.get("Street").encode('utf-8') 
         State = request.args.get("State").encode('utf-8') 
     except:
@@ -729,18 +729,12 @@ def mssqlsave():
     "Phone='"+str(PhoneNumber)+"',"
     "PhotoID='"+str(PhotoID)+"'"
     "WHERE IndivID="+str(CID)+"")
-    sql2 = (
-    "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET "
-    "Gender = '"+str(Gender)+"',"
-    "Age='"+str(Age)+"',"
-    "AgeGroupID='"+str(AgeGroup)+"',"
-    "MartialStatus='"+str(MaritalStatus)+"',"
-    "Children='"+str(Children)+"',"
-    "EducationID='"+str(Education)+"',"
-    "JobID='"+str(Occupation)+"',"
-    "Income='"+str(Income)+"',"
-    "LanguageID='"+str(LanguageID)+"'"
-    "WHERE IndivID="+str(CID)+"")
+    sql2txt = 
+    "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"', Age='"+str(Age)+"', AgeGroupID='"+str(AgeGroup)+"',    MartialStatus='"+str(MaritalStatus)+"', Children='"+str(Children)+"', EducationID='"+str(Education)+"', JobID='"+str(Occupation)+"',"
+    if LanguageID is not None:
+        sql2txt + "LanguageID='"+str(LanguageID)+"',"
+    sql2txt + " Income='"+str(Income)+"' WHERE IndivID="+str(CID)+""
+    slq2 = (sql2txt)
     sql3 = (
     "UPDATE [DataMart].[INDIVIDUAL_PASSPORT] SET "
     "PassportNumber = '"+str(Passport)+"',"
