@@ -180,7 +180,7 @@ def post(maxevent):
         except Exception as e:
             return e
         cur = db.cursor()
-        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE event_id >"+str(maxid)
+        query = "SELECT event_id,event_time,similarity,first_name,last_name,middle_name,event_photo,birth_date FROM event WHERE search_result ='TRYE' event_id >"+str(maxid)
         cur.execute(query)
         #query2 = "SELECT count(*) FROM event WHERE event_id >"+str(maxid)
         #cur.execute(query2)
@@ -223,7 +223,7 @@ def post(maxevent):
 
 
 
-@app.task(throws=(Terminated,))
+@app.task(throws=(Terminated,),ignore_result=False)
 def facetztask(cid):
     url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
     k =1 
