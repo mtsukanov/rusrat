@@ -697,7 +697,7 @@ def mssqlsave():
         Country = request.args.get("Country").encode('utf-8')
         City = request.args.get("City").encode('utf-8') 
         PhotoID = request.json["PhotoID"]  
-        LanguageID = request.args.get("LanguageID")  
+        LanguageID = request.args.get("LanguageID")
         Street = request.args.get("Street").encode('utf-8') 
         State = request.args.get("State").encode('utf-8') 
     except:
@@ -729,12 +729,28 @@ def mssqlsave():
     "Phone='"+str(PhoneNumber)+"',"
     "PhotoID='"+str(PhotoID)+"'"
     "WHERE IndivID="+str(CID)+"")
-    sql2txt = 
-    "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"', Age='"+str(Age)+"', AgeGroupID='"+str(AgeGroup)+"',    MartialStatus='"+str(MaritalStatus)+"', Children='"+str(Children)+"', EducationID='"+str(Education)+"', JobID='"+str(Occupation)+"',"
-    if LanguageID is not None:
-        sql2txt + "LanguageID='"+str(LanguageID)+"',"
-    sql2txt + " Income='"+str(Income)+"' WHERE IndivID="+str(CID)+""
-    slq2 = (sql2txt)
+    sql2 = "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"',Age='"+str(Age)+"',AgeGroupID='"+str(AgeGroup)+"',MartialStatus='"+str(MaritalStatus)+"',Children='"+str(Children)+"',EducationID='"+str(Education)+"',JobID='"+str(Occupation)+"',"
+    if LanguageID != 'undefined':
+        sql2 += "LanguageID='"+str(LanguageID)+"',"
+    sql2 += "Income='"+str(Income)+"' WHERE IndivID="+str(CID)+""
+    print sql2
+
+
+
+    
+    #slq2 = (sql2txt)
+    """sql2 = (
+    "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET "
+    "Gender = '"+str(Gender)+"',"
+    "Age='"+str(Age)+"',"
+    "AgeGroupID='"+str(AgeGroup)+"',"
+    "MartialStatus='"+str(MaritalStatus)+"',"
+    "Children='"+str(Children)+"',"
+    "EducationID='"+str(Education)+"',"
+    "JobID='"+str(Occupation)+"',"
+    "Income='"+str(Income)+"',"
+    "LanguageID='"+str(LanguageID)+"'"
+    "WHERE IndivID="+str(CID)+"")"""
     sql3 = (
     "UPDATE [DataMart].[INDIVIDUAL_PASSPORT] SET "
     "PassportNumber = '"+str(Passport)+"',"
@@ -1886,6 +1902,7 @@ def limit():
 'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
+            print trans
             return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
         else:
             trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
