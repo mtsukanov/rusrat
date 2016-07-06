@@ -203,13 +203,13 @@ def post(maxevent):
                 #inputs = {"IndivID":int(row[5]),"Channel":"Luna","PhotoDT":str(row[1].isoformat(sep='T')),"param1":"","param2":"","param3":0,"param4":0}
                 #k = call_rtdm("172.28.106.245","lunaevent",inputs)
                 #print k,inputs
-            #date_s = datetime.strftime(datetime.now(),"%m/%d/%y %H:%M:%S")
-            #date_e = datetime.strftime(lasttimereq,"%m/%d/%y %H:%M:%S")
-            #date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
-            #date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
-            #print "difference = "+str((date_ss-date_ee).seconds)
+            date_s = datetime.strftime(datetime.now(),"%m/%d/%y %H:%M:%S")
+            date_e = datetime.strftime(lasttimereq,"%m/%d/%y %H:%M:%S")
+            date_ss = datetime.strptime(date_s,"%m/%d/%y %H:%M:%S")
+            date_ee = datetime.strptime(date_e,"%m/%d/%y %H:%M:%S")
+            print "difference = "+str((date_ss-date_ee).seconds)
             print lasttimereq
-            if datetime.now() - lasttimereq >= timedelta(minutes=5) or isfirts == 1:
+            if datetime.now() - lasttimereq >= timedelta(seconds=300) or isfirts == 1:
                 payload3 = {"cid":int(row[5]),"scenario":"","beaconid":"","spotid":2,"spotname":"The Store","time":str(datetime.now().isoformat(sep='T')),"trigger":"Luna"}
                 #r3 = requests.post("http://172.28.104.171:5000/geotrigger",json = payload3)
                 r3= call_rtdm.apply_async((rtdmpath,"geomainevent",payload3),retry=False)
