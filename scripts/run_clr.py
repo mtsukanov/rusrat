@@ -518,15 +518,13 @@ def ServicesStatusGET():
 #                         BLOCK OF /SERVICE LIST                                                                                                    #
 #                                                                                                                                                                                           #
 ##################################################################################################################################################
-ServiceList = {"Offurl":'',"Mesurl":'',"Infurl":''}
+ServiceList = {"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}
 @app.route('/service_list',  methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_post():
     global ServiceList
     try:
         offurl = request.json['offurl']
-
-
         mesurl = request.json['mesurl']
         infurl = request.json['infurl']
     except:
@@ -1181,7 +1179,7 @@ def new_products():
         query = (
         " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t1.ProdDetValidFrom,t1.ProdDetValidTo"
         " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID"
-        " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT] WHERE IndivID='"+cid+"')")
         cur.execute(query)
         for row in cur.fetchall():
             prods = {}

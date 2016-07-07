@@ -518,15 +518,13 @@ def ServicesStatusGET():
 #                         BLOCK OF /SERVICE LIST                                                                                                    #
 #                                                                                                                                                                                           #
 ##################################################################################################################################################
-ServiceList = {"Offurl":'',"Mesurl":'',"Infurl":''}
+ServiceList = {"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}
 @app.route('/service_list',  methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_post():
     global ServiceList
     try:
         offurl = request.json['offurl']
-
-
         mesurl = request.json['mesurl']
         infurl = request.json['infurl']
     except:
@@ -1902,6 +1900,7 @@ def limit():
 'TransStatus':'ok','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
             que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
+            print trans
             return make_response(jsonify({"Ratatoskr":'Transaction has been generated'}),200)
         else:
             trans={'TransID':randint(1,10000),'CardID':choice(cardid),'AccountID':randint(minacc,maxacc),'TermID':TID,
