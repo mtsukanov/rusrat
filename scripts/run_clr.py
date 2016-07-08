@@ -1555,9 +1555,7 @@ def active_queue():
             client_cnt+=1     
     return make_response(jsonify({'Ratatoskr':'good','TEST': Client_list}),200)
 
-@app.route('/act', methods=['GET'])
-def rururu(): 
-    return make_response(jsonify({'TEST': Client_list}),200)
+
 
 @app.route('/active_queue', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -1893,6 +1891,11 @@ def limit():
 'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"atmerror",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
         que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
+        payload = {"client_fname":"","client_lname":"","client_mname":"","client_dob":"","client_id":CID,"client_status":"","client_reason":"Withdrawal","client_location":"ATM","client_area":""}
+        try:
+            resultATM = call_service.apply_async(("active_queue",payload),retry=True) 
+        except:
+             return make_response(jsonify({"Ratatoskr":'Some problems with client queue update. Check if payload is correct'}),400)
         return make_response(jsonify({"Ratatoskr":'ATM has no money'}),202)
     elif termstatus == "work":
         if curlimit-Limit >= 0:
