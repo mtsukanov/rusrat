@@ -620,7 +620,7 @@ class FacetzTask(object):
 
 facetzstack = {}
 facetzstackstr = {}
-facetz_enable = False
+facetz_enable = True
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 

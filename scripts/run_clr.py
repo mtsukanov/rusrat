@@ -1867,7 +1867,8 @@ def limit():
         return make_response(jsonify({"Ratatoskr":'input values are corrupt'}),400)
     conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
-    cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
+#    cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
+    cursor.execute('SELECT AccountBalance FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
     if data == None:
         return make_response(jsonify({"Ratatoskr":'There is no client with specified id in database'}),204)
