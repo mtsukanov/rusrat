@@ -1053,6 +1053,8 @@ def mobile_post_all():
     HistArr.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):request.data})
     try:
         sys = request.json['sys']
+        if sys['clientid'] < 1:
+            return
         wifi = request.json['wifi']
         beacon = request.json['beacon']
         gps = request.json['gps']
@@ -1195,6 +1197,32 @@ def new_products():
             Products.append(prods)
         return make_response(jsonify({'Products':Products}),200)
 
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /NEW PRODUCTS                                                                                                                                    #
+#                                                                                                                                                                                           #
+########################################################################################################################################################
+@app.route('/buyprod', methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def buyprod():
+    try:
+        prodname = request.args.get('prodname')
+        amount = request.json['amount']
+        cid = request.json['cid']
+        purdate = request.json['purdate']
+    except:
+        return make_response(jsonify({'BuyProdService':'incorrect input'}),400) 
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
+    query=("INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+cid+","+prodname+","+amount+","+'10.11.1990 23:34:21'+")")
+    try:
+         cur.execute(query)
+    except Exception as e:
+         return query
+    db.commit()
+    return make_response(jsonify({'BuyProdService':'ok'}),200)
 
 
 #############################################################################################################################################################################################
@@ -1547,6 +1575,7 @@ def active_queue():
             if obj['id'] == client_id:
                 obj['location'] = client_location
                 obj['reason'] = client_reason
+                obj['area'] = client_area
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
                 updated = 1 
         if updated == 0:
