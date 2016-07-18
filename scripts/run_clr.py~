@@ -766,10 +766,10 @@ def mssqlsave():
         cursor.execute(sql1)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL table failed'}),400)  
-    #try:
-    #    cursor.execute(sql2)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_DEMOGRAPHIC table failed'}),400)  
+    try:
+        cursor.execute(sql2)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Update INDIVIDUAL_DEMOGRAPHIC table failed'}),400)  
     try:
         cursor.execute(sql3)
     except Exception as e:

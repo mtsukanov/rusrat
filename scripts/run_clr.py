@@ -1547,6 +1547,7 @@ def active_queue():
             if obj['id'] == client_id:
                 obj['location'] = client_location
                 obj['reason'] = client_reason
+                obj['area'] = client_area
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
                 updated = 1 
         if updated == 0:
