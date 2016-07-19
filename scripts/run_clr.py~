@@ -731,7 +731,7 @@ def mssqlsave():
     sql2 = "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"',Age='"+str(Age)+"',AgeGroupID='"+str(AgeGroup)+"',MartialStatus='"+str(MaritalStatus)+"',Children='"+str(Children)+"',EducationID='"+str(Education)+"',JobID='"+str(Occupation)+"',"
     if LanguageID != 'undefined':
         sql2 += "LanguageID='"+str(LanguageID)+"',"
-    if Password != 'undefined'
+    if Password != 'undefined':
         sql2 += "Password='"+str(Password)+"',"
     sql2 += "Income='"+str(Income)+"' WHERE IndivID="+str(CID)+""
     print sql2
