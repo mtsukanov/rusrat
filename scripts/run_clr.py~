@@ -620,7 +620,7 @@ class FacetzTask(object):
 
 facetzstack = {}
 facetzstackstr = {}
-facetz_enable = True
+facetz_enable = False
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
@@ -696,6 +696,7 @@ def mssqlsave():
         City = request.args.get("City").encode('utf-8') 
         PhotoID = request.json["PhotoID"]  
         LanguageID = request.args.get("LanguageID")
+        Password = request.args.get("Password")
         Street = request.args.get("Street").encode('utf-8') 
         State = request.args.get("State").encode('utf-8') 
     except:
@@ -730,6 +731,8 @@ def mssqlsave():
     sql2 = "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"',Age='"+str(Age)+"',AgeGroupID='"+str(AgeGroup)+"',MartialStatus='"+str(MaritalStatus)+"',Children='"+str(Children)+"',EducationID='"+str(Education)+"',JobID='"+str(Occupation)+"',"
     if LanguageID != 'undefined':
         sql2 += "LanguageID='"+str(LanguageID)+"',"
+    if Password != 'undefined'
+        sql2 += "Password='"+str(Password)+"',"
     sql2 += "Income='"+str(Income)+"' WHERE IndivID="+str(CID)+""
     print sql2
 
@@ -1938,7 +1941,7 @@ def limit():
 'TransStatus':'error','TransDate':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'TransSum':Limit,'TransCurrency':'rub','TransType':Type,
 'TransInfo':"atmerror",'TransParam1':'','TransParam2':'','TransParam3':'','TransParam4':''}
         que_result = rabbitmq_add('trans_mq','t_mq',json.dumps(trans,ensure_ascii=False),'application/json','trans_mq')
-        payload = {"name":"","surname":"","middlename":"","dob":"","id":int(CID),"status":"","reason":"Withdrawal","location":"ATM","area":""}
+        payload = {"name":"","surname":"","middlename":"","dob":"","id":int(CID),"status":"processing","reason":"Withdrawal","location":"ATM","area":"bank"}
         try:
             resultATM = call_service.apply_async(("active_queue",payload),retry=True) 
         except:
