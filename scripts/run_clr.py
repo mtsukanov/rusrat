@@ -1216,12 +1216,7 @@ def buyprod():
         return make_response(jsonify({'BuyProdService':'incorrect input'}),400) 
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cur = db.cursor()
-    query=("INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+cid+","+prodname+","+amount+","+'10.11.1990 23:34:21'+")")
-    print query
-    try:
-         cur.execute(query)
-    except Exception as e:
-         return query
+    cur.execute("INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+str(cid)+","+prodname+","+str(amount)+",'"+str(datetime.datetime.now())+"')")
     db.commit()
     return make_response(jsonify({'BuyProdService':'ok'}),200)
 
