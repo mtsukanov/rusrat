@@ -1617,7 +1617,7 @@ def CList():
     if (opt is not None):
         if (opt == "new"):
             for obj in Client_list:
-                if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and (obj['location'] == 'terminal' or obj['location'] == 'camera'):
+                if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and (obj['location'] == 'terminal' or obj['location'] == 'camera' or obj['location'] == 'ATM'):
                     Newcommer_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                     Newcommers.append(Newcommer_profile)
             return make_response(jsonify({'Ratatoskr':Newcommers}),200)
