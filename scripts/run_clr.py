@@ -620,7 +620,7 @@ class FacetzTask(object):
 
 facetzstack = {}
 facetzstackstr = {}
-facetz_enable = True
+facetz_enable = False
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
@@ -1201,10 +1201,10 @@ def new_products():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /NEW PRODUCTS                                                                                                                                    #
+#                         BLOCK OF /BUY PRODS                                                                                                    #
 #                                                                                                                                                                                           #
 ########################################################################################################################################################
-@app.route('/buyprod', methods=['POST','OPTIONS','GET'])
+@app.route('/buyprod', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def buyprod():
     try:
@@ -1216,11 +1216,32 @@ def buyprod():
         return make_response(jsonify({'BuyProdService':'incorrect input'}),400) 
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cur = db.cursor()
-    cur.execute("INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+str(cid)+","+prodname+","+str(amount)+",'"+str(datetime.datetime.now())+"')")
+    #q = "INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+str(cid)+",'"+prodname+"',"+str(amount)+",'"+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"')"
+    #print q
+    cur.execute("INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+str(cid)+",'"+prodname+"',"+str(amount)+",'"+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"')")
     db.commit()
     return make_response(jsonify({'BuyProdService':'ok'}),200)
 
-
+@app.route('/buyprod', methods=['GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def getbuyprod():
+    try:
+        cid = request.args.get('cid')
+    except:  
+        return make_response(jsonify({'BuyProdService':'incorrect input'}),400) 
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
+    cur.execute("SELECT * FROM [CIDB].[DataMart].[BUYPROD] WHERE cid = "+cid)    
+    prods = cur.fetchall()
+    Result = []
+    for row in prods:
+         prod={}
+         prod['cid'] = row[0]
+         prod['prodname'] = row[1]
+         prod['amount'] = row[2]
+         prod['date'] = row[3]
+         Result.append(prod)
+    return make_response(jsonify({'BuyProdService':Result}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /GET OFFER IMAGES                                                                                                                                    #
