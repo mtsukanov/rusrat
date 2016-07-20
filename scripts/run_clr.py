@@ -1144,20 +1144,28 @@ def get_analytics():
              trans['Lon'] = mssql_select('CIDB','[TRANSData]','TermLongitude','[Terminal]','TermID = '+str(trans['TermID']))[0][0]
              trans['Account'] = int(row[0])
              tr.append(trans)     
-    mssql_agrr = (
-    "SELECT SUM(TransSum)/(SELECT SUM(TransSum) from [CIDB].[TRANSData].[TRANSACTION] WHERE TransType =1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+") AND TransStatus = 'ok')*100,SUM(TransSum) as Sum,t2.MCC,t3.MCCName "
-    "FROM [CIDB].[TRANSData].[TRANSACTION] as t1 inner join [CIDB].[TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [CIDB].[TRANSData].[MCC] as t3 on t2.MCC=t3.MCC "
-    "WHERE t1.TransType =1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+") AND TransStatus = 'ok'"
-    "GROUP BY t1.TermID,t2.MCC,t3.MCCName")
+    query = ("SELECT DISTINCT CAST(t3.MCC AS int) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransSum>0 AND 0rTransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
     cur = db.cursor()
-    cur.execute(mssql_agrr)
-    for row in cur.fetchall():
-        aggegate = {}
-        aggegate['Percent'] = row[0]
-        aggegate['Sum'] = row[1]  
-        aggegate['Category'] = row[3]
-        aggr.append(aggegate)
-    return make_response(jsonify({'Transaction_list':tr,'Aggregate':aggr}),200)
+    cur.execute(query) 
+    mcc = cur.fetchall()
+    query3 = ("SELECT SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+    cur.execute(query3) 
+    transsum = cur.fetchone()[0]
+    MCC = []
+    Result = []
+    for row in mcc:
+        MCC.append(row[0])
+    for row in MCC:
+        query2 = ("SELECT  SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        query4 = ("SELECT  t3.MCCCategory FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        cur.execute(query2) 
+        mccsum = cur.fetchone()[0]
+        cur.execute(query4) 
+        mcccat = cur.fetchone()[0]
+        percent = (mccsum/transsum)*100
+        MCCSUM = {"Category":mcccat,"Sum":mccsum,"Percent":percent}
+        Result.append(MCCSUM)
+    return make_response(jsonify({'Transaction_list':tr,'Aggregate':MCC}),200)
 
 
 
@@ -1171,10 +1179,30 @@ def aggr():
     except:
         return make_response(jsonify({'Aggr':'invalid input'}),400)
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
-    query = ("SELECT * FROM [TRANSData].[TRANSACTION] WHERE AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+    query = ("SELECT DISTINCT CAST(t3.MCC AS int) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
     cur = db.cursor()
     cur.execute(query) 
-    return make_response(jsonify({'Aggr':cur.fetchall()}),200)
+    mcc = cur.fetchall()
+    query3 = ("SELECT SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+    cur.execute(query3) 
+    transsum = cur.fetchone()[0]
+    MCC = []
+    MCCSUM = {}
+    for row in mcc:
+        MCC.append(row[0])
+    for row in MCC:
+        query2 = ("SELECT  SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        query4 = ("SELECT  t3.MCCCategory FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        cur.execute(query2) 
+        mccsum = cur.fetchone()[0]
+        cur.execute(query4) 
+        mcccat = cur.fetchone()[0]
+        percent = (mccsum/transsum)*100
+        MCCSUM['Category'] = mcccat
+        MCCSUM['Sum'] = mccsum
+        MCCSUM['Percent'] = percent
+
+    return make_response(jsonify({'Aggr':MCCSUM}),200)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
