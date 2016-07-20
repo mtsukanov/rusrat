@@ -1144,7 +1144,7 @@ def get_analytics():
              trans['Lon'] = mssql_select('CIDB','[TRANSData]','TermLongitude','[Terminal]','TermID = '+str(trans['TermID']))[0][0]
              trans['Account'] = int(row[0])
              tr.append(trans)     
-    query = ("SELECT DISTINCT CAST(t3.MCC AS int) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransSum>0 AND 0rTransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+    query = ("SELECT DISTINCT CAST(t3.MCC AS int) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
     cur = db.cursor()
     cur.execute(query) 
     mcc = cur.fetchall()
