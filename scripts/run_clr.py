@@ -1159,6 +1159,23 @@ def get_analytics():
         aggr.append(aggegate)
     return make_response(jsonify({'Transaction_list':tr,'Aggregate':aggr}),200)
 
+
+
+
+
+@app.route('/aggr', methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def aggr():
+    try:
+        cid = request.args.get('cid')
+    except:
+        return make_response(jsonify({'Aggr':'invalid input'}),400)
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    query = ("SELECT * FROM [TRANSData].[TRANSACTION] WHERE AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+    cur = db.cursor()
+    cur.execute(query) 
+    return make_response(jsonify({'Aggr':cur.fetchall()}),200)
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /NEW PRODUCTS                                                                                                                                    #
