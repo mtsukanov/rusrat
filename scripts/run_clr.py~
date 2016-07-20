@@ -230,11 +230,12 @@ celery = make_celery(app)
 
 
 
-"""
-@app.route('/', methods=['GET'])
-def get_tasks():
-    return jsonify({'tasks': tasks})
 
+@app.route('/status', methods=['GET'])
+def get_tasks():
+    return jsonify({'Ratatoskr': 'Alive'})
+
+"""
 @app.route('/mclient_key=<int:task_id>', methods=['GET'])
 def get_task(task_id):
     task = filter(lambda t: t['id'] == task_id, tasks)
