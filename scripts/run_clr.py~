@@ -1531,8 +1531,14 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
-        result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True)    
-        return make_response(jsonify({'Ratatoskr':str(result)}),201)
+        #result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True) 
+        dns = "10.20.1.190"
+        event = "responsehistoryevent"
+        rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+        payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+        r = requests.post(rtdm_addr,json = payload)
+        return make_response(jsonify({'Ratatoskr':'ok'}),201)
+        #return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418)  
     #return make_response(jsonify(result),201)
@@ -1909,22 +1915,26 @@ def card():
     inputs = {"IndivID":IndivID,"AppForename":AppForename,"AppSurname":AppSurname,"AppMiddlename":AppMiddlename,"AppEducation":AppEducation,"AppAge":AppAge,"AppPassportNumber":AppPassportNumber,"AppFamilySize":AppFamilySize,
 "AppCarOwner":AppCarOwner,"AppMobile":AppMobile,"AppEmail":AppEmail,"AppJobPos":AppJobPos,"AppIncome":AppIncome,"AppJobExp":AppJobExp}
     
-
-    #dns = "172.28.106.245"
-    #event = "scoringevent"
-    #event = "SAS_Activity_echo_string"
-    #inputs = {"in_string":"I rule"}
-    #rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-    #payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-    #r = requests.post(rtdm_addr,json = payload)
-    #resp = str(r)
     try:
-        result = call_rtdm.apply_async((rtdmpath,"scoringevent",inputs),retry=True)    
+        dns = "10.20.1.190"
+        event = "scoringevent"
+        rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+        payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+        r = requests.post(rtdm_addr,json = payload)
+        return make_response(jsonify({'Ratatoskr':'ok'}),201)
+    except:
+        return make_response(jsonify({'Ratatoskr':'error'}),418)
+        
+    #resp = str(r)
+    
+
+    #try:
+    #    result = call_rtdm.apply_async((rtdmpath,"scoringevent",inputs),retry=True)    
         #res = call_rtdm.AsyncResult(str(result))
         #time.sleep(15)
-        return make_response(jsonify({'Ratatoskr':str(result)}),201)
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}),418) 
+    #    return make_response(jsonify({'Ratatoskr':str(result)}),201)
+    #except Exception as e:
+    #    return make_response(jsonify({'Ratatoskr':e}),418) 
 
     #return make_response(jsonify({"A":r.json()}),201)
 
