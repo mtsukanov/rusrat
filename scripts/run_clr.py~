@@ -992,7 +992,9 @@ def mobile_get_all():
         tranz["tranid"] = row[3]
         tranz["agent"] = row[0]
         tranz["sum"] = row[1]
-        tranz["tran_dttm"] ="140451295"
+        #tranz["tran_dttm"] ="1488"
+        tranz["tran_dttm"] =str(int(time.mktime(row[2].timetuple())))
+        #tranz["tran_dttm"] = 1
         tranz["clientid"] =  str(row[4])
         Transactions.append(tranz)
 #GET WIFI
@@ -1057,18 +1059,21 @@ def mobile_post_all():
     HistArr.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):request.data})
     try:
         sys = request.json['sys']
-        if sys['clientid'] < 1:
-            return
         wifi = request.json['wifi']
         beacon = request.json['beacon']
         gps = request.json['gps']
         trigger =  request.json['trigger']
-        message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         LastMobile = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
-        result_mq = rabbitmq_add.delay('geo_mq','g_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
-        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
+    if sys["clientid"]>150000:
+        message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
+        result_mq = rabbitmq_add.delay('geo_mq','g_mq',json.dumps(message, ensure_ascii=False),'application/json','geo_mq')
+        return make_response(jsonify({'Ratatoskr':'request processed'}),201)
+    else:
+        return make_response(jsonify({'Ratatoskr':'incorrect request data'}),418)
+
+
 
 @app.route('/hist', methods=['GET'])
 def hist():
@@ -1157,7 +1162,7 @@ def get_analytics():
         MCC.append(row[0])
     for row in MCC:
         query2 = ("SELECT  SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
-        query4 = ("SELECT  t3.MCCCategory FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
+        query4 = ("SELECT  t3.MCCName FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
         cur.execute(query2) 
         mccsum = cur.fetchone()[0]
         cur.execute(query4) 
@@ -1201,7 +1206,7 @@ def aggr():
         MCCSUM = {"Category":mcccat,"Sum":mccsum,"Percent":percent}
         Result.append(MCCSUM)
 
-    return make_response(jsonify({'Aggr':mcc}),200)
+    return make_response(jsonify({'Aggr':Result}),200)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -1531,14 +1536,8 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
     #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
-        #result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True) 
-        dns = "10.20.1.190"
-        event = "responsehistoryevent"
-        rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-        payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-        r = requests.post(rtdm_addr,json = payload)
-        return make_response(jsonify({'Ratatoskr':'ok'}),201)
-        #return make_response(jsonify({'Ratatoskr':str(result)}),201)
+        result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True)    
+        return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418)  
     #return make_response(jsonify(result),201)
