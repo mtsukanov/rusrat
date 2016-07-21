@@ -195,7 +195,7 @@ def get_max_eventid_luna():
     max_eventid = data[0]
     return max_eventid
 
-Services = {"atm":True,"transgen":False,"facetz":False,"luna":False}
+Services = {"atm":True,"transgen":False,"facetz":False,"luna":True}
 def ServicesStatusPost(service,status):
     global serviceupdt
     global Services
