@@ -492,7 +492,7 @@ def deco():
     global resultcam
     param = request.args.get('param')
     if param == 'True': 
-        time.sleep(3)
+        #time.sleep(3)
         maxid = get_max_eventid_luna()
         resultcam = post.apply_async([maxid])    
         ServicesStatusPost('luna',True)
@@ -500,8 +500,28 @@ def deco():
     else:
         resultcam.revoke(terminate=True) 
         ServicesStatusPost('luna',False)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(resultcam)+' has been terminated'}),200)
-    
+        return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been terminated'}),200)
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /Color Scheme                                                                                                                                     #
+#                                                                                                                                                                                           #
+#####################################################################################################################################################
+SchmeColor = "rgb(91, 155, 213)"
+@app.route('/cameracheck', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def color():
+    global SchmeColor
+    if request.method == 'GET':
+        return make_response(jsonify({'Color':SchmeColor}),200)
+    if request.method == 'POST':
+        try:
+            color = request.json['color']
+        except:
+            return make_response(jsonify({'Color':'Invalid color input'}),400)
+        SchmeColor = color
+        eturn make_response(jsonify({'Color':'Color was successfully changed'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ServicesStatus                                                                                                                                  #
