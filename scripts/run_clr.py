@@ -195,7 +195,7 @@ def get_max_eventid_luna():
     max_eventid = data[0]
     return max_eventid
 
-Services = {"atm":True,"transgen":False,"facetz":False,"luna":True}
+Services = {"atm":True,"transgen":False,"facetz":False,"luna":False}
 def ServicesStatusPost(service,status):
     global serviceupdt
     global Services
@@ -500,7 +500,7 @@ def deco():
     else:
         resultcam.revoke(terminate=True) 
         ServicesStatusPost('luna',False)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(resultcam)+' has been terminated'}),200)
+        return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been terminated'}),200)
     
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
