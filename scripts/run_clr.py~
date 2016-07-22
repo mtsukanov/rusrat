@@ -509,7 +509,7 @@ def deco():
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
 SchmeColor = "rgb(91, 155, 213)"
-@app.route('/cameracheck', methods=['POST','GET','OPTIONS'])
+@app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
     global SchmeColor

@@ -521,7 +521,7 @@ def color():
         except:
             return make_response(jsonify({'Color':'Invalid color input'}),400)
         SchmeColor = color
-        eturn make_response(jsonify({'Color':'Color was successfully changed'}),200)
+        return make_response(jsonify({'Color':'Color was successfully changed'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ServicesStatus                                                                                                                                  #
