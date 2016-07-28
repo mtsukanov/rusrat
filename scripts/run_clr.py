@@ -508,7 +508,7 @@ def deco():
 #                         BLOCK OF /Color Scheme                                                                                                                                     #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
-SchmeColor = "rgb(91, 155, 213)"
+SchmeColor = {"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
@@ -517,10 +517,11 @@ def color():
         return make_response(jsonify({'Color':SchmeColor}),200)
     if request.method == 'POST':
         try:
+            context = request.json['context']
             color = request.json['color']
         except:
             return make_response(jsonify({'Color':'Invalid color input'}),400)
-        SchmeColor = color
+        SchmeColor[context] = color
         return make_response(jsonify({'Color':'Color was successfully changed'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -684,6 +685,83 @@ def facetz():
     else:
         return make_response(jsonify({'Ratatoskr':'Sorry, FacetZ service is disabled'}),201)
 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /
+#Online Bank Login                                                                                                                   #
+#                                                                                                                                                                                           #
+##################################################################################################################################################
+@app.route('/obank', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def obank():
+    try:
+        sessid = request.json['sessid']
+    except:
+        sessid = "NULL"
+    try:    
+        login = request.json['login']
+    except:
+        login = "NULL"
+    try:
+        phone = request.json['phone']
+    except:
+        phone = "NULL"
+    try:
+        email = request.json['email']
+    except:
+        email = "NULL"
+    fields = "(SessionID,"
+    vals = "('"+sessid+"',"
+    if login != "":
+        fields += 'Login,' 
+        vals += "'"+login+"',"
+    if phone != "":
+        fields += 'Phone,'
+        vals += "'"+phone+"',"
+    if email != "":
+        fields += 'Email,'
+        vals += "'"+email+"',"
+    fields += "Timestamp)"
+    vals += str(int(time.time()))+")"
+    #query = "INSERT INTO [DataMart].[FACETZ] "+fields+" VALUES "+vals
+    #print query
+    conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
+    cursor = conn.cursor()
+    if phone != "" or email != "" or login != "":
+        cursor.execute("INSERT INTO [DataMart].[FACETZ] "+fields+" VALUES "+vals)
+        conn.commit()
+    esp_url="http://ruscilabcomp:44445/SASESP/windows/CI_Facetz/Continuous_Query_1/Facetz/state?value=injected"
+    esp_headers= {'content-type':'text/csv'}
+    esp_event = "I,N,"+sessid+","+email+","+phone+","+login+","+str(int(time.time()))
+    bin_esp_event = esp_event.encode()
+    try:
+        r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
+        #req = urllib.request.Request(url=esp_url,data=bin_esp_event,headers=esp_headers,method='PUT')
+    except Exception as e:
+        return make_response(jsonify({'OnlineBank':e}),418)
+    return make_response(jsonify({'OnlineBank':r.f}),200)
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /
+#DPI                                                                                                                        #
+#                                                                                                                                                                                           #
+####################################################################################################################################################
+@app.route('/dpi', methods=['POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def dpi():
+    try:
+        timestamp = request.json['timestamp']
+        ip = request.json['ip']
+        hash_ = request.json['hash']
+        ua = request.json['ua']
+        domain = request.json['domain']
+        uri = request.json['uri']
+        cookie = request.json['cookie']
+        referer = request.json['referer']
+    except:
+        return make_response(jsonify({'DpiService':'Input is incorrect'}),418)
+    return make_response(jsonify({'DpiService':'Success'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /
@@ -1013,6 +1091,7 @@ def mobile_get_all():
         tranz["agent"] = row[0]
         tranz["sum"] = row[1]
         #tranz["tran_dttm"] ="1488"
+        #print str(int(time.mktime(row[2].timetuple())))
         tranz["tran_dttm"] =str(int(time.mktime(row[2].timetuple())))
         #tranz["tran_dttm"] = 1
         tranz["clientid"] =  str(row[4])
