@@ -563,8 +563,37 @@ def service_list_post():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_get():
     return make_response(jsonify({'Ratatoskr':ServiceList}),200)  
-
-
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /Contact Policy                                                                                                                                              #
+#                                                                                                                                                                                           #
+#####################################################################################################################################################
+@app.route('/contactpol', methods=['POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def contactpol():
+    try:
+        link = request.json['link']
+        login = request.json['login']
+        psw = request.json['psw']
+        phones = request.json['phones']
+        mes = request.json['mes']
+        sender = request.json['sender']
+        param1 = request.json['param1']
+        param2 = request.json['param2']
+        param3 = request.json['param3']
+        param4 = request.json['param4']
+    except:
+        return make_response(jsonify({'ContactPolicy':'Incorrect input'}),418)
+    inputs={"link":link,"login":login,"psw":psw,"phones":phones,"mes":mes,"sender":sender,"param1":param1,"param2":param2,"param3":param3,"param4":param4}
+    dns = "10.20.1.190"
+    event = "smsevent"
+    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
+    payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}    
+    try:
+        r = requests.post(rtdm_addr,json = payload)
+    except:
+        return make_response(jsonify({'ContactPolicy':'RTDM request failed'}),418)
+    return make_response(jsonify({'ContactPolicy':'Success'}),200)  
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SMS                                                                                                                                              #
