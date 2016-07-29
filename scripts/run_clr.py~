@@ -573,7 +573,7 @@ def service_list_get():
 def contactpol():
     try:
         link = request.json['link']
-        login = request.json['login']el
+        login = request.json['login']
         psw = request.json['psw']
         phones = request.json['phones']
         mes = request.json['mes']
@@ -1456,7 +1456,7 @@ def offer_img():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /NEW CUSTOMER PRODUCTS                                                                                                    #
+#                         BLOCK OF /NEW CUSTOMER OFFERS                                                                                                    #
 #                                                                                                                                                                                           #
 ###################################################################################################################################################
 @app.route('/newcustoffers',  methods=['POST','OPTIONS','GET'])
@@ -1464,6 +1464,7 @@ def offer_img():
 def freshmeatprods():
     try:
         cid = request.json['cid']
+        langid = request.json['langid']
     except:
         return make_response(jsonify({"Ratatoskr":"It seems like no cid was send "}),400)
     try:
@@ -1477,7 +1478,7 @@ def freshmeatprods():
             select_max_offer = ("Select MAX(OfferID) FROM [DataMart].[OFFER]")
             cursor.execute(select_max_offer) 
             maxoffer = cursor.fetchone()[0]
-            select_offer_temp = ("Select * from [DataMart].[OFFER_TEMPLATE]")
+            select_offer_temp = ("Select * from [DataMart].[OFFER_TEMPLATE] WHERE LanguageID="+str(langid))
             cursor.execute(select_offer_temp)   
             templates = cursor.fetchall()   
             i = maxoffer+1
@@ -1493,6 +1494,21 @@ def freshmeatprods():
             return make_response(jsonify({"Ratatoskr":"Some problems with inserting offers for new customer occured"}),400)
     else:
         return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
+
+
+
+
+@app.route('/offtst',  methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def offtst():
+    try:
+        conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset="UTF-8")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO [DataMart].[OFFER] (OfferName) VALUES ('xui')")
+        conn.comit()
+    except Exception as e:
+        return make_response(jsonify({"Ratatoskr":e}),400)
+    return make_response(jsonify({"Ratatoskr":'ok'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
