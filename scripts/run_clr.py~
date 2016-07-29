@@ -573,7 +573,7 @@ def service_list_get():
 def contactpol():
     try:
         link = request.json['link']
-        login = request.json['login']
+        login = request.json['login']el
         psw = request.json['psw']
         phones = request.json['phones']
         mes = request.json['mes']
