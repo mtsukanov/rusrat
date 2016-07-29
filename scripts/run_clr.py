@@ -36,7 +36,11 @@ import pymssql
 import psycopg2
 import urllib
 import re
-#import transgen
+########################__CYRILLIC SYMBOLS SUPPORT__##########
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+##############################################################
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
@@ -1496,19 +1500,6 @@ def freshmeatprods():
         return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
 
 
-
-
-@app.route('/offtst',  methods=['POST','OPTIONS','GET'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def offtst():
-    try:
-        conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset="UTF-8")
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO [DataMart].[OFFER] (OfferName) VALUES ('xui')")
-        conn.comit()
-    except Exception as e:
-        return make_response(e,400)
-    return make_response(jsonify({"Ratatoskr":'ok'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
