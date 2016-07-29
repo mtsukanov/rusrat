@@ -1507,7 +1507,7 @@ def offtst():
         cursor.execute("INSERT INTO [DataMart].[OFFER] (OfferName) VALUES ('xui')")
         conn.comit()
     except Exception as e:
-        return make_response(jsonify({"Ratatoskr":e}),400)
+        return make_response(e),400)
     return make_response(jsonify({"Ratatoskr":'ok'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
