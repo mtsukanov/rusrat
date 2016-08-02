@@ -1453,7 +1453,8 @@ def offer_img():
         cur.execute("DROP TABLE #TEMP")       
         #return make_response(jsonify({'OfferImages':cur.fetchall()}),200)
         return make_response(jsonify({'OfferImages':tst}),200)
-    return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),200)
+    else:
+        return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),418)
 
 
 
@@ -1518,7 +1519,7 @@ def contactupd():
         cur.execute("UPDATE [DataMart].[INDIVIDUAL] SET Mobile = '79104117361', Email = 'sasdemo@sasbap.demo.com' WHERE IndivID <>" + str(cid))
         ms.commit()
     except:
-        return make_response(jsonify({"ContactUpdate":"Some error occured while updating MSSQL DB"}),418)
+        return make_response(jsonify({"ContactUpdate":"Some error occurred while updating MSSQL DB"}),418)
     cur = my.cursor()
     try:
         cur.execute("UPDATE `customers` set `MobileNumber`='79104117361ae',`Email`='sasdemo@sasbap.demo.com' where `CID` <>"+str(cid))
@@ -1755,7 +1756,7 @@ def transgenerate():
             ServicesStatusPost('transgen',True)
             #taskid = transgen.delay().id
             #print transgen.AsyncResult(transgen.request.id).state
-            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to RabbitMQ. Status: '+status}),200)
+            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to Redis. Status: '+status}),200)
         else:
             taskid.revoke(terminate=True)
             time.sleep(2)
@@ -2039,7 +2040,7 @@ def banner():
         time.sleep(1)
         return banner_code
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':e}))
+        return make_response(jsonify({'Ratatoskr':e}),400)
 
 
 
@@ -2189,7 +2190,7 @@ def getlimit():
         return make_response(jsonify({"Ratatoskr":'Icorrect unput'}),400)
     conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
-    cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(cid))
+    cursor.execute('SELECT AccountBalance FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(cid))
     data = cursor.fetchone()
     if data != None:
         curlimit = int(data[0])   
