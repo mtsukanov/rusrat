@@ -416,7 +416,7 @@ def geotrigger():
         'time' :  datetime.datetime.strptime(time,"%m/%d/%y %H:%M:%S").isoformat(sep='T'),
         'trigger':trigger}
     except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'Andrey, your data is corrupted. Look what you did:'+str(e)}),415)    
+        return make_response(jsonify({'Ratatoskr':'Incorrect input.Details:'+str(e)}),415)    
     try:
         result_mysql_custdet = mysql_select('thebankfront','FirstName,MiddleName,LastName,CAST(DateOfBirth AS CHAR) ','customers',"CID="+str(cid))
     except Exception as e:
@@ -1029,7 +1029,7 @@ def mobile_get_all():
             for row in resp["outputs"]["offercode"]:
                 #offer = {'i':i}
                 #offer = {'i':i,'clientid': int(resp["outputs"]["cid"]), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
-                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priorigty':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
+                offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["advdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priorigty':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
             #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
@@ -1499,7 +1499,33 @@ def freshmeatprods():
     else:
         return make_response(jsonify({"Ratatoskr":"Offers for this client are already exist"}),201)
 
-
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /CONTACTS UPDATE                                                          #
+#                                                                                                                                                                                           #
+###################################################################################################################################################
+@app.route('/contactupd',  methods=['POST','OPTIONS','GET'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def contactupd():
+    try:
+        cid = request.json['cid']
+    except:
+       return make_response(jsonify({"ContactUpdate":"Incorrect input"}),400)
+    ms = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    my = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db='thebankfront',use_unicode = True,charset='UTF8')
+    cur = ms.cursor()
+    try:
+        cur.execute("UPDATE [DataMart].[INDIVIDUAL] SET Mobile = '79104117361', Email = 'sasdemo@sasbap.demo.com' WHERE IndivID <>" + str(cid))
+        ms.commit()
+    except:
+        return make_response(jsonify({"ContactUpdate":"Some error occured while updating MSSQL DB"}),418)
+    cur = my.cursor()
+    try:
+        cur.execute("UPDATE `customers` set `MobileNumber`='79104117361ae',`Email`='sasdemo@sasbap.demo.com' where `CID` <>"+str(cid))
+        my.commit()
+    except Exception as e:
+        return make_response(jsonify({"ContactUpdate":"Some error occured while updating MySQL DB"}),418)
+    return make_response(jsonify({"ContactUpdate":"All customers have been updated"}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SYNC_UPDT                                                                                                                                            #
