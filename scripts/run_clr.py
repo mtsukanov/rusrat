@@ -687,16 +687,6 @@ class FacetzTask(object):
 
 
 
-@app.route('/espsite', methods=['GET'])
-@crossdomain(origin='*')
-def espsite():
-   url = request.args.get('url')
-
-   return make_response(jsonify({"Ratatoskr":editurl}),200) 
-
-
-
-
 facetzstack = {}
 facetzstackstr = {}
 facetz_enable = False
