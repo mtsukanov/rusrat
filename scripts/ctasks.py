@@ -239,7 +239,17 @@ def facetztask(cid):
             formatted_el = {}
             formatted_el['number'] = i
             formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
-            formatted_el['url'] = urllib.unquote(el['url'])
+            if 'www.' in urllib.unquote(el['url']):
+                editurl=urllib.unquote(el['url']).replace('www.','')
+            else:
+                editurl=urllib.unquote(el['url'])
+            if 'http' not in editurl:
+                editurl=''.join(('http://',editurl))
+            else:
+                editurl = editurl
+            if not editurl.endswith('/'):
+                editurl=''.join((editurl,'/'))
+            formatted_el['url'] = editurl
             Formatted.append(formatted_el)
             i+=1
         Result = {"sys":{"id":r.json()['id']},"site":Formatted}
