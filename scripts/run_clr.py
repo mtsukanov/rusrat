@@ -594,7 +594,8 @@ def contactpol():
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}    
     try:
-        r = requests.post(rtdm_addr,json = payload)
+        #r = requests.post(dns,json = payload)
+        result = call_rtdm.apply_async((dns,"smsevent",inputs),retry=True)  
     except:
         return make_response(jsonify({'ContactPolicy':'RTDM request failed'}),418)
     return make_response(jsonify({'ContactPolicy':'Success'}),200)  
@@ -1522,7 +1523,7 @@ def contactupd():
         return make_response(jsonify({"ContactUpdate":"Some error occurred while updating MSSQL DB"}),418)
     cur = my.cursor()
     try:
-        cur.execute("UPDATE `customers` set `MobileNumber`='79104117361ae',`Email`='sasdemo@sasbap.demo.com' where `CID` <>"+str(cid))
+        cur.execute("UPDATE `customers` set `MobileNumber`='79104117361',`Email`='sasdemo@sasbap.demo.com' where `CID` <>"+str(cid))
         my.commit()
     except Exception as e:
         return make_response(jsonify({"ContactUpdate":"Some error occured while updating MySQL DB"}),418)
@@ -2081,7 +2082,8 @@ def card():
         event = "scoringevent"
         rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
         payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-        r = requests.post(rtdm_addr,json = payload)
+        #r = requests.post(rtdm_addr,json = payload)
+        result = call_rtdm.apply_async((dns,"scoringevent",inputs),retry=True)  
         return make_response(jsonify({'Ratatoskr':'ok'}),201)
     except:
         return make_response(jsonify({'Ratatoskr':'error'}),418)
