@@ -663,7 +663,17 @@ def facetz2():
         formatted_el = {}
         formatted_el['number'] = i
         formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
-        formatted_el['url'] = urllib.unquote(el['url'])
+        if 'www.' in urllib.unquote(el['url']):
+            editurl=url.replace('www.','')
+        else:
+           editurl=url
+       if 'http' not in editurl:
+           editurl=''.join(('http://',editurl))
+       else:
+           editurl = editurl
+       if not editurl.endswith('/'):
+           editurl=''.join((editurl,'/'))
+        formatted_el['url'] = editurl
         Formatted.append(formatted_el)
         i+=1
     return make_response(jsonify({'Ratatoskr':Formatted}),200)
@@ -673,6 +683,19 @@ class FacetzTask(object):
         self.taskresult = taskresult
     def StopTask(self):
         self.taskresult.revoke(terminate=True)
+
+
+
+
+@app.route('/espsite', methods=['GET'])
+@crossdomain(origin='*')
+def espsite():
+   url = request.args.get('url')
+
+   return make_response(jsonify({"Ratatoskr":editurl}),200) 
+
+
+
 
 facetzstack = {}
 facetzstackstr = {}
@@ -2201,21 +2224,7 @@ def getlimit():
     return make_response(jsonify({"Ratatoskr":curlimit}),200) 
     
 
-@app.route('/espsite', methods=['GET'])
-@crossdomain(origin='*')
-def espsite():
-   url = request.args.get('url')
-   if 'www.' in url:
-       editurl=url.replace('www.','')
-   else:
-       editurl=url
-   if 'http' not in editurl:
-       editurl=''.join(('http://',editurl))
-   else:
-       editurl = editurl
-   if not editurl.endswith('/'):
-       editurl=''.join((editurl,'/'))
-   return make_response(jsonify({"Ratatoskr":editurl}),200) 
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /LUNA                                                                                                                                                    #
