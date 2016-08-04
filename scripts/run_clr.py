@@ -844,6 +844,7 @@ def mssqlsave():
         PhotoID = request.json["PhotoID"]  
         LanguageID = request.args.get("LanguageID")
         Password = request.args.get("Password")
+        Title = request.args.get("Title")
         Street = request.args.get("Street").encode('utf-8') 
         State = request.args.get("State").encode('utf-8') 
     except:
@@ -864,17 +865,25 @@ def mssqlsave():
         "INSERT INTO [DataMart].[INDIVIDUAL_PASSPORT] (IndivID) VALUES ("+str(CID)+")"
         )
         cursor.execute(query1)
-    sql1 = (
-    "UPDATE [DataMart].[INDIVIDUAL] SET "
-    "Forename = '"+str(FirstName)+"',"
-    "Surname='"+str(LastName)+"',"
-    "Middlename='"+str(MiddleName)+"',"
-    "Mobile='"+str(MobileNumber)+"',"
-    "Birthdate='"+str(DateOfBirth)+"',"
-    "Email='"+str(Email)+"',"
-    "Phone='"+str(PhoneNumber)+"',"
-    "PhotoID='"+str(PhotoID)+"'"
-    "WHERE IndivID="+str(CID)+"")
+    #sql1 = (
+    #"UPDATE [DataMart].[INDIVIDUAL] SET "
+    #"Forename = '"+str(FirstName)+"',"
+    #"Surname='"+str(LastName)+"',"
+    #"Middlename='"+str(MiddleName)+"',"
+    #"Mobile='"+str(MobileNumber)+"',"
+    #"Birthdate='"+str(DateOfBirth)+"',"
+    #"Email='"+str(Email)+"',"
+    #"Phone='"+str(PhoneNumber)+"',"
+    #"PhotoID='"+str(PhotoID)+"'"
+    #"WHERE IndivID="+str(CID)+"")
+
+
+    sql1="UPDATE [DataMart].[INDIVIDUAL] SET Forename ='"+str(FirstName)+"',Surname='"+str(LastName)+"',Middlename='"+str(MiddleName)+"',Mobile='"+str(MobileNumber)+"',Birthdate='"+str(DateOfBirth)+"',Email='"+str(Email)+"',Phone='"+str(PhoneNumber)+"',"
+    if Title != 'undefined':
+        sql1 += "Title='"+str(Title)+"',"
+    sql1 += "PhotoID='"+str(PhotoID)+"' WHERE IndivID="+str(CID)+""
+    print sql1
+
     sql2 = "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"',Age='"+str(Age)+"',AgeGroupID='"+str(AgeGroup)+"',MartialStatus='"+str(MaritalStatus)+"',Children='"+str(Children)+"',EducationID='"+str(Education)+"',JobID='"+str(Occupation)+"',"
     if LanguageID != 'undefined':
         sql2 += "LanguageID='"+str(LanguageID)+"',"
