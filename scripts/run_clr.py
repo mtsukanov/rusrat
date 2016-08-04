@@ -589,7 +589,7 @@ def contactpol():
     except:
         return make_response(jsonify({'ContactPolicy':'Incorrect input'}),418)
     inputs={"link":link,"login":login,"psw":psw,"phones":phones,"mes":mes,"sender":sender,"param1":param1,"param2":param2,"param3":param3,"param4":param4}
-    dns = "http://10.20.1.190"
+    dns = "10.20.1.190"
     event = "smsevent"
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}    
