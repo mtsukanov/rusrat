@@ -594,8 +594,8 @@ def contactpol():
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}    
     try:
-        #r = requests.post(dns,json = payload)
-        result = call_rtdm.apply_async((dns,"smsevent",inputs),retry=True)  
+        r = requests.post(dns,json = payload)
+        #result = call_rtdm.apply_async((dns,"smsevent",inputs),retry=True)  
     except:
         return make_response(jsonify({'ContactPolicy':'RTDM request failed'}),418)
     return make_response(jsonify({'ContactPolicy':'Success'}),200)  
