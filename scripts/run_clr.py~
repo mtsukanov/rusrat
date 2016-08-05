@@ -882,7 +882,7 @@ def mssqlsave():
     if Title != 'undefined':
         sql1 += "Title='"+str(Title)+"',"
     sql1 += "PhotoID='"+str(PhotoID)+"' WHERE IndivID="+str(CID)+""
-    print sql2
+    print sql1
 
     sql2 = "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET Gender = '"+str(Gender)+"',Age='"+str(Age)+"',AgeGroupID='"+str(AgeGroup)+"',MartialStatus='"+str(MaritalStatus)+"',Children='"+str(Children)+"',EducationID='"+str(Education)+"',JobID='"+str(Occupation)+"',"
     if LanguageID != 'undefined':

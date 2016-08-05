@@ -471,7 +471,8 @@ def email():
         LName = merge_websiteurl["lname"]
         MName = merge_websiteurl["mname"]
         ID = merge_websiteurl["id"]
-        url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID
+        LangCode = merge_websiteurl["lang"]
+        url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
 
     except:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
