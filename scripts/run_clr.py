@@ -472,11 +472,7 @@ def email():
         MName = merge_websiteurl["mname"]
         ID = merge_websiteurl["id"]
         LangCode = merge_websiteurl["lang"]
-        #url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
-        url = {"http://thebank.sas-mic.local/CreditScoring/creditcard.php?Fofferim":OfferImg,"maintxt":MainTxt,"desctxt":DescTxt,"lname":LName,"name":FName,"mname":MName,"id":ID,"lang":LangCode}
-        url = urllib.urlencode(url)
-        url = urllib.unquote(url)
-        url = urllib.urlencode(url)
+        url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
     except:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
     req_path =   "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
@@ -486,10 +482,11 @@ def email():
     except:
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':answer}),200)
+
 @app.route('/email2', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def email2():
-    url = urllib.urlencode({"http://thebank.sas-mic.local/CreditScoring/creditcard.php?Fofferim":'C%20%card'})
+    url = urllib.urlencode({"http://thebank.sas-mic.local/CreditScoring/creditcard.php?Fofferim":'Ccard'})
     return make_response(jsonify({'Ratatoskr':urllib.unquote(url)}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #

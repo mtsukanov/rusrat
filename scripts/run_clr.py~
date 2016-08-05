@@ -489,7 +489,7 @@ def email():
 @app.route('/email2', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def email2():
-    url = urllib.urlencode({"http://thebank.sas-mic.local/CreditScoring/creditcard.php?Fofferim":'C'+%20+card'})
+    url = urllib.urlencode({"http://thebank.sas-mic.local/CreditScoring/creditcard.php?Fofferim":'C%20%card'})
     return make_response(jsonify({'Ratatoskr':urllib.unquote(url)}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
