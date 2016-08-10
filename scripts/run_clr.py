@@ -2170,11 +2170,7 @@ def limit():
     cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
     data = cursor.fetchone()
     termstatus = data[0]
-    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
-    data = cursor.fetchone()
-    maxacc = data[0]
-    minacc = data[1]
-    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
+    cursor.execute("SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ="+str(CID)+" AND AccountType='card'")
     data = cursor.fetchone()
     maxacc = data[0]
     minacc = data[1]
