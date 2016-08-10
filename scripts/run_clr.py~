@@ -977,7 +977,7 @@ def mobile_get_all():
     Beacon = []
     LastMobileGet = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}
     if cid is None:
-        query_customers = 'Login is not null'
+        query_customers = "Login is not null ORDER BY CID ASC"
         query_tranz = ''
         query_offers = None
         query_prods = "WHERE IndivID > 0"
@@ -1074,7 +1074,7 @@ def mobile_get_all():
             response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(rtdmpath)}
             return make_response(jsonify(response),500)
 
-        query_customers = 'Login is not null AND CID ='+cid
+        query_customers = "Login is not null AND CID ="+cid
         query_tranz = " WHERE t2.AccountID IN (SELECT AccountID from [DataMart].[Account] WHERE IndivID= "+cid+")"
         query_offers = 'IndivID ='+cid
         query_prods = "WHERE IndivID ="+cid
@@ -2170,7 +2170,7 @@ def limit():
     cursor.execute('SELECT TermStatus FROM [TRANSData].[TERMINAL] WHERE TermID ='+str(TID))
     data = cursor.fetchone()
     termstatus = data[0]
-    cursor.execute('SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID)+"AND AccountType='card'")
+    cursor.execute("SELECT MAX(AccountID),MIN(AccountID) FROM [DataMart].[ACCOUNT] WHERE IndivID ="+str(CID)+" AND AccountType='card'")
     data = cursor.fetchone()
     maxacc = data[0]
     minacc = data[1]
