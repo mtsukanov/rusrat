@@ -976,8 +976,11 @@ def mobile_get_all():
     GPS = []
     Beacon = []
     LastMobileGet = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
+#CID IS NOT SPECIFIED
     if cid is None:
-        query_customers = "Login is not null ORDER BY CID ASC"
+        query_customers = "Login is not null ORDER BY CID DESC"
         query_tranz = ''
         query_offers = None
         query_prods = "WHERE IndivID > 0"
@@ -986,16 +989,14 @@ def mobile_get_all():
         query_wifi = None
         query_gps = None
         try:
-            #result_mysql_offers = mysql_select('thebankfront',None,'offers',query_offers)
             result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
             result_mssql_offimg = mssql_select('CIDB','DataMart','ProdImg','PRODIMG',query_offers)
-            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
-            cur = db.cursor()
-            query = (
-            " SELECT t2.ProdType,t3.ProdImg from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID "
-            " inner join [CIDB].[DataMart].[ProdImg]  as t3 on t2.ProdID = t3.ProdID")
+            query = (" SELECT t2.ProdType,t3.ProdImg from [CIDB].[DataMart].[OFFER] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ProdImg]  as t3 on t2.ProdID = t3.ProdID")
             cur.execute(query)
             prodtype = cur.fetchall()
+            query = ("Select a1.IndivID,LScore from ((select * from [DataMart].[INDIVIDUAL_DEMOGRAPHIC] where Password <> '0' and IndivID > '150000') as a1 left join (select IndivID,MAX(LoyaltyScore) as LScore from [DataMart].[CARD] GROUP BY IndivID) as a2 on a1.IndivID = a2.IndivID) ORDER BY IndivID DESC")
+            cur.execute(query)
+            loyalty = cur.fetchall()            
             #GET OFFERS
             i = 0
             for row in result_mssql_offers:
@@ -1004,7 +1005,7 @@ def mobile_get_all():
                 offer["offerid"] = row[20]
                 offer["name"] = row[0]
                 offer["duration"] = 12
-                offer["type"] = prodtype[i][0]#'financial'#row[9]
+                offer["type"] = prodtype[i][0]
                 offer["description"] = row[19]
                 offer["sum"] = row[3]
                 offer["image"] = prodtype[i][1]
@@ -1022,23 +1023,18 @@ def mobile_get_all():
         except Exception as e:
             response = {"Ratatoskr":e}
             return make_response(jsonify(response),500)
+
+#CID IS SPECIFIED
     else:
         try:
-            #dns = "http://"+server_ip+":5000/nbo"
             inputs = {"cid":int(cid),"channel":channel,"context":context,"device":device,"regtime":regtime,"reqtime":reqtime,"timezone":timezone,"param1":param1,
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}       
-            #dns = "172.28.106.245"
             event = "frontmainevent"
             rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
             payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
             r = requests.post(rtdm_addr,json = payload)
             resp = r.json()
             #request for offer images
-            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
-            cur = db.cursor()
-
-
-
             temp_table =("CREATE TABLE #TEMP (offercode int,ord int)")
             cur.execute(temp_table)
             for k in range(len(resp['outputs']['offercode'])):
@@ -1055,14 +1051,10 @@ def mobile_get_all():
                     off_imgs.append(" ");
             i = 0
             for row in resp["outputs"]["offercode"]:
-                #offer = {'i':i}
-                #offer = {'i':i,'clientid': int(resp["outputs"]["cid"]), 'description':resp["outputs"]["briefdetails"][i], 'generated_dttm':'','image':'','offerid':resp["outputs"]["offercode"][i],'payment':resp["outputs"]["payment"][i],'priority':resp["outputs"]["prio"][i],'rate':resp["outputs"]["rate"][i],'recieved_dttm':'','secret':'','sent_dttm':'','sum':resp["outputs"]["amount"],'termination_dttm':'','type':'financial','visibility':1}
                 offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["advdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priorigty':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
-            #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201) 
-                  
-            
+            #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201)     
         except Exception as e:
             response = {"Ratatoskr":"R:"+str(e)}
             return make_response(jsonify(response),500)      
@@ -1073,7 +1065,6 @@ def mobile_get_all():
         except Exception:
             response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(rtdmpath)}
             return make_response(jsonify(response),500)
-
         query_customers = "Login is not null AND CID ="+cid
         query_tranz = " WHERE t2.AccountID IN (SELECT AccountID from [DataMart].[Account] WHERE IndivID= "+cid+")"
         query_offers = 'IndivID ='+cid
@@ -1081,29 +1072,31 @@ def mobile_get_all():
         query_beacon = None
         query_wifi = None
         query_gps = None
+        query = ("Select IndivID,CAST(MAX(LoyaltyScore) as INT) as LScore from [DataMart].[CARD] WHERE IndivID="+cid+" GROUP BY IndivID")  
+        cur.execute(query)  
+        loyalty = cur.fetchall() 
     try:
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
         result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
-        #result_mssql_tranz = mssql_select('CIDB','TRANSData','TermID,TransSum,TransDate,TransID,AccountID','[TRANSACTION]',query_tranz)
         result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',query_beacon)
         result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',query_wifi)
         result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',query_gps)
-        db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
-        cur = db.cursor()
         query = (
         " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t3.IndivId,t1.ProdDetValidFrom,t1.ProdDetValidTo,t2.ProdType,t4.ProdImg "
         " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID inner join [CIDB].[DataMart].[PRODIMG] as t4 on t1.ProdID = t4.ProdID"
         " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT]"+query_prods+")")
         cur.execute(query)
-        prodqres = cur.fetchall()
+        prodqres = cur.fetchall()   
         transq = ("SELECT t1.TermID,t1.TransSum,t1.TransDate,t1.TransID,t2.IndivID FROM [CIDB].[TRANSData].[TRANSACTION] as t1 inner join [CIDB].[DataMart].[ACCOUNT] as t2 on t1.AccountID = t2.AccountID " + query_tranz)
         cur.execute(transq)
         transqres = cur.fetchall()
     except Exception as e:
         response = {"Ratatoskr":e}
         return make_response(jsonify(response),500)
-        #"Your request made me sicks. Either parameters were unexpected or DB schema was cruely changed. Anyway this won't work, sorry for inconvenience."
+
+
 #GET CLIENTS
+    lcnt = 0
     for row in result_mysql_sel:
         client = {}
         client["clientid"] = row[0]
@@ -1114,8 +1107,10 @@ def mobile_get_all():
         client["phone"] = row[5]
         client["login"] = row[27]
         client["password"] = row[28]
-        client["loyaltyscore"] = row[29]
+        #client["loyaltyscore"] = row[29]
+        client["loyaltyscore"] = (loyalty[lcnt][1],0)[loyalty[lcnt][1] == None]
         Clients.append(client)
+        lcnt += 1
 #GET PRODUCTS
     for row in prodqres:
         product = {} 
@@ -1126,15 +1121,13 @@ def mobile_get_all():
         product["rate"] = row[0]
         product["payment"] = row[2]
         product["productid"] = row[5]
-        product["purchased_dttm"] = row[11]#str(row[8].day)+"."+str(row[8].month)+"."+str(row[8].year)
-        product["exparation_dttm"] = row[12]#str(row[9])
+        product["purchased_dttm"] = row[11]
+        product["exparation_dttm"] = row[12]
         product["name"] = row[4]    
-        product["type"] = row[13]#row[9]
+        product["type"] = row[13]
         product["description"] = row[7]
         Products.append(product)
-
 #GET SETTINGS
-
     Settings = []
     setting =    {
     "app_server" : app_server,
@@ -1151,10 +1144,7 @@ def mobile_get_all():
         tranz["tranid"] = row[3]
         tranz["agent"] = row[0]
         tranz["sum"] = row[1]
-        #tranz["tran_dttm"] ="1488"
-        #print str(int(time.mktime(row[2].timetuple())))
         tranz["tran_dttm"] =str(int(time.mktime(row[2].timetuple())))
-        #tranz["tran_dttm"] = 1
         tranz["clientid"] =  str(row[4])
         Transactions.append(tranz)
 #GET WIFI
