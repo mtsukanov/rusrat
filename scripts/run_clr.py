@@ -520,7 +520,7 @@ def deco():
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
 #SchmeColor = {"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}
-dur.set('SchemeColor',{"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"})
+dur.set('SchemeColor','{"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}')
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
