@@ -41,6 +41,8 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 ##############################################################
+########################__DURABLE STORE__#####################
+dur = redis.StrictRedis(host='localhost',port=6379,db=0)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
@@ -516,20 +518,22 @@ def deco():
 #                         BLOCK OF /Color Scheme                                                                                                                                     #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
-SchmeColor = {"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}
+#SchmeColor = {"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}
+dur.set(SchemeColor,{"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"})
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
-    global SchmeColor
+    #global SchmeColor
     if request.method == 'GET':
-        return make_response(jsonify({'Color':SchmeColor}),200)
+        return make_response(jsonify({'Color':dur.get(SchmeColor)}),200)
     if request.method == 'POST':
         try:
             context = request.json['context']
             color = request.json['color']
         except:
             return make_response(jsonify({'Color':'Invalid color input'}),400)
-        SchmeColor[context] = color
+        #SchmeColor[context] = color
+        dur.set(SchmeColor[context],color)
         return make_response(jsonify({'Color':'Color was successfully changed'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
