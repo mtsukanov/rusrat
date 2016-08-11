@@ -525,8 +525,9 @@ k = dur.set('SchemeColor','{"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
     #global SchmeColor
+    global k 
     if request.method == 'GET':
-        return make_response(jsonify({'Color':k)}),200)
+        return make_response(jsonify({'Color':k}),200)
     if request.method == 'POST':
         try:
             context = request.json['context']
