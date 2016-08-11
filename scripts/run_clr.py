@@ -520,13 +520,13 @@ def deco():
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
 #SchmeColor = {"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}
-dur.set('SchemeColor','{"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}')
+k = dur.set('SchemeColor','{"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}')
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
     #global SchmeColor
     if request.method == 'GET':
-        return make_response(jsonify({'Color':dur.get('SchmeColor')}),200)
+        return make_response(jsonify({'Color':k)}),200)
     if request.method == 'POST':
         try:
             context = request.json['context']
