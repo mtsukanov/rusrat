@@ -519,14 +519,13 @@ def deco():
 #                         BLOCK OF /Color Scheme                                                                                                                                     #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
-SchColor = {"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}
-dur.hmset('SchemeColor',SchColor)
+bool_tmp = dur.set('SchemeColor',json.dumps({"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}))
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
     #global SchmeColor
     if request.method == 'GET':
-        return make_response(jsonify({'Color':dur.hgetall('SchemeColor')}),200)
+        return make_response(jsonify({'Color':json.loads(dur.get('SchemeColor'))}),200)
     if request.method == 'POST':
         try:
             context = request.json['context']
@@ -534,7 +533,9 @@ def color():
         except:
             return make_response(jsonify({'Color':'Invalid color input'}),400)
         #SchmeColor[context] = color
-        dur.set('SchmeColor[context]',color)
+        dur_tmp = json.loads(dur.get('SchemeColor'))
+        dur_tmp[context] = color
+        bool_tmp = dur.set('SchemeColor',json.dumps(dur_tmp))
         return make_response(jsonify({'Color':'Color was successfully changed'}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
