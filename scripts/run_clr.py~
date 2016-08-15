@@ -454,7 +454,8 @@ def geotrigger():
 @app.route('/email', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def email():
-    global req_path
+    #global req_path
+    bool_tmp = dur.set('req_path','')
     try:
         apikey =  request.args.get("apikey")
         subject = request.args.get("subject")
@@ -478,7 +479,9 @@ def email():
         url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
     except:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
-    req_path =   "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
+    #req_path =   "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
+    path = "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
+    bool_tmp = dur.set('req_path',path)
     try:
         r = requests.get(req_path) 
         answer = r.content
@@ -486,11 +489,7 @@ def email():
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':answer}),200)
 
-@app.route('/email2', methods=['POST','GET','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def email2():
-    url = urllib.urlencode({"http://thebank.sas-mic.local/CreditScoring/creditcard.php?Fofferim":'Ccard'})
-    return make_response(jsonify({'Ratatoskr':urllib.unquote(url)}),200)
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /PostgreSQL                                                                                                                                      #
@@ -519,7 +518,7 @@ def deco():
 #                         BLOCK OF /Color Scheme                                                                                                                                     #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
-#bool_tmp = dur.set('SchemeColor',json.dumps({"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}))
+bool_tmp = dur.set('SchemeColor',json.dumps({"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}))
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
@@ -1007,14 +1006,15 @@ def mobile_get_all():
             i = 0
             for row in result_mssql_offers:
                 offer = {}
-                offer["clientid"] = ''
+                offer["clientid"] = row[23]
                 offer["offerid"] = row[20]
                 offer["name"] = row[0]
                 offer["duration"] = 12
                 offer["type"] = prodtype[i][0]
                 offer["description"] = row[19]
                 offer["sum"] = row[3]
-                offer["image"] = prodtype[i][1]
+                #offer["image"] = prodtype[i][1]
+                offer["image"] = ''
                 offer["rate"] = row[2]
                 offer["payment"] = row[4]
                 offer["secret"] = ''
@@ -1107,6 +1107,7 @@ def mobile_get_all():
         client = {}
         client["clientid"] = row[0]
         client["clientimage"]=row[25].replace(" ","+")
+        #client["clientimage"]=(row[25].replace(" ","+"),'')[cid == None]
         client["name"] = row[1]
         client["surname"] = row[3]
         client["email"] = row[16]
@@ -1123,7 +1124,8 @@ def mobile_get_all():
         product["clientid"] = int(row[10])
         product["sum"] = row[1]
         product["duration"] = row[3]
-        product["image"] = row[14]
+        #product["image"] = row[14]
+        product["image"] = (row[14],'')[cid == None]
         product["rate"] = row[0]
         product["payment"] = row[2]
         product["productid"] = row[5]
@@ -1644,32 +1646,18 @@ def offer_accept():
             device = 'in future releases'
                    
             if (priority == 1): 
-                respname = "Accepted"
+                #respname = "Accepted"
+                respname = "Like"
                 respid = 1
             elif (visibility == 0 and priority == 0):
-                respname = "Denied"
+                #respname = "Denied"
+                respname = "Unlike"
                 respid = 2
             else:
                 respname = "undefined"
                 respid = None
     #.isoformat(sep='T')
-            inputs = {"cid":cid,
-"channel": channel,
-"context" : context,
-"device" : device,
-"offerid" : offerid,
-"resptype" : resptype,
-"respname" : respname,
-"respid" : respid,
-"resptime" : datetime.datetime.now().isoformat(sep='T'),
-"resptimestr" : str(accepted_dttm),
-"param1" : None,
-"param2" : None,
-"param3" : None,
-"param4" : None,
-"param5" : None,
-"param6" : None,
-"param7" : None}
+            inputs = {"cid":cid,"channel": channel,"context" : context,"device" : device,"offerid" : offerid,"resptype" : resptype,"respname" : respname,"respid" : respid,"resptime" : datetime.datetime.now().isoformat(sep='T'),"resptimestr" : str(accepted_dttm),"param1" : None,"param2" : None,"param3" : None,"param4" : None,"param5" : None,"param6" : None,"param7" : None}
             #return make_response(jsonify({'Ratatoskr':'request processed'}),201)
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':e}),415)       
@@ -1697,25 +1685,7 @@ def offer_accept():
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':'input data is corrupted','e':str(e)}),406) 
         try:
-            inputs = {"cid":cid,
-"channel": channel,
-
-"context" : context,
-"device" : device,
-"offerid" : offerid,
-"resptype" : resptype,
-"respname" : respname,
-"respid" : respid,
-"resptime" : resptime,
-"resptimestr" : resptime,
-"param1" : param1,
-"param2" : param2,
-"param3" : param3,
-"param4" : param4,
-"param5" : param5,
-"param6" : param6,
-"param7" : param7
-}
+            inputs = {"cid":cid,"channel": channel,"context" : context,"device" : device,"offerid" : offerid,"resptype" : resptype,"respname" : respname,"respid" : respid,"resptime" : resptime,"resptimestr" : resptime,"param1" : param1,"param2" : param2,"param3" : param3,"param4" : param4,"param5" : param5,"param6" : param6,"param7" : param7}
             #return make_response(jsonify({'Ratatoskr':inputs}),201)
             
         except Exception:
