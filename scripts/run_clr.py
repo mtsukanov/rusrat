@@ -455,7 +455,7 @@ def geotrigger():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def email():
     #global req_path
-    bool_tmp = dur.set('req_path','')
+    #bool_tmp = dur.set('req_path','')
     try:
         apikey =  request.args.get("apikey")
         subject = request.args.get("subject")
@@ -484,7 +484,8 @@ def email():
     path = "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
     bool_tmp = dur.set('req_path',path)
     try:
-        r = requests.get(req_path) 
+        #r = requests.get(req_path) 
+        r = requests.get(dur.get(req_path)) 
         answer = r.content
     except:
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
