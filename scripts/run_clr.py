@@ -479,7 +479,7 @@ def email():
         url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
     except Exception  as e:
         #return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
-    return make_response(jsonify({'Ratatoskr':e}),415)
+        return make_response(jsonify({'Ratatoskr':e}),415)
     #req_path =   "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
     path = "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
     bool_tmp = dur.set('req_path',path)
