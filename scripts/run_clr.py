@@ -1019,7 +1019,7 @@ def mobile_get_all():
                 offer["offerid"] = row[20]
                 offer["name"] = row[0]
                 offer["duration"] = 12
-                offer["type"] = prodtype[i][0]
+                #offer["type"] = prodtype[i][0]
                 offer["description"] = row[19]
                 offer["sum"] = row[3]
                 #offer["image"] = prodtype[i][1]
