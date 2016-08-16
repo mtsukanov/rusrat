@@ -229,7 +229,8 @@ app = Flask(__name__)
 app.config.update(
  
     #BROKER_URL='amqp://guest:guest@localhost:5672//'
-    BROKER_URL='redis://localhost/0'
+    BROKER_URL='redis://localhost/0',
+    CELERY_TASK_SERIALIZER = 'json'
  
 
 )

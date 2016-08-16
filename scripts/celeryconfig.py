@@ -2,7 +2,8 @@ from kombu import Exchange, Queue
 
 CELERY_ENABLE_UTC=True,
 CELERY_TIMEZONE='Europe/Moscow',
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//',
+#CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//',
+CELERY_BROKER_URL = 'redis://localhost/0',
 CELERY_RESULT_BACKEND='redis://localhost'
 CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
