@@ -228,7 +228,8 @@ app = Flask(__name__)
 
 app.config.update(
  
-    BROKER_URL='amqp://guest:guest@localhost:5672//'
+    #BROKER_URL='amqp://guest:guest@localhost:5672//'
+    BROKER_URL='redis://localhost/0'
  
 
 )
@@ -512,7 +513,7 @@ def deco():
         ServicesStatusPost('luna',True)
         return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been added to Redis'}),200)
     else:
-        #pickle.loads(dur.get('resultcam')).revoke(terminate=True) 
+        pickle.loads(dur.get('resultcam')).revoke(terminate=True) 
         ServicesStatusPost('luna',False)
         return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been terminated'}),200)
 
