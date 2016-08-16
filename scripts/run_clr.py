@@ -509,7 +509,7 @@ def deco():
         resultcam = post.apply_async([maxid])   
         bool_tmp = dur.set('resultcam',pickle.dumps(resultcam)) 
         ServicesStatusPost('luna',True)
-        return make_response(jsonify({'Cameracheck':'Task '+dur.get('resultcam')+' has been added to Redis'}),200)
+        return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been added to Redis'}),200)
     else:
         pickle.loads(dur.get('resultcam')).revoke(terminate=True) 
         ServicesStatusPost('luna',False)
