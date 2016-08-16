@@ -512,7 +512,7 @@ def deco():
         return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been added to Redis'}),200)
     else:
         taskid = pickle.loads(dur.get('resultcam'))
-        taskid.revoke(terminate=True) 
+        resultcam.revoke(terminate=True) 
         ServicesStatusPost('luna',False)
         return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been terminated'}),200)
 
