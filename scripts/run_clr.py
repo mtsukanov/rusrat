@@ -506,13 +506,13 @@ def deco():
     if param == 'True': 
         #time.sleep(3)
         maxid = get_max_eventid_luna()
-        resultcam = post.apply_async([maxid])   
-        bool_tmp = dur.set('resultcam',pickle.dumps(resultcam)) 
+        #resultcam = post.apply_async([maxid])   
+        bool_tmp = dur.set('resultcam',pickle.dumps(post.apply_async([maxid]))) 
         ServicesStatusPost('luna',True)
         return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been added to Redis'}),200)
     else:
         taskid = pickle.loads(dur.get('resultcam'))
-        resultcam.revoke(terminate=True) 
+        taskid.revoke(terminate=True) 
         ServicesStatusPost('luna',False)
         return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been terminated'}),200)
 
