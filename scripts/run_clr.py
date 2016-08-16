@@ -11,7 +11,6 @@
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 
-
 from __future__ import absolute_import
 from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
@@ -36,6 +35,7 @@ import pymssql
 import psycopg2
 import urllib
 import re
+from celery.task.control import revoke
 ########################__CYRILLIC SYMBOLS SUPPORT__##########
 import sys
 reload(sys)
