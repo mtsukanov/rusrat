@@ -505,16 +505,13 @@ def deco():
     if param == 'True': 
         #time.sleep(3)
         maxid = get_max_eventid_luna()
-        resultcam = post.apply_async([maxid])   
-        bool_tmp = dur.set('resultcam',resultcam) 
+        resultcam = post.apply_async([maxid])    
         ServicesStatusPost('luna',True)
-        #return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been added to Redis'}),200)
-        return make_response(jsonify({'Cameracheck':'Task '+dur.get('resultcam')+' has been added to Redis'}),200)
+        return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been added to Redis'}),200)
     else:
-        AsyncResult(id=dur.get('resultcam')).revoke(terminate=True) 
+        resultcam.revoke(terminate=True) 
         ServicesStatusPost('luna',False)
-        #return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been terminated'}),200)
-        return make_response(jsonify({'Cameracheck':'Task '+dur.get('resultcam')+' has been terminated'}),200)
+        return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been terminated'}),200)
 
 
 #############################################################################################################################################################################################

@@ -509,11 +509,12 @@ def deco():
         bool_tmp = dur.set('resultcam',resultcam) 
         ServicesStatusPost('luna',True)
         #return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been added to Redis'}),200)
-        return make_response(jsonify({'Cameracheck':dur.get('resultcam')}),200)
+        return make_response(jsonify({'Cameracheck':'Task '+dur.get('resultcam')+' has been added to Redis'}),200)
     else:
         AsyncResult(id=dur.get('resultcam')).revoke(terminate=True) 
         ServicesStatusPost('luna',False)
-        return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been terminated'}),200)
+        #return make_response(jsonify({'Cameracheck':'Task '+str(resultcam)+' has been terminated'}),200)
+        return make_response(jsonify({'Cameracheck':'Task '+dur.get('resultcam')+' has been terminated'}),200)
 
 
 #############################################################################################################################################################################################
