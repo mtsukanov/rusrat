@@ -455,7 +455,6 @@ def geotrigger():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def email():
     #global req_path
-    #bool_tmp = dur.set('req_path','')
     try:
         apikey =  request.args.get("apikey")
         subject = request.args.get("subject")
