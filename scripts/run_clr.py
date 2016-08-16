@@ -224,7 +224,7 @@ def ServicesStatusPost(service,status):
 
 #Server start
 app = Flask(__name__)
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379'
 app.config['CELERY_TASK_SERIALIZER'] = 'pickle'
 app.config['CELERY_ACCEPT_CONTENT'] = 'pickle'
 

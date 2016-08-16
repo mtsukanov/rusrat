@@ -30,9 +30,11 @@ lunapath= '10.20.1.22'
 
 
 
-app = Celery(backend='amqp://',broker='redis22://localhost/0', celery_event_queue_ttl = 300)
+app = Celery(backend='amqp://',broker='redis://localhost/0', celery_event_queue_ttl = 300)
 """broker='amqp://guest:guest@localhost:5672//'"""
-
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379'
+app.config['CELERY_TASK_SERIALIZER'] = 'pickle'
+app.config['CELERY_ACCEPT_CONTENT'] = 'pickle'
 
 
 @app.task(trail=True)
