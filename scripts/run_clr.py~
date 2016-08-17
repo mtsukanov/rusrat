@@ -559,6 +559,25 @@ def ServicesStatusGET():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
+#                         BLOCK OF /LoyaltyScore                                                                                                                               #
+#                                                                                                                                                                                           #
+####################################################################################################################################################
+
+@app.route('/loyalty', methods=['GET','POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def loyalty():
+    try:
+        cid = request.json['cid']
+    except:
+        return make_response(jsonify({'Loyalty':'input data is corrupt'}),418)
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
+    cur.execute('SELECT Max(LoyaltyScore) FROM [DataMart].[CARD] WHERE IndivID = '+str(cid))
+    loyalty = cur.fetchone()
+     return make_response(jsonify({'Loyalty':loyalty}),200) 
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
 #                         BLOCK OF /SERVICE LIST                                                                                                    #
 #                                                                                                                                                                                           #
 ##################################################################################################################################################
