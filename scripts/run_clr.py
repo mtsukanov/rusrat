@@ -224,14 +224,14 @@ def ServicesStatusPost(service,status):
 
 #Server start
 app = Flask(__name__)
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379'
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['CELERY_TASK_SERIALIZER'] = 'pickle'
 app.config['CELERY_ACCEPT_CONTENT'] = 'pickle'
 
 app.config.update(
  
     #BROKER_URL='amqp://guest:guest@localhost:5672//'
-    BROKER_URL='redis://localhost/0',
+    BROKER_URL='redis://localhost:6379/0',
     CELERY_TASK_SERIALIZER = 'pickle',
     CELERY_ACCEPT_CONTENT = 'pickle',
  
@@ -556,6 +556,25 @@ def color():
 def ServicesStatusGET():
      return make_response(jsonify({'Ratatoskr':Services}),200)  
 
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /LoyaltyScore                                                                                                                               #
+#                                                                                                                                                                                           #
+####################################################################################################################################################
+
+@app.route('/loyalty', methods=['GET','POST','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def loyalty():
+    try:
+        cid = request.json['cid']
+    except:
+        return make_response(jsonify({'Loyalty':'input data is corrupt'}),418)
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
+    cur.execute('SELECT Max(LoyaltyScore) FROM [DataMart].[CARD] WHERE IndivID = '+str(cid))
+    loyalty = cur.fetchone()
+     return make_response(jsonify({'Loyalty':loyalty}),200) 
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
