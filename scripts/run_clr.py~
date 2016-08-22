@@ -574,7 +574,7 @@ def loyalty():
     cur = db.cursor()
     cur.execute('SELECT Max(LoyaltyScore) FROM [DataMart].[CARD] WHERE IndivID = '+str(cid))
     loyalty = cur.fetchone()
-     return make_response(jsonify({'Loyalty':loyalty}),200) 
+    return make_response(jsonify({'Loyalty':loyalty}),200) 
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
