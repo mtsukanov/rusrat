@@ -683,7 +683,7 @@ def espupdt():
     bin_esp_event2 = esp_event2.encode()
     try:
     #    r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
-        r = requests.put(esp_url2,data = bin_esp_event2,headers=esp_headers)
+    #    r = requests.put(esp_url2,data = bin_esp_event2,headers=esp_headers)
     except Exception as e:
         return make_response(jsonify({'EspUpdate':e}),400)
     return make_response(jsonify({'EspUpdate':esp_event2}),200)  
