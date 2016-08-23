@@ -602,7 +602,7 @@ def espupdt():
         HHoldID = request.args.get('HHoldID')
         Title = request.args.get('Title')
         Forename = request.args.get('Forename')
-        Surename = request.args.get('Surename')
+        Surname = request.args.get('Surename')
         Phone = request.args.get('Phone')
         Mobile = request.args.get('Mobile')
         Fax = request.args.get('Fax')
