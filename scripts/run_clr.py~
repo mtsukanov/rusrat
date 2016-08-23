@@ -422,7 +422,7 @@ def geotrigger():
         'beaconid' :  beaconid ,
         'spotid' :  int(spotid),
         'spotname' : spotname,
-        'time' :  datetime.datetime.strptime(time,"%m/%d/%y %H:%M:%S").isoformat(sep='T'),
+        'time' :  datetime.datetime.strptime(time,"%d.%m.%Y %H:%M:%S").isoformat(sep='T'),
         'trigger':trigger}
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Incorrect input.Details:'+str(e)}),415)    
@@ -473,15 +473,29 @@ def email():
         merge_firstname = request.args.get("merge_firstname")
         merge_lastname = request.args.get("merge_lastname")
         merge_websiteurl = json.loads(request.args.get("merge_websiteurl"))
-        OfferImg = merge_websiteurl["offerimg"]
-        MainTxt = merge_websiteurl["maintxt"]
-        DescTxt = merge_websiteurl["desctxt"]
-        FName = merge_websiteurl["name"]
-        LName = merge_websiteurl["lname"]
-        MName = merge_websiteurl["mname"]
-        ID = merge_websiteurl["id"]
-        LangCode = merge_websiteurl["lang"]
-        url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
+        if 'Credit_Card' in template:
+            OfferImg = merge_websiteurl["offerimg"]
+            MainTxt = merge_websiteurl["maintxt"]
+            DescTxt = merge_websiteurl["desctxt"]
+            FName = merge_websiteurl["name"]
+            LName = merge_websiteurl["lname"]
+            MName = merge_websiteurl["mname"]
+            ID = merge_websiteurl["id"]
+            LangCode = merge_websiteurl["lang"]        
+            url = "http://thebank.sas-mic.local/CreditScoring/creditcard.php%3Fofferimg="+OfferImg+"%26maintxt="+MainTxt+"%26desctxt="+DescTxt+"%26lname="+LName+"%26name="+FName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode
+        if 'Travel_Insurance' in template:
+            ID = merge_websiteurl["id"]
+            Title = merge_websiteurl["Title"]
+            FName = merge_websiteurl["name"]
+            LName = merge_websiteurl["lname"]
+            MName = merge_websiteurl["mname"]
+            LangCode = merge_websiteurl["lang"] 
+            db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+            cur = db.cursor()
+            cur.execute("SELECT OfferID FROM [DataMart].[OFFER] WHERE IndivID="+str(ID)+" AND ProdID='5'")
+            offerid = cur.fetchone()[0]
+            url = "http://thebank.sas-mic.local/insurance.php%3Ftitle="+Title+"%26fname="+FName+"%26lname="+LName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode+"%26offerid="+str(offerid)
+        print url
     except Exception  as e:
         #return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
         return make_response(jsonify({'Ratatoskr':e}),415)
@@ -574,7 +588,7 @@ def loyalty():
     cur = db.cursor()
     cur.execute('SELECT Max(LoyaltyScore) FROM [DataMart].[CARD] WHERE IndivID = '+str(cid))
     loyalty = cur.fetchone()
-    return make_response(jsonify({'Loyalty':loyalty}),200) 
+    return make_response(jsonify({'Loyalty':loyalty[0]}),200) 
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -1108,7 +1122,10 @@ def mobile_get_all():
         query_gps = None
         query = ("Select IndivID,CAST(MAX(LoyaltyScore) as INT) as LScore from [DataMart].[CARD] WHERE IndivID="+cid+" GROUP BY IndivID")  
         cur.execute(query)  
-        loyalty = cur.fetchall() 
+        loyalty = cur.fetchall()
+        if loyalty == []:
+             loyalty = [(0,0)]
+        print loyalty
     try:
         result_mysql_sel = mysql_select('thebankfront',None,'customers',query_customers)
         result_mssql_offers = mssql_select('CIDB','DataMart',None,'OFFER',query_offers)
@@ -1152,8 +1169,8 @@ def mobile_get_all():
         product["clientid"] = int(row[10])
         product["sum"] = row[1]
         product["duration"] = row[3]
-        #product["image"] = row[14]
-        product["image"] = (row[14],'')[cid == None]
+        product["image"] = row[14]
+        #product["image"] = (row[14],'')[cid == None]
         product["rate"] = row[0]
         product["payment"] = row[2]
         product["productid"] = row[5]
@@ -1669,7 +1686,7 @@ def offer_accept():
             offerid = request.json['offerid']
             #LastOffer = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"type":context,"visibility":visibility,"priority":priority,"accepted_dttm":accepted_dttm,"cid":cid,"offerid":offerid}
             LastOffer = request.data
-            channel = 'mobile_app'
+            channel = 'mobile'
             resptype = 'direct'
             device = 'in future releases'
                    
