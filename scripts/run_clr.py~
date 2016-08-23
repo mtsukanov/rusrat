@@ -570,6 +570,7 @@ def color():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def espupdt():
     try:
+        CardID = request.args.get('CardID')
         CardNumber = request.args.get('CardNumber')
         AccountID = request.args.get('AccountID')
         IndivID = request.args.get('IndivID')
@@ -671,7 +672,16 @@ def espupdt():
         DemogrParam3= request.args.get('DemogrParam3')
         DemogrParam4= request.args.get('DemogrParam4')
     except:
-        return make_response(jsonify({'Ratatoskr':'Input data is incorrect. Good luck!'}),418)  
+        return make_response(jsonify({'EspUpdate':'Input data is incorrect. Good luck!'}),418)  
+    esp_url="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/CARD/state?value=injected"
+    esp_headers= {'content-type':'text/csv'}
+    esp_event = "I,N,"+CardID+","+CardNumber+","+AccountID+","+IndivID+","+CardPin+","+CardCVC+","+CardType+","+CardType2+","+CardValidFrom+","+CardValidTo+","+CardStatus+","+CardCashLimit+","+CardParam1+","+CardParam2+","+CardParam3+","+CardParam4
+    bin_esp_event = esp_event.encode()
+    try:
+        r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
+    except Exception as e:
+        return make_response(jsonify({'EspUpdate':e}),400)
+    return make_response(jsonify({'EspUpdate':'OK'}),200)  
     
 
 

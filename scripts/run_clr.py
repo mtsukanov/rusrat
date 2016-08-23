@@ -570,6 +570,7 @@ def color():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def espupdt():
     try:
+        CardID = request.args.get('CardID')
         CardNumber = request.args.get('CardNumber')
         AccountID = request.args.get('AccountID')
         IndivID = request.args.get('IndivID')
@@ -671,8 +672,21 @@ def espupdt():
         DemogrParam3= request.args.get('DemogrParam3')
         DemogrParam4= request.args.get('DemogrParam4')
     except:
-        return make_response(jsonify({'Ratatoskr':'Input data is incorrect. Good luck!'}),418)  
-    return make_response(jsonify({'Ratatoskr':'OK'}),200)  
+        return make_response(jsonify({'EspUpdate':'Input data is incorrect. Good luck!'}),418)  
+    esp_url="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/CARD/state?value=injected"
+    esp_headers= {'content-type':'text/csv'}
+    esp_event = "I,N,"+CardID+","+CardNumber+","+AccountID+","+IndivID+","+CardPin+","+CardCVC+","+CardType+","+CardType2+","+CardValidFrom+","+CardValidTo+","+CardStatus+","+CardCashLimit+","+CardParam1+","+CardParam2+","+CardParam3+","+CardParam4
+    bin_esp_event = esp_event.encode()
+
+    esp_url2="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/AccountDetailedView/state?value=injected"
+    esp_event2 = "I,N,"+AccountID+","+AccountValidFrom+","+AccountValidTo+","+IndivID+","+AccountBalance+","+AccountPrice+","+ProdDetID+","+AccountType+","+AccountStatus+","+AccountAmount+","+AccountPayment+","+AccountParam1+","+AccountParam2+","+AccountParam3+","+AccountParam4+","+HHoldID+","+Title+","+Forename+","+Surname+","+Phone+","+Mobile+","+Fax+","+Email+","+CustomerSince+","+STATUS+","+Birthdate+","+Agent+","+MarketingSegment+","+Random+","+Middlename+","+PhotoID+","+VipFlag+","+IndivParam1+","+IndivParam2+","+IndivParam3+","+IndivParam4+","+ProdDetName+","+ProdID+","+ProdDetDesc+","+ProdDetImgID+","+ProdDetPrice+","+ProdDetStatus+","+ProdDetRate+","+ProdDetAmount+","+ProdDetPayment+","+ProdDetBalance+","+ProdDetLimit+","+ProdDetPeriod+","+CashBackRate+","+ProdDetValidFrom+","+ProdDetValidTo+","+ProdDetParam1+","+ProdDetParam2+","+ProdDetParam3+","+ProdDetParam4+","+ProdType+","+ProdPrice+","+ProdParam1+","+ProdParam2+","+ProdParam3+","+ProdParam4+","+ProdName+","+ProdImgID+","+ProdDesc+","+ProdBrief+","+Age+","+AgeGroupID+","+Income+","+IncomeGroupID+","+Gender+","+JobID+","+LanguageID+","+MartialStatus+","+EducationID+","+ReligionID+","+JobStartDate+","+Children+","+DriverLicense+","+CarOwner+","+Username+","+Password+","+AccountCreated+","+LastLogin+","+DemogrParam1+","+DemogrParam2+","+DemogrParam3+","+DemogrParam4
+    bin_esp_event2 = esp_event2.encode()
+    try:
+        r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
+        r = requests.put(esp_url2,data = bin_esp_event2,headers=esp_headers)
+    except Exception as e:
+        return make_response(jsonify({'EspUpdate':e}),400)
+    return make_response(jsonify({'EspUpdate':'OK'}),200)  
     
 
 
