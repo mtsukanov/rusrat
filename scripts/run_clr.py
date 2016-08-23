@@ -675,12 +675,15 @@ def espupdt():
         return make_response(jsonify({'EspUpdate':'Input data is incorrect. Good luck!'}),418)  
     esp_url="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/CARD/state?value=injected"
     esp_headers= {'content-type':'text/csv'}
-    esp_event = "I,N,"+CardID+","+CardNumber+","+str(AccountID)+","+str(IndivID)+","+str(CardPin)+","+str(CardCVC)+","+str(CardType)+","+str(CardType2)+","+str(CardValidFrom)+","+str(CardValidTo)+","+str(CardStatus)+","+str(CardCashLimit)+","+str(CardParam1)+","+str(CardParam2)+","+str(CardParam3)+","+str(CardParam4)
+    esp_event = "I,N,"+str(CardID)+","+str(CardNumber)+","+str(AccountID)+","+str(IndivID)+","+str(CardPin)+","+str(CardCVC)+","+str(CardType)+","+str(CardType2)+","+str(CardValidFrom)+","+str(CardValidTo)+","+str(CardStatus)+","+str(CardCashLimit)+","+str(CardParam1)+","+str(CardParam2)+","+str(CardParam3)+","+str(CardParam4)
     bin_esp_event = esp_event.encode()
+    print esp_event
 
+    #cur.execute("SELECT CardID FROM CARD")
     esp_url2="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/AccountDetailedView/state?value=injected"
     esp_event2 = "I,N,"+str(AccountID)+","+str(AccountValidFrom)+","+str(AccountValidTo)+","+str(IndivID)+","+str(AccountBalance)+","+str(AccountPrice)+","+str(ProdDetID)+","+str(AccountType)+","+str(AccountStatus)+","+str(AccountAmount)+","+str(AccountPayment)+","+str(AccountParam1)+","+str(AccountParam2)+","+str(AccountParam3)+","+str(AccountParam4)+","+str(HHoldID)+","+str(Title)+","+str(Forename)+","+str(Surname)+","+str(Phone)+","+str(Mobile)+","+str(Fax)+","+str(Email)+","+str(CustomerSince)+","+str(STATUS)+","+str(Birthdate)+","+str(Agent)+","+str(MarketingSegment)+","+str(Random)+","+str(Middlename)+","+str(PhotoID)+","+str(VipFlag)+","+str(IndivParam1)+","+str(IndivParam2)+","+str(IndivParam3)+","+str(IndivParam4)+","+str(ProdDetName)+","+str(ProdID)+","+str(ProdDetDesc)+","+str(ProdDetImgID)+","+str(ProdDetPrice)+","+str(ProdDetStatus)+","+str(ProdDetRate)+","+str(ProdDetAmount)+","+str(ProdDetPayment)+","+str(ProdDetBalance)+","+str(ProdDetLimit)+","+str(ProdDetPeriod)+","+str(CashBackRate)+","+str(ProdDetValidFrom)+","+str(ProdDetValidTo)+","+str(ProdDetParam1)+","+str(ProdDetParam2)+","+str(ProdDetParam3)+","+str(ProdDetParam4)+","+str(ProdType)+","+str(ProdPrice)+","+str(ProdParam1)+","+str(ProdParam2)+","+str(ProdParam3)+","+str(ProdParam4)+","+str(ProdName)+","+str(ProdImgID)+","+str(ProdDesc)+","+str(ProdBrief)+","+str(Age)+","+str(AgeGroupID)+","+str(Income)+","+str(IncomeGroupID)+","+str(Gender)+","+str(JobID)+","+str(LanguageID)+","+str(MartialStatus)+","+str(EducationID)+","+str(ReligionID)+","+str(JobStartDate)+","+str(Children)+","+str(DriverLicense)+","+str(CarOwner)+","+str(Username)+","+str(Password)+","+str(AccountCreated)+","+str(LastLogin)+","+str(DemogrParam1)+","+str(DemogrParam2)+","+str(DemogrParam3)+","+str(DemogrParam4)
     bin_esp_event2 = esp_event2.encode()
+    print esp_event2
     try:
         r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
         r = requests.put(esp_url2,data = bin_esp_event2,headers=esp_headers)
