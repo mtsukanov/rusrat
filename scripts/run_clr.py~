@@ -566,7 +566,7 @@ def color():
 #                         BLOCK OF /ESP UPATE                                                                                                                                    #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
-@app.route('/espupdate', methods=['POST','GET','OPTIONS'])
+@app.route('/updateesp', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def espupdt():
     try:

@@ -672,6 +672,7 @@ def espupdt():
         DemogrParam4= request.args.get('DemogrParam4')
     except:
         return make_response(jsonify({'Ratatoskr':'Input data is incorrect. Good luck!'}),418)  
+    return make_response(jsonify({'Ratatoskr':'OK'}),200)  
     
 
 
