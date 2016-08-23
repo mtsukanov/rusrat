@@ -559,6 +559,38 @@ def color():
         dur_tmp[context] = color
         bool_tmp = dur.set('SchemeColor',json.dumps(dur_tmp))
         return make_response(jsonify({'Color':'Color was successfully changed'}),200)
+
+
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /ESP UPATE                                                                                                                                    #
+#                                                                                                                                                                                           #
+#####################################################################################################################################################
+@app.route('/espupdate', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def espupdt():
+    try:
+        CardNumber = request.args.get('CardNumber')
+        AccountID = request.args.get('AccountID')
+        IndivID = request.args.get('IndivID')
+        CardPin = request.args.get('CardPin')
+        CardCVC = request.args.get('CardCVC')
+        CardType = request.args.get('CardType')
+        CardType2 = request.args.get('CardType2')
+        CardValidFrom = request.args.get('CardValidFrom')
+        CardValidTo = request.args.get('CardValidTo')
+        CardStatus = request.args.get('CardStatus')
+        CardCashLimit = request.args.get('CardCashLimit')
+        CardParam1 = request.args.get('CardParam1')
+        CardParam2 = request.args.get('CardParam2')
+        CardParam3 = request.args.get('CardParam3')
+        CardParam4 = request.args.get('CardParam4')
+    except:
+        pass
+    
+
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ServicesStatus                                                                                                                                  #
