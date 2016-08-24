@@ -586,6 +586,7 @@ def espupdt():
         CardParam2 = request.args.get('CardParam2')
         CardParam3 = request.args.get('CardParam3')
         CardParam4 = request.args.get('CardParam4')
+
         AccountValidFrom = "2019-08-21 21:00:00.00000000"
         AccountValidTo = "2019-08-21 21:00:00.00000000"
         AccountBalance = request.args.get('AccountBalance')
@@ -679,14 +680,20 @@ def espupdt():
     bin_esp_event = esp_event.encode()
     print esp_event
 
-    #cur.execute("SELECT CardID FROM CARD")
     esp_url2="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/AccountDetailedView/state?value=injected"
     esp_event2 = "I,N,"+str(AccountID)+","+str(AccountValidFrom)+","+str(AccountValidTo)+","+str(IndivID)+","+str(AccountBalance)+","+str(AccountPrice)+","+str(ProdDetID)+","+str(AccountType)+","+str(AccountStatus)+","+str(AccountAmount)+","+str(AccountPayment)+","+str(AccountParam1)+","+str(AccountParam2)+","+str(AccountParam3)+","+str(AccountParam4)+","+str(HHoldID)+","+str(Title)+","+str(Forename)+","+str(Surname)+","+str(Phone)+","+str(Mobile)+","+str(Fax)+","+str(Email)+","+str(CustomerSince)+","+str(STATUS)+","+str(Birthdate)+","+str(Agent)+","+str(MarketingSegment)+","+str(Random)+","+str(Middlename)+","+str(PhotoID)+","+str(VipFlag)+","+str(IndivParam1)+","+str(IndivParam2)+","+str(IndivParam3)+","+str(IndivParam4)+","+str(ProdDetName)+","+str(ProdID)+","+str(ProdDetDesc)+","+str(ProdDetImgID)+","+str(ProdDetPrice)+","+str(ProdDetStatus)+","+str(ProdDetRate)+","+str(ProdDetAmount)+","+str(ProdDetPayment)+","+str(ProdDetBalance)+","+str(ProdDetLimit)+","+str(ProdDetPeriod)+","+str(CashBackRate)+","+str(ProdDetValidFrom)+","+str(ProdDetValidTo)+","+str(ProdDetParam1)+","+str(ProdDetParam2)+","+str(ProdDetParam3)+","+str(ProdDetParam4)+","+str(ProdType)+","+str(ProdPrice)+","+str(ProdParam1)+","+str(ProdParam2)+","+str(ProdParam3)+","+str(ProdParam4)+","+str(ProdName)+","+str(ProdImgID)+","+str(ProdDesc)+","+str(ProdBrief)+","+str(Age)+","+str(AgeGroupID)+","+str(Income)+","+str(IncomeGroupID)+","+str(Gender)+","+str(JobID)+","+str(LanguageID)+","+str(MartialStatus)+","+str(EducationID)+","+str(ReligionID)+","+str(JobStartDate)+","+str(Children)+","+str(DriverLicense)+","+str(CarOwner)+","+str(Username)+","+str(Password)+","+str(AccountCreated)+","+str(LastLogin)+","+str(DemogrParam1)+","+str(DemogrParam2)+","+str(DemogrParam3)+","+str(DemogrParam4)
     bin_esp_event2 = esp_event2.encode()
     print esp_event2
-    try:
-        r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
-        r = requests.put(esp_url2,data = bin_esp_event2,headers=esp_headers)
+
+    esp_url3="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/Accounts/state?value=injected"
+    esp_event3 = "I,N,"+str(AccountID)+","+str(AccountValidFrom)+","+str(AccountValidTo)+","+str(IndivID)+","+str(AccountBalance)+","+str(AccountPrice)+","+str(ProdDetID)+","+str(AccountType)+","+str(AccountStatus)+","+str(AccountAmount)+","+str(AccountPayment)+","+str(AccountParam1)+","+str(AccountParam2)+","+str(AccountParam3)+","+str(AccountParam4)
+    bin_esp_event3 = esp_event3.encode()
+    print esp_event3
+
+    try:      
+        r = requests.put(esp_url3,data = bin_esp_event3,headers=esp_headers)
+        r = requests.put(esp_url2,data = bin_esp_event2,headers=esp_headers)  
+        r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)    
     except Exception as e:
         return make_response(jsonify({'EspUpdate':e}),400)
     return make_response(jsonify({'EspUpdate':bin_esp_event2}),200)  
