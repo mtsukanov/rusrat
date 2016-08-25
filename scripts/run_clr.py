@@ -732,34 +732,60 @@ def loyalty():
     loyalty = cur.fetchone()
     return make_response(jsonify({'Loyalty':loyalty[0]}),200) 
 
+
+
+
+bool_tmp = dur.set('SchemeColor',json.dumps({"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}))
+
+    #global SchmeColor
+    if request.method == 'GET':
+        return make_response(jsonify({'Color':json.loads(dur.get('SchemeColor'))}),200)
+    if request.method == 'POST':
+        try:
+            context = request.json['context']
+            color = request.json['color']
+        except:
+            return make_response(jsonify({'Color':'Invalid color input'}),400)
+        #SchmeColor[context] = color
+        dur_tmp = json.loads(dur.get('SchemeColor'))
+        dur_tmp[context] = color
+        bool_tmp = dur.set('SchemeColor',json.dumps(dur_tmp))
+        return make_response(jsonify({'Color':'Color was successfully changed'}),200)
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SERVICE LIST                                                                                                    #
 #                                                                                                                                                                                           #
 ##################################################################################################################################################
-ServiceList = {"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}
+#ServiceList = {"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}
+bool_tmp = dur.set('ServiceList',json.dumps({"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}))
 @app.route('/service_list',  methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_post():
-    global ServiceList
+    #global ServiceList
     try:
         offurl = request.json['offurl']
         mesurl = request.json['mesurl']
         infurl = request.json['infurl']
     except:
         return make_response(jsonify({'Ratatoskr':'Input error'}),415)  
+    dur_tmp = json.loads(dur.get('ServiceList'))
     if offurl != "":
-         ServiceList['Offurl'] = offurl
+         #ServiceList['Offurl'] = offurl
+         dur_tmp[Offurl] = offurl
     if mesurl != "":
-         ServiceList['Mesurl'] = mesurl
+         #ServiceList['Mesurl'] = mesurl
+         dur_tmp[Mesurl] = mesurl
     if infurl != "":
-         ServiceList['Infurl'] = infurl
+         #ServiceList['Infurl'] = infurl
+         dur_tmp[Infurl] = infurl
+    bool_tmp = dur.set('ServiceList',json.dumps(dur_tmp))
     return make_response(jsonify({'Ratatoskr':'Service list has been successfully updated'}),200)  
 
 @app.route('/service_list',  methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_get():
-    return make_response(jsonify({'Ratatoskr':ServiceList}),200)  
+    return make_response(jsonify({'Ratatoskr':dur.get('ServiceList')}),200)  
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /Contact Policy                                                                                                                                              #
