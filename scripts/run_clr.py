@@ -222,6 +222,10 @@ def ServicesStatusPost(service,status):
     Services = servcopy
     return make_response(jsonify({'Ratatoskr':'Services have been updated'}),200) 
 
+
+
+
+
 #Server start
 app = Flask(__name__)
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
@@ -263,6 +267,21 @@ def get_task(task_id):
 #source /var/beacon/clr/bin/activate
 #cd /var/beacon/clr/scripts                                                                                                                                                                 #
 #############################################################################################################################################################################################
+
+@app.route('/setpar', methods=['GET'])
+def setpar():
+    par = request.args.get('par')
+    bool_tmp = dur.set('setparameter',par)
+    return make_response(jsonify({'setpar':dur.get('setparameter')}))
+
+@app.route('/checkpar', methods=['GET'])
+def checkpar():
+    while True:
+        time.sleep(5)
+        if dur.get('setparameter') == 'true':     
+            print 'eto  true'
+    return make_response(jsonify({'checkpar':dur.get('setparameter')}))
+
 
 @app.route('/params', methods=['GET'])
 def get_offer():
@@ -686,7 +705,7 @@ def espupdt():
     print esp_event2
 
     esp_url3="http://ruscilabcomp:44445/SASESP/windows/CILAB_ver5_0/Continuous_Query_1/Accounts/state?value=injected"
-    esp_event3 = "I,N,"+str(AccountID)+","+str(AccountValidFrom)+","+str(AccountValidTo)+","+str(IndivID)+","+str(AccountBalance)+","+str(AccountPrice)+","+str(ProdDetID)+","+str(AccountType)+","+str(AccountStatus)+","+str(AccountAmount)+","+str(AccountPayment)+","+str(AccountParam1)+","+str(AccountParam2)+","+str(AccountParam3)+","+str(AccountParam4)
+    esp_event3 = "I,N,"+str(AccountID)+","+str(AccountValidFrom)+","+str(AccountValidTo)+","+str(IndivID)+","+str(AccountBalance)+","+str(AccountPrice)+","+str(ProdDetID)+","+str(AccountType)+","+str(AccountStatus)+","+str(AccountAmount)+","+str(AccountPayment)+","+'python'+","+str(AccountParam2)+","+str(AccountParam3)+","+str(AccountParam4)
     bin_esp_event3 = esp_event3.encode()
     print esp_event3
 
@@ -734,24 +753,6 @@ def loyalty():
 
 
 
-
-bool_tmp = dur.set('SchemeColor',json.dumps({"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}))
-
-    #global SchmeColor
-    if request.method == 'GET':
-        return make_response(jsonify({'Color':json.loads(dur.get('SchemeColor'))}),200)
-    if request.method == 'POST':
-        try:
-            context = request.json['context']
-            color = request.json['color']
-        except:
-            return make_response(jsonify({'Color':'Invalid color input'}),400)
-        #SchmeColor[context] = color
-        dur_tmp = json.loads(dur.get('SchemeColor'))
-        dur_tmp[context] = color
-        bool_tmp = dur.set('SchemeColor',json.dumps(dur_tmp))
-        return make_response(jsonify({'Color':'Color was successfully changed'}),200)
-
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /SERVICE LIST                                                                                                    #
@@ -772,20 +773,20 @@ def service_list_post():
     dur_tmp = json.loads(dur.get('ServiceList'))
     if offurl != "":
          #ServiceList['Offurl'] = offurl
-         dur_tmp[Offurl] = offurl
+         dur_tmp['Offurl'] = offurl
     if mesurl != "":
          #ServiceList['Mesurl'] = mesurl
-         dur_tmp[Mesurl] = mesurl
+         dur_tmp['Mesurl'] = mesurl
     if infurl != "":
          #ServiceList['Infurl'] = infurl
-         dur_tmp[Infurl] = infurl
+         dur_tmp['Infurl'] = infurl
     bool_tmp = dur.set('ServiceList',json.dumps(dur_tmp))
     return make_response(jsonify({'Ratatoskr':'Service list has been successfully updated'}),200)  
 
 @app.route('/service_list',  methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_get():
-    return make_response(jsonify({'Ratatoskr':dur.get('ServiceList')}),200)  
+    return make_response(jsonify({'Ratatoskr':json.loads(dur.get('ServiceList'))}),200)  
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /Contact Policy                                                                                                                                              #
@@ -827,7 +828,7 @@ def contactpol():
 @app.route('/sms', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def sms():
-    global req_path
+    #global req_path
     try:
         login =  request.args.get("login") 
         psw = request.args.get("psw")
@@ -840,9 +841,11 @@ def sms():
         #param4 = request.json["param4"] 
     except Exception:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415) 
-    req_path = "https://smsc.ru/sys/send.php?charset=utf-8&login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender    
+    #req_path = "https://smsc.ru/sys/send.php?charset=utf-8&login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender    
+    bool_tmp = dur.set('req_path',"https://smsc.ru/sys/send.php?charset=utf-8&login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender )
     try:
-        r = requests.get(req_path) 
+        #r = requests.get(req_path) 
+        r = requests.get(dur.get('req_path')) 
         answer = r.content
     except requests.exceptions.RequestException as e:
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
@@ -1167,7 +1170,7 @@ def mssqlsave():
 @app.route('/mobile_get', methods=['GET'])
 
 def mobile_get_all():
-    global LastMobileGet
+    #global LastMobileGet
     cid = request.args.get('client_id')
     context = "sync"
     channel = "mobile"
@@ -1190,7 +1193,8 @@ def mobile_get_all():
     WIFI = []
     GPS = []
     Beacon = []
-    LastMobileGet = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}
+    #LastMobileGet = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}
+    bool_tmp = dur.set('LastMobileGet',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}))
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cur = db.cursor()
 #CID IS NOT SPECIFIED
@@ -1422,20 +1426,25 @@ def getresponsehistory():
 #                         BLOCK OF /mtsukanov                                                                                                                                             #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-HistArr=[]
-@app.route('/mobile_post', methods=['POST','GET'])
+#HistArr=[]
+#bool_tmp = dur.set('HistArr',json.dumps([]))
+@app.route('/mobile_post', methods=['POST','GET','OPTIONS'])
 def mobile_post_all():
-    global LastMobile
-    global HistArr
-    HistArr.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):request.data})
+    #global LastMobile
+    #global HistArr
+    #HistArr.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):request.data})
+    dur_tmp =json.loads(dur.get('HistArr'))
+    dur_tmp.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):json.loads(request.data)})
+    dur.set('HistArr',json.dumps(dur_tmp))
     try:
         sys = request.json['sys']
         wifi = request.json['wifi']
         beacon = request.json['beacon']
         gps = request.json['gps']
         trigger =  request.json['trigger']
-        LastMobile = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
-    except Exception:
+        #LastMobile = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
+        bool_tmp = dur.set('LastMobile',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}))
+    except Exception as e:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
     if sys["clientid"]>150000:
         message = {"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
@@ -1448,8 +1457,9 @@ def mobile_post_all():
 
 @app.route('/hist', methods=['GET'])
 def hist():
-    var = HistArr
-    return make_response(jsonify({"Ratatoskr":var}),200)
+    #var = HistArr
+    HistArr = json.loads(dur.get('HistArr'))
+    return make_response(jsonify({"Ratatoskr":HistArr}),200)
 
 
 
@@ -1462,30 +1472,30 @@ def hist():
 #############################################################################################################################################################################################
 @app.route('/getlast', methods=['GET'])
 def lastrequest():
+    #try:
+    #    launch = LastLaunch
+    #except:
+    #    launch = "The service hasn't been requested after server reboot"
+    #try:
+    #    offer = LastOffer
+    #except:
+    #    offer = "The service hasn't been requested after server reboot"
+    #try:
+    #    mobile = LastMobile
+    #except:
+    #    mobile = "The service hasn't been requested after server reboot"
+    #try:
+    #    sync = LastSync
+    #except:
+    #    sync = "The service hasn't been requested after server reboot"
+    #try:
+    #    mobileget = LastMobileGet
+    #except:
+    #    mobileget = "The service hasn't been requested after server reboot"
     try:
-        launch = LastLaunch
-    except:
-        launch = "The service hasn't been requested after server reboot"
-    try:
-        offer = LastOffer
-    except:
-        offer = "The service hasn't been requested after server reboot"
-    try:
-        mobile = LastMobile
-    except:
-        mobile = "The service hasn't been requested after server reboot"
-    try:
-        sync = LastSync
-    except:
-        sync = "The service hasn't been requested after server reboot"
-    try:
-        mobileget = LastMobileGet
-    except:
-        mobileget = "The service hasn't been requested after server reboot"
-    try:
-        return make_response(jsonify({'launch':launch,'offer_accept':offer,'mobile_post':mobile,'sync_updt':sync,'mobile_get':mobileget}),200)
-    except Exception:
-        return make_response(jsonify({'Ratatoskr':'Some error occures'}),415)
+        return make_response(jsonify({'launch':json.loads(dur.get('LastLaunch')),'offer_accept':json.loads(dur.get('LastOffer')),'mobile_post':json.loads(dur.get('LastMobile')),'sync_updt':json.loads(dur.get('LastSync')),'mobile_get':json.loads(dur.get('LastMobileGet'))}),200)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':e}),415)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -1773,15 +1783,15 @@ def contactupd():
 #############################################################################################################################################################################################
 @app.route('/sync_updt', methods=['POST'])
 def sync_updt():
-    global LastSync
-    global app_server
-    global web_server
-    global soa_server
-    global sync
-    global freq_in
-    global freq_out
-    global freq_sync
-    global Settings
+    #global LastSync
+    #global app_server
+    #global web_server
+    #global soa_server
+    #global sync
+    #global freq_in
+    #global freq_out
+    #global freq_sync
+    #global Settings
     try:
         app_server = request.json['app_server']
         web_server = request.json['web_server']
@@ -1790,34 +1800,18 @@ def sync_updt():
         freq_in = request.json['freq_in']
         freq_out = request.json['freq_out']
         freq_sync = request.json['freq_sync']
-        LastSync = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"app_server":app_server,"web_server":web_server,"soa_server":soa_server,"sync":sync,"freq_in":freq_in,"freq_out":freq_out,"freq_sync":freq_sync}
-        Settings =     {
-    "app_server" : app_server,
-    "web_server" : web_server,
-    "soa_server" : soa_server,
-    "sync" : sync,
-    "freq_in" : freq_in,
-    "freq_out" : freq_out,
-    "freq_sync" : freq_sync}
-
+        #LastSync = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"app_server":app_server,"web_server":web_server,"soa_server":soa_server,"sync":sync,"freq_in":freq_in,"freq_out":freq_out,"freq_sync":freq_sync}
+        #Settings = {"app_server" : app_server,"web_server" : web_server,"soa_server" : soa_server,"sync" : sync,"freq_in" : freq_in,"freq_out" : freq_out,"freq_sync" : freq_sync}
+        bool_tmp = dur.set('Settings',json.dumps({"app_server" : app_server,"web_server" : web_server,"soa_server" : soa_server,"sync" : sync,"freq_in" : freq_in,"freq_out" : freq_out,"freq_sync" : freq_sync}))
+        bool_tmp = dur.set('LastSync',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"app_server":app_server,"web_server":web_server,"soa_server":soa_server,"sync":sync,"freq_in":freq_in,"freq_out":freq_out,"freq_sync":freq_sync}))
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
-
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 @app.route('/sync_updt', methods=['GET'])
 def sync_updt2():
-
-    Settings =     {
-    "app_server" : app_server,
-    "web_server" : web_server,
-    "soa_server" : soa_server,
-    "sync" : sync,
-    "freq_in" : freq_in,
-    "freq_out" : freq_out,
-    "freq_sync" : freq_sync}
-
-    return make_response(jsonify(Settings),200)
+    Settings =     {"app_server" : app_server,"web_server" : web_server,"soa_server" : soa_server,"sync" : sync,"freq_in" : freq_in,"freq_out" : freq_out,"freq_sync" : freq_sync}
+    return make_response(jsonify(json.loads(dur.get('Settings'))),200)
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -1837,7 +1831,7 @@ def send_options2():
 @app.route('/offer_accept', methods=['POST','GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_accept():
-    global LastOffer
+    #global LastOffer
     try: 
         visibility = request.json['visibility']
         option = 0
@@ -1853,7 +1847,8 @@ def offer_accept():
             cid = request.json['clientid']
             offerid = request.json['offerid']
             #LastOffer = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"type":context,"visibility":visibility,"priority":priority,"accepted_dttm":accepted_dttm,"cid":cid,"offerid":offerid}
-            LastOffer = request.data
+            #LastOffer = request.data
+            bool_tmp = dur.set('LastOffer',request.data)
             channel = 'mobile'
             resptype = 'direct'
             device = 'in future releases'
@@ -1923,14 +1918,17 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
-    global LastLaunch
+    #global LastLaunch
     try:
         clientid = request.json['clientid']
         login = request.json['login']
         password = request.json['password']
         scenario = request.json['scenario']
         Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
-        LastLaunch = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"clientid":clientid,"login":login,"password":password,"scenario":scenario}
+        #LastLaunch = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"clientid":clientid,"login":login,"password":password,"scenario":scenario}
+        bool_tmp = dur.set('LastLaunch',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"clientid":clientid,"login":login,"password":password,"scenario":scenario}))
+        print json.loads(dur.get('LastLaunch'))
+        print json.loads(dur.get('LastOffer')) 
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
     except Exception:
 
@@ -1978,19 +1976,29 @@ def transgenerate():
 #                         BLOCK OF /ACTIVE_QUEUE                                                                                                                                     #
 #                                                                                                                                                                                           #
 ########################################################################################################################################################
-Client_list = []
-Terminal =[]
-client_cnt=1
-updated = 0
+#Client_list = []
+#Terminal =[]
+#updated = 0
+#upd = 0
+#client_cnt=1
+
+#Redis variables initialization. Uncomment if Redis database being cleared
+#bool_tmp = dur.set('Client_list',json.dumps([]))
+#bool_tmp = dur.set('Terminal',json.dumps([]))
+fsbool_tmp = dur.set('client_cnt',json.dumps(1))
+bool_tmp = dur.set('updated',json.dumps(0))
+bool_tmp = dur.set('upd',json.dumps(0))
+
+
 
 @app.route('/active_queue', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def active_queue():
-    global client_cnt
-    global Client_list
-    global Terminal
-    global updated
-    global upd
+    #global client_cnt
+    #global Client_list
+    #global Terminal
+    #global updated
+    #global upd
    
     try:
         client_fname = request.json['name']
@@ -2004,52 +2012,78 @@ def active_queue():
         client_area = request.json['area']
     except:
         return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415) 
-    if Client_list == []:
-        Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
-        Client_list.append(Client_profile)
-        client_cnt+=1  
+    #if Client_list == []:
+    if json.loads(dur.get('Client_list')) == []:
+        Client_profile = {'client_num':str(json.loads(dur.get('client_cnt'))),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
+        #Client_list.append(Client_profile)
+        dur_tmp = json.loads(dur.get('Client_list'))
+        dur_tmp.append(Client_profile)
+        bool_tmp = dur.set('Client_list',json.dumps(dur_tmp))
+        #client_cnt+=1  
+        dur_tmp = json.loads(dur.get('client_cnt'))
+        dur_tmp +=1
+        bool_tmp = dur.set('client_cnt',json.dumps(dur_tmp))
+
     else:
-        updated = 0
-        for obj in Client_list:
+        #updated = 0
+        bool_tmp = dur.set('updated',json.dumps(0))
+        #for obj in Client_list:
+        dur_tmp = json.loads(dur.get('Client_list'))
+        for obj in dur_tmp:
             if obj['id'] == client_id:
+                #print dur_tmp
                 obj['location'] = client_location
                 obj['reason'] = client_reason
                 obj['area'] = client_area
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
-                updated = 1 
-        if updated == 0:
-            Client_profile = {'client_num':str(client_cnt),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
-            Client_list.append(Client_profile)
-            client_cnt+=1     
-    return make_response(jsonify({'Ratatoskr':'good','TEST': Client_list}),200)
+                dur.set('Client_list',json.dumps(dur_tmp))
+                #updated = 1
+                bool_tmp = dur.set('updated',json.dumps(1))
+        #if updated == 0:
+        if json.loads(dur.get('updated')) == 0:
+            Client_profile = {'client_num':str(json.loads(dur.get('client_cnt'))),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
+            #Client_list.append(Client_profile)
+            dur_tmp = json.loads(dur.get('Client_list'))
+            dur_tmp.append(Client_profile)
+            bool_tmp = dur.set('Client_list',json.dumps(dur_tmp))
+            #client_cnt+=1  
+            dur_tmp = json.loads(dur.get('client_cnt'))
+            dur_tmp +=1
+            bool_tmp = dur.set('client_cnt',json.dumps(dur_tmp))    
+    return make_response(jsonify({'Ratatoskr':'good','TEST': json.loads(dur.get('Client_list'))}),200)
 
 
 
 @app.route('/active_queue', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def CList():
-    global Client_list
+    #global Client_list
     currdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     Newcommers = []
     Full = []
     opt = request.args.get('option')
     if (opt is not None):
         if (opt == "new"):
-            for obj in Client_list:
+            #for obj in Client_list:
+            dur_tmp = json.loads(dur.get('Client_list'))
+            for obj in dur_tmp:
                 if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and (obj['location'] == 'terminal' or obj['location'] == 'camera' or obj['location'] == 'ATM' or obj['location'] == 'The Store' or obj['location'] == 'The Bank'):
                     Newcommer_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                     Newcommers.append(Newcommer_profile)
             return make_response(jsonify({'Ratatoskr':Newcommers}),200)
         if (opt == "full"):
-            for obj in Client_list:
+            #for obj in Client_list:
+            dur_tmp = json.loads(dur.get('Client_list'))
+            for obj in dur_tmp:
                 Full_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                 Full.append(Full_profile)
             return make_response(jsonify({'Ratatoskr':Full}),200)
         if (opt == "terminal"):
-            return make_response(jsonify({'Ratatoskr':Terminal}),200)
+            return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Terminal'))}),200)
     else:
-        if Client_list != []:
-            return make_response(jsonify({'Ratatoskr':Client_list}),200)
+        #if Client_list != []:
+        if json.loads(dur.get('Client_list')) != []:
+            return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Client_list'))}),200)
         else:
             return make_response(jsonify({'Ratatoskr':'There are no clients in queue'}),200)
 
@@ -2065,28 +2099,45 @@ def dltclt():
                 client_image = request.json['image']
             except:
                 return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415)
-            if Terminal == []:
+            #if Terminal == []:
+            if json.loads(dur.get('Terminal')) == []:
+                dur_tmp = json.loads(dur.get('Terminal'))
                 Terminal_profile = {'client_id':client_id,'client_image':client_image}
-                Terminal.append(Terminal_profile)
+                #Terminal.append(Terminal_profile)
+                dur_tmp.append(Terminal_profile)
+                bool_tmp = dur.set('Terminal',json.dumps(dur_tmp))
             else:
-                upd = 0
-                for obj in Terminal:
+                #upd = 0
+                bool_tmp = dur.set('upd',json.dumps(0))
+                #for obj in Terminal:
+                dur_tmp = json.loads(dur.get('Terminal'))
+                for obj in dur_tmp:
                     if obj['client_id'] == client_id:
                         obj['client_image'] = client_image
-                        upd = 1 
-                if upd == 0:
+                        dur.set('Terminal',json.dumps(dur_tmp))
+                        #upd = 1
+                        bool_tmp = dur.set('upd',json.dumps(1))
+                #if upd == 0:
+                if json.loads(dur.get('upd')) == 0:
                     Terminal_profile = {'client_id':client_id,'client_image':client_image}
-                    Terminal.append(Terminal_profile)
+                    #Terminal.append(Terminal_profile)
+                    dur_tmp.append(Terminal_profile)
+                    dur.set('Terminal',json.dumps(dur_tmp))
             return make_response(jsonify({'Ratatoskr':'Success'}),200)
     else:
         try:
             cid = request.json['id']
         except:
             return make_response(jsonify({'Ratatoskr':'No correct id'}),415)
-        for i in reversed(range(len(Client_list))):
-            if Client_list[i].get('id') == cid:
-                Client_list.pop(i)
-        return make_response(jsonify({'Ratatoskr':Client_list}),200)
+        #for i in reversed(range(len(Client_list))):
+        dur_tmp = json.loads(dur.get('Client_list'))
+        for i in reversed(range(len(dur_tmp))):
+            #if Client_list[i].get('id') == cid:
+            if dur_tmp[i].get('id') == cid:
+                #Client_list.pop(i)
+                dur_tmp.pop(i)
+        bool_tmp = dur.set('Client_list',json.dumps(dur_tmp))
+        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Client_list'))}),200)
             
             
 
@@ -2150,12 +2201,14 @@ def get_atm_status():
     
     if (change is not None):
         if (change == "true"):
-            atm_status = True
+            #atm_status = True
+            bool_tmp = dur.set('atm_status',json.dumps(True))
             ServicesStatusPost('atm',True)
         else:
-            atm_status = False
+            #atm_status = False
+            bool_tmp = dur.set('atm_status',json.dumps(False))
             ServicesStatusPost('atm',False)
-    return make_response(jsonify({'status':atm_status}),200)
+    return make_response(jsonify({'status':json.loads(dur.get('atm_status'))}),200)
 
 @app.route('/atm_status', methods=['POST'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -2413,7 +2466,7 @@ def getlimit():
 @app.route('/luna', methods=['GET'])
 @crossdomain(origin='*')
 def result_luna():
-    return make_response(jsonify({'Ratatoskr':lunaresp,'Luna':lunaans, 'image':req_image, 'rid':rid}))
+    return make_response(jsonify({'Ratatoskr':json.loads(dur.get('lunaresp')),'Luna':json.loads(dur.get('lunaans')), 'image':json.loads(dur.get('req_image')), 'rid':json.loads(dur.get('rid'))}))
     
 @app.route('/luna', methods=['OPTIONS'])
 @crossdomain(origin='*',headers = 'Content-Type')
@@ -2423,12 +2476,10 @@ def send_options():
 @app.route('/luna', methods=['PUT'])
 @crossdomain(origin='*',headers = 'Content-Type', content = 'application/json')
 def call_luna():
-    global lunaresp
-    global lunaans
-    global req_image
-    global lunaans
-    global list_of_images
-    global rid
+    #global lunaresp
+    #global lunaans
+    #global req_image
+    #global rid
     image = ''
     try:
         image = request.json["data"]
@@ -2436,14 +2487,21 @@ def call_luna():
         return make_response(jsonify({'Ratatoskr':'Missing attribute data (image)'}),422)
     if (image == ""):
         return make_response(jsonify({'Ratatoskr':'Empty attribute data (image)'}),422)
-    req_image = image
+    #req_image = image
+    bool_tmp = dur.set('req_image',json.dumps(image))
     #rid - applicant image , cid - client ID , bare - write to DB (True - no, False - yes)    
     try:
         rid = request.json["rid"]
+        bool_tmp = dur.set('rid',json.dumps(rid))
     except Exception:
-        rid = 500000
-    if rid < 500000:
-        rid = rid+500000
+        #rid = 500000
+        bool_tmp = dur.set('rid',json.dumps(500000))
+    #if rid < 500000:
+    if json.loads(dur.get('rid')) < 500000:
+        #rid = rid+500000
+        dur_tmp = json.loads(dur.get('rid'))
+        dur_tmp += 500000
+        bool_tmp = dur.set('rid',json.dumps(dur_tmp))
     try:
         cid = request.json["cid"]
     except Exception:
@@ -2466,36 +2524,44 @@ def call_luna():
     try:
         #r = requests.post(url,auth=(usr,psw),json = payload)
         r = requests.post(url,json = payload)
-        lunaans = r.json()
+        #lunaans = r.json()
+        bool_tmp = dur.set('lunaans',json.dumps(r.json()))
         status = str(r)
     except Exception:
-        lunaresp = 'Luna service is unreachable or unavailable'
-        lunaans = 'Luna service is unreachable or unavailable'
-        return make_response(jsonify({'Ratatoskr':lunaresp}),  415)  
+        #lunaresp = 'Luna service is unreachable or unavailable'
+        bool_tmp = dur.set('lunaresp','Luna service is unreachable or unavailable')
+        #lunaans = 'Luna service is unreachable or unavailable'
+        bool_tmp = dur.set('lunaans','Luna service is unreachable or unavailable')
+        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('lunaresp'))}),  415)  
 
      
     if ((("200") in status)  and (match_flg == False)):
-        lunaresp = 'Luna has processed the image'
-        return make_response(jsonify({'Ratatoskr': lunaresp,'Luna':str(r.json()),'score':r.json()["score"]}),  200)
+        #lunaresp = 'Luna has processed the image'
+        bool_tmp = dur.set('lunaresp','Luna has processed the image')
+        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp')),'Luna':str(r.json()),'score':r.json()["score"]}),  200)
 
     elif ((("201") in status)  and (match_flg == False)):  
-        lunaresp = 'Luna has processed and saved the image'
-        rid = r.json()["id"]
-        return make_response(jsonify({'Ratatoskr': lunaresp,'Luna':str(r.json()),'score':r.json()["score"],'rid':rid}),  201)
+        #lunaresp = 'Luna has processed and saved the image'
+        bool_tmp = dur.set('lunaresp','Luna has processed and saved the image')
+        #rid = r.json()["id"]
+        bool_tmp = dur.set('rid',json.dumps(r.json()["id"]))
+        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp')),'Luna':str(r.json()),'score':r.json()["score"],'rid':json.loads(dur.get('rid'))}),  201)
 
     elif ((("201") in status)  and (match_flg == True)): 
         if cid != '':
             try:
                 candidates = str(get_client(cid)[26])
             except Exception:
-               lunaresp = 'Client not found'
-               return make_response(jsonify({'Ratatoskr': lunaresp}), 500)
+               #lunaresp = 'Client not found'
+               bool_tmp = dur.set('lunaresp','Client not found')
+               return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))}), 500)
         else:
             candidates = str(get_all_clients())[1:-1]
          
 
-        rid = r.json()["id"]
-        url_get = "http://"+lunapath+":8083/5/similar_templates?id="+str(rid)+"&candidates="+candidates
+        #rid = r.json()["id"]
+        bool_tmp = dur.set('rid',json.dumps(r.json()["id"]))
+        url_get = "http://"+lunapath+":8083/5/similar_templates?id="+str(json.loads(dur.get('rid')))+"&candidates="+candidates
         #g = requests.get(url_get,auth=(usr,psw))
         g = requests.get(url_get)
         
@@ -2510,10 +2576,12 @@ def call_luna():
            #clientinfo = json.loads(get_client(clientid))
            #return make_response(jsonify({'Ratatoskr': clientid}), 200)
         except Exception:
-            lunaresp = 'Client photo not found in Luna. Check cid or photoid'
-            return make_response(jsonify({'Ratatoskr': lunaresp,'url':url_get,'rid':rid,'photoid':photoid}), 500) 
+            #lunaresp = 'Client photo not found in Luna. Check cid or photoid'
+            bool_tmp = dur.set('lunaresp','Client photo not found in Luna. Check cid or photoid')
+            return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp')),'url':url_get,'rid':json.loads(dur.get('rid')),'photoid':photoid}), 500) 
 
-        lunaresp = 'Luna has saved and matched the image'
+        #lunaresp = 'Luna has saved and matched the image'
+        bool_tmp = dur.set('lunaresp','Luna has saved and matched the image')
         name = clientinfo[1]
         surname = clientinfo[3]
         middlename = clientinfo[2]
@@ -2522,19 +2590,22 @@ def call_luna():
         dob = str(clientinfo[9])
         
 
-        return make_response(jsonify({'Ratatoskr':lunaresp,'score':score, 'client':clientid, 
-'name':name,'surname':surname, 'middlename':middlename, 'gender':gender, 'mobile':mobile, 'dob':dob,'Luna':g.text, 'url':url_get,'rid':rid}), 201) 
+        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('lunaresp')),'score':score, 'client':clientid, 
+'name':name,'surname':surname, 'middlename':middlename, 'gender':gender, 'mobile':mobile, 'dob':dob,'Luna':g.text, 'url':url_get,'rid':json.loads(dur.get('rid'))}), 201) 
 
     elif ((("200") in status)  and (match_flg == True)): 
-        lunaresp = 'That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?'
-        return make_response(jsonify({'Ratatoskr': lunaresp}), 422) 
+        #lunaresp = 'That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?'
+        bool_tmp = dur.set('lunaresp','That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?')
+        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))}), 422) 
 
     elif ("500" in status):
-        lunaresp = 'Luna failed on upload'
-        return make_response(jsonify({'Ratatoskr': lunaresp}), 451)       
+        #lunaresp = 'Luna failed on upload'
+        bool_tmp = dur.set('lunaresp','Luna failed on upload')
+        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))}), 451)       
     else:
-        lunaresp = 'Ooops... something unexpected happened'
-        return make_response(jsonify({'Ratatoskr': lunaresp+' Response code is '+status}), 418) 
+        #lunaresp = 'Ooops... something unexpected happened'
+        bool_tmp = dur.set('lunaresp','Ooops... something unexpected happened')
+        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))+' Response code is '+status}), 418) 
 
 
 #Error handler
@@ -2543,7 +2614,7 @@ def not_found(error):
     return make_response(jsonify({'Ratatoskr': 'Service not found'}), 404)
 
 if __name__ == '__main__':
-    app.run(host=server_ip,debug=True)
+    app.run(host=server_ip,debug=True,threaded = True )
 #threaded = True processes = 4
 
 
