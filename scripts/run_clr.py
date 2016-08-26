@@ -280,6 +280,8 @@ def checkpar():
         time.sleep(5)
         if dur.get('setparameter') == 'true':     
             print 'eto  true'
+        else:
+            print 'ne true'
     return make_response(jsonify({'checkpar':dur.get('setparameter')}))
 
 
