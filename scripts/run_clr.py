@@ -2616,7 +2616,7 @@ def not_found(error):
     return make_response(jsonify({'Ratatoskr': 'Service not found'}), 404)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug=True,threaded = True )
+    app.run(host=server_ip,debug=True,threaded = True )
 #threaded = True processes = 4
 
 
