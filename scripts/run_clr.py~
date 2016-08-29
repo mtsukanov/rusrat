@@ -280,8 +280,6 @@ def checkpar():
         time.sleep(5)
         if dur.get('setparameter') == 'true':     
             print 'eto  true'
-        else:
-            print 'ne true'
     return make_response(jsonify({'checkpar':dur.get('setparameter')}))
 
 
@@ -2468,7 +2466,7 @@ def getlimit():
 @app.route('/luna', methods=['GET'])
 @crossdomain(origin='*')
 def result_luna():
-    return make_response(jsonify({'Ratatoskr':json.loads(dur.get('lunaresp')),'Luna':json.loads(dur.get('lunaans')), 'image':json.loads(dur.get('req_image')), 'rid':json.loads(dur.get('rid'))}))
+    return make_response(jsonify({'Ratatoskr':dur.get('lunaresp'),'Luna':dur.get('lunaans'), 'image':dur.get('req_image'), 'rid':json.loads(dur.get('rid'))}))
     
 @app.route('/luna', methods=['OPTIONS'])
 @crossdomain(origin='*',headers = 'Content-Type')
@@ -2490,7 +2488,7 @@ def call_luna():
     if (image == ""):
         return make_response(jsonify({'Ratatoskr':'Empty attribute data (image)'}),422)
     #req_image = image
-    bool_tmp = dur.set('req_image',json.dumps(image))
+    bool_tmp = dur.set('req_image',image)
     #rid - applicant image , cid - client ID , bare - write to DB (True - no, False - yes)    
     try:
         rid = request.json["rid"]
@@ -2499,7 +2497,7 @@ def call_luna():
         #rid = 500000
         bool_tmp = dur.set('rid',json.dumps(500000))
     #if rid < 500000:
-    if json.loads(dur.get('rid')) < 500000:
+    if json.loads(dur.get('rid'))<500000:
         #rid = rid+500000
         dur_tmp = json.loads(dur.get('rid'))
         dur_tmp += 500000
@@ -2527,27 +2525,27 @@ def call_luna():
         #r = requests.post(url,auth=(usr,psw),json = payload)
         r = requests.post(url,json = payload)
         #lunaans = r.json()
-        bool_tmp = dur.set('lunaans',json.dumps(r.json()))
+        bool_tmp = dur.set('lunaans',r.json())
         status = str(r)
     except Exception:
         #lunaresp = 'Luna service is unreachable or unavailable'
         bool_tmp = dur.set('lunaresp','Luna service is unreachable or unavailable')
         #lunaans = 'Luna service is unreachable or unavailable'
         bool_tmp = dur.set('lunaans','Luna service is unreachable or unavailable')
-        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('lunaresp'))}),  415)  
+        return make_response(jsonify({'Ratatoskr':dur.get('lunaresp')}),  415)  
 
      
     if ((("200") in status)  and (match_flg == False)):
         #lunaresp = 'Luna has processed the image'
         bool_tmp = dur.set('lunaresp','Luna has processed the image')
-        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp')),'Luna':str(r.json()),'score':r.json()["score"]}),  200)
+        return make_response(jsonify({'Ratatoskr': dur.get('lunaresp'),'Luna':str(r.json()),'score':r.json()["score"]}),  200)
 
     elif ((("201") in status)  and (match_flg == False)):  
         #lunaresp = 'Luna has processed and saved the image'
         bool_tmp = dur.set('lunaresp','Luna has processed and saved the image')
         #rid = r.json()["id"]
-        bool_tmp = dur.set('rid',json.dumps(r.json()["id"]))
-        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp')),'Luna':str(r.json()),'score':r.json()["score"],'rid':json.loads(dur.get('rid'))}),  201)
+        bool_tmp = dur.set('rid',r.json()["id"])
+        return make_response(jsonify({'Ratatoskr': dur.get('lunaresp'),'Luna':str(r.json()),'score':r.json()["score"],'rid':json.loads(dur.get('rid'))}),  201)
 
     elif ((("201") in status)  and (match_flg == True)): 
         if cid != '':
@@ -2556,13 +2554,13 @@ def call_luna():
             except Exception:
                #lunaresp = 'Client not found'
                bool_tmp = dur.set('lunaresp','Client not found')
-               return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))}), 500)
+               return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')}), 500)
         else:
             candidates = str(get_all_clients())[1:-1]
          
 
         #rid = r.json()["id"]
-        bool_tmp = dur.set('rid',json.dumps(r.json()["id"]))
+        bool_tmp = dur.set('rid',r.json()["id"])
         url_get = "http://"+lunapath+":8083/5/similar_templates?id="+str(json.loads(dur.get('rid')))+"&candidates="+candidates
         #g = requests.get(url_get,auth=(usr,psw))
         g = requests.get(url_get)
@@ -2580,7 +2578,7 @@ def call_luna():
         except Exception:
             #lunaresp = 'Client photo not found in Luna. Check cid or photoid'
             bool_tmp = dur.set('lunaresp','Client photo not found in Luna. Check cid or photoid')
-            return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp')),'url':url_get,'rid':json.loads(dur.get('rid')),'photoid':photoid}), 500) 
+            return make_response(jsonify({'Ratatoskr': dur.get('lunaresp'),'url':url_get,'rid':json.loads(dur.get('rid')),'photoid':photoid}), 500) 
 
         #lunaresp = 'Luna has saved and matched the image'
         bool_tmp = dur.set('lunaresp','Luna has saved and matched the image')
@@ -2592,22 +2590,22 @@ def call_luna():
         dob = str(clientinfo[9])
         
 
-        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('lunaresp')),'score':score, 'client':clientid, 
+        return make_response(jsonify({'Ratatoskr':dur.get('lunaresp'),'score':score, 'client':clientid, 
 'name':name,'surname':surname, 'middlename':middlename, 'gender':gender, 'mobile':mobile, 'dob':dob,'Luna':g.text, 'url':url_get,'rid':json.loads(dur.get('rid'))}), 201) 
 
     elif ((("200") in status)  and (match_flg == True)): 
         #lunaresp = 'That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?'
         bool_tmp = dur.set('lunaresp','That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?')
-        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))}), 422) 
+        return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')}), 422) 
 
     elif ("500" in status):
         #lunaresp = 'Luna failed on upload'
         bool_tmp = dur.set('lunaresp','Luna failed on upload')
-        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))}), 451)       
+        return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')}), 451)       
     else:
         #lunaresp = 'Ooops... something unexpected happened'
         bool_tmp = dur.set('lunaresp','Ooops... something unexpected happened')
-        return make_response(jsonify({'Ratatoskr': json.loads(dur.get('lunaresp'))+' Response code is '+status}), 418) 
+        return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')+' Response code is '+status}), 418) 
 
 
 #Error handler
@@ -2616,7 +2614,7 @@ def not_found(error):
     return make_response(jsonify({'Ratatoskr': 'Service not found'}), 404)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug=True,threaded = True )
+    app.run(host=server_ip,debug=True,threaded = True )
 #threaded = True processes = 4
 
 
