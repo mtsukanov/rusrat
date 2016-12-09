@@ -2,7 +2,7 @@
 # coding: utf-8
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         RATATOSKR WEB SERVICES 0.01                                                                                                                                       #
+#                         RATATOSKR WEB SERVICES 1.01                                                                                                                                       #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 ###################################################################t##########################################################################################################################
@@ -11,20 +11,17 @@
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 
-from __future__ import absolute_import
 from flask import Flask, jsonify, abort,make_response,request,json 
 from celery import Celery
 from celery.result import ResultBase, AsyncResult
 from time import gmtime, strftime,strptime
-from ctasks import send_mq,add,rabbitmq_add,mysql_add,mysql_select,mysql_b_history_ins,call_rtdm,mssql_select,call_service
+from ctasks import rabbitmq_add,mysql_select,call_rtdm,mssql_select,call_service
 from datetime import timedelta,datetime
 from flask import make_response, request, current_app
 from functools import update_wrapper
 from random import randint,choice
-#from transgen import transgen
 from ctasks import call_rtdm,post,facetztask,transgen
-#import celeryconfig
-#import  ctasks
+from celery.task.control import revoke
 import copy
 import datetime
 import time
@@ -35,7 +32,9 @@ import pymssql
 import psycopg2
 import urllib
 import re
-from celery.task.control import revoke
+import base64
+import zmq
+
 ########################__CYRILLIC SYMBOLS SUPPORT__##########
 import sys
 reload(sys)
@@ -45,53 +44,28 @@ sys.setdefaultencoding('utf-8')
 import redis
 import pickle
 dur = redis.StrictRedis(host='localhost',port=6379,db=0)
+##############################################################
+
+
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF GLOBAL VARIABLES                                                                                                                                         #
 #                                                                                                                                                                                           #
-#############################################################################################################################################################################################
-
-
-atm_status = True
-
-tasks = [
-    {
-        'id': 1,
-        'title': u'Buy groceries',
-        'description': u'Milk, Cheese, Pizza, Fruit, Tylenol', 
-        'done': False
-    },
-    {
-        'id': 2,
-        'title': u'Learn Python',
-        'description': u'Need to find a good Python tutorial on the web', 
-        'done': False
-    }
-]
-
-
+############################################################################################################################################################################################
 server_ip = '10.20.1.21'
-rid = ''
-req_image = ''
-list_of_images = []
-lunaresp = 'never used'
-lunaans = 'never used'
-
 
 app_server = "10.20.1.190"
 web_server = "labinfo.sas-mic.local"
 soa_server = "10.20.1.21:5000"
+
 sync = 1
 freq_in = 15
 freq_out = 10
 freq_sync = 20
 
 rtdmpath = '10.20.1.190'
-
 mssqlpath = '10.20.1.192'
-
 mysqlpath = '10.20.1.20'
-
 lunapath= '10.20.1.22'
 
 #############################################################################################################################################################################################
@@ -100,12 +74,11 @@ lunapath= '10.20.1.22'
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 
-
+tvoffer = {'Title': 'ZoomZoom', 'Forename': 'ZoomZoom', 'Surname': 'ZoomZoom', 'OfferName': 'ZoomZoom', 'OfferDesc': 'ZoomZoom'}
+red_tvoffer_def = dur.set('tvoffer_tmp_def',json.dumps(tvoffer))
+red_tvflag = dur.set('tvflagpar',json.dumps(0))
 #Head decorator
-
-def crossdomain(origin=None, methods=None, headers=None,
-                max_age=21600, attach_to_all=True,
-                automatic_options=True, content=None):
+def crossdomain(origin=None, methods=None, headers=None,max_age=21600, attach_to_all=True,automatic_options=True, content=None):
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
     if headers is not None and not isinstance(headers, basestring):
@@ -147,6 +120,7 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
+
 #Celery initiator
 def make_celery(app):
     celery = Celery(app.import_name)
@@ -160,7 +134,7 @@ def make_celery(app):
     celery.Task = ContextTask
     return celery
 
-
+#Get client information
 def get_client(cid):
     db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
     cur = db.cursor()
@@ -171,6 +145,10 @@ def get_client(cid):
         output = row 
     return output
 
+
+
+
+#Get client info by photoID
 def get_cid_byphotoid(photoid):
     db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
     cur = db.cursor()
@@ -183,7 +161,7 @@ def get_cid_byphotoid(photoid):
     return cid
 
     
-
+#Get all clients info
 def get_all_clients():
     db = MySQLdb.connect(host=mysqlpath, port = 3306, user="rusrat",passwd="Orion123", db="thebankfront")
     cur = db.cursor()
@@ -194,6 +172,7 @@ def get_all_clients():
         list_of_images.append(int(row[26]))
     return list_of_images
 
+#Get latest event in PostreSQL
 def get_max_eventid_luna():
     db = psycopg2.connect(host=lunapath, port = 5432, user="testuser",password="password", dbname="FaceStreamRecognizer")
     cur = db.cursor()
@@ -203,24 +182,6 @@ def get_max_eventid_luna():
     max_eventid = data[0]
     return max_eventid
 
-Services = {"atm":True,"transgen":False,"facetz":False,"luna":False}
-def ServicesStatusPost(service,status):
-    global serviceupdt
-    global Services
-    serviceupdt = 0
-    servcopy = copy.deepcopy(Services)
-    if Services == {}:
-        servcopy.update({service:status})
-    else:
-        for k,v in Services.iteritems():
-            serviceupdt = 0
-            if k == service:
-                servcopy[k] = status
-                serviceupdt = 1     
-            if serviceupdt == 0:
-                servcopy.update({service:status})
-    Services = servcopy
-    return make_response(jsonify({'Ratatoskr':'Services have been updated'}),200) 
 
 
 
@@ -233,142 +194,38 @@ app.config['CELERY_TASK_SERIALIZER'] = 'pickle'
 app.config['CELERY_ACCEPT_CONTENT'] = 'pickle'
 
 app.config.update(
- 
     #BROKER_URL='amqp://guest:guest@localhost:5672//'
-    BROKER_URL='redis://localhost:6379/0',
-    CELERY_TASK_SERIALIZER = 'pickle',
-    CELERY_ACCEPT_CONTENT = 'pickle',
- 
-
-)
+    BROKER_URL='redis://localhost:6379/0'
+ )
 
 celery = make_celery(app)
 
 
+@app.route('/dbtest', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def get_clientu2():
+    a = get_client(150001)
+    return make_response(jsonify({a}),201)
 
 
-
-@app.route('/status', methods=['GET'])
-def get_tasks():
-    return jsonify({'Ratatoskr': 'Alive'})
-
-"""
-@app.route('/mclient_key=<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    task = filter(lambda t: t['id'] == task_id, tasks)
-    if len(task) == 0:
-        abort(404)
-    return jsonify({'task': task[0]})
-"""
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF JUNK SERVICES                                                                                                                                            #
+#                         BLOCK OF SERVICES                                                                                                                                            #
 #        
 #source /var/beacon/clr/bin/activate
 #cd /var/beacon/clr/scripts                                                                                                                                                                 #
 #############################################################################################################################################################################################
 
-@app.route('/setpar', methods=['GET'])
-def setpar():
-    par = request.args.get('par')
-    bool_tmp = dur.set('setparameter',par)
-    return make_response(jsonify({'setpar':dur.get('setparameter')}))
-
-@app.route('/checkpar', methods=['GET'])
-def checkpar():
-    while True:
-        time.sleep(5)
-        if dur.get('setparameter') == 'true':     
-            print 'true'
-        else:
-            print 'ne true'
-    return make_response(jsonify({'checkpar':dur.get('setparameter')}))
 
 
-@app.route('/params', methods=['GET'])
-def get_offer():
-    
-    cid_str = request.args.get('mclient_id')
-    rtdm_ip = request.args.get('rtdm_ip')
-    cid = int(cid_str)
-
-    rtdm_path = "/RTDM/rest/runtime/decisions/SAS_for_Retail_Best_Retail_Oriented_Product_Promotion"
-    rtdm_url="http://"+rtdm_ip+rtdm_path
-    payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"CustomerID":cid,"ProdCatCode":"Leggings"}}
-    r = requests.post(rtdm_url,json = payload)
-    resp = r.json()
-   
-    output = resp['outputs']
-    title = output['Offer2']
-    description = output['Offer2URL']
-    answer = [{'title':title,'description':description}]
-
-
-    return jsonify({'offer':answer})
-
-
-@app.route('/tst', methods=['GET'])
-def get_offer222():
-    conn = pymssql.connect(server = "10.20.1.192",user = 'rtdm',password = 'Orion123',database='CIDB')
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(IndivID) FROM [DataMart].[INDIVIDUAL] WHERE IndivID=150001")
-    data = cursor.fetchone() 
-    return jsonify({'offer':data[0]})
-
-
-
-@app.route('/task', methods=['POST'])
-def create_taskp():
-    if not request.json or not 'title' in request.json:
-        abort(400)
-    new_task = {
-        "opcode":"i",
-        "Test_ID": tasks[-1]["id"] + 1,
-        "Test_String": request.json["title"],
-        "description": request.json.get('description', ""),
-        "done": False
-
-    }
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
-    channel.queue_declare(queue='android_mq')
-    channel.basic_publish(exchange='',routing_key='android_mq',body=str(new_task))
-    tasks.append(new_task)
-    msg = jsonify({'task': new_task}), 201
-    #ctasks.publish(new_task)
-    connection.close()
-    return msg
-
-
-@app.route('/rus', methods=['GET'])
-def test2rus():
-    Str = request.args.get('p')
-    return jsonify({'Response':'Русские — Википедия','RUS':Str})
-
-
-
-
-@app.route('/send', methods=['POST'])
-def create_task2():
-    Str = request.json["client_key"]
-    status = 1
-    #msg = Str + 1
-    return jsonify({'Response':status})
-
-@app.route('/bulk', methods=['POST'])
-def create_load():
-    cid = request.json["mclient_id"]
-    rtdm_ip = request.json["rtdm_ip"]
-    rtdm_path = "/RTDM/rest/runtime/decisions/SAS_for_Retail_Best_Retail_Oriented_Product_Promotion"
-    rtdm_url="http://"+rtdm_ip+rtdm_path
-    payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"CustomerID":cid,"ProdCatCode":"Leggings"}}
-    r = requests.post(rtdm_url,json = payload)
-    resp = r.json()
-    o = r.content
-       
-    return o
-
-
+@app.route('/zmqs', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def zmqs():
+    context = zmq.Context() 
+    reciever = context.socket(zmq.PULL)
+    reciever.connect("tcp://10.20.1.24:80")
+    res = reciever.recv_json()
+    return make_response(jsonify({"Ratatoskr":'ok'}),201)
 
 
 @app.route('/nbo', methods=['POST','GET','OPTIONS'])
@@ -394,37 +251,16 @@ def get_nbo_req():
 "param2":param2,"param3":param3,"param4":param4,"param5":param5,"param6":param6,"param7":param7}
     
 
-    #dns = "172.28.106.245"
     event = "frontmainevent"
-    #event = "SAS_Activity_echo_string"
-    #inputs = {"in_string":"I rule"}
     rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
     r = requests.post(rtdm_addr,json = payload)
     resp = str(r)
     return make_response(jsonify({"Ratatoskr":r.json()}),201)
 
-"""
-def call_rtdm(dns,event,inputs):
-    rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
-    payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-    r = requests.post(rtdm_addr,data = payload)
-    #resp = r.json()
-    resp = str(rtdm_addr)+str(r.headers)+str(r.text)
-    return resp
-"""
 
-@app.route('/test_rtdm', methods=['POST'])
-def test_rtdm():
-    #rtdm_ip = "172.28.106.245"
-    rtdm_path = "/RTDM/rest/runtime/decisions/SAS_Activity_echo_string"
-    rtdm_url="http://"+rtdmpath+rtdm_path
-    payload = {"clientTimeZone":"Europe/London","version":1,"inputs":{"in_string":"I rule"}}
-    r = requests.post(rtdm_url,json = payload)
-    resp = r.json()
-    o = r.content
-       
-    return o
+
+
 
 @app.route('/geotrigger', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -468,7 +304,6 @@ def geotrigger():
         rtdm = call_rtdm.apply_async((rtdmpath,"geomainevent",Geo),retry=True)      
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'Some problems with RTDM request.Further details: '+str(e)}),418)    
-    #return make_response(jsonify({'Ratatoskr':'So far so good'}),200)
     return make_response(jsonify({'Ratatoskr':str(rtdm)}),200)
 
 
@@ -481,7 +316,6 @@ def geotrigger():
 @app.route('/email', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def email():
-    global req_path
     try:
         apikey =  request.args.get("apikey")
         subject = request.args.get("subject")
@@ -518,43 +352,37 @@ def email():
             url = "http://thebank.sas-mic.local/insurance.php%3Ftitle="+Title+"%26fname="+FName+"%26lname="+LName+"%26mname="+MName+"%26id="+ID+"%26lang="+LangCode+"%26offerid="+str(offerid)
         print url
     except Exception  as e:
-        #return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
         return make_response(jsonify({'Ratatoskr':e}),415)
-    req_path =   "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
-    #path = "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
-    #bool_tmp = dur.set('req_path',path)
+    path = "https://api.elasticemail.com/v2/email/send?apikey="+apikey+"&subject="+subject+"&from="+fromw+"&from_name="+from_name+"&to="+tow+"&charset="+charset+"&template="+template+"&merge_title="+merge_title+"&merge_firstname="+merge_firstname+"&merge_lastname="+merge_lastname+"&merge_websiteurl="+url
+    bool_tmp = dur.set('req_path',path)
     try:
-        r = requests.get(req_path) 
-        #r = requests.get(dur.get(req_path)) 
+        r = requests.get(dur.get('req_path')) 
         answer = r.content
     except:
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':answer}),200)
 
 
-#############################################################################################################################################################################################
-#                                                                                                                                                                                           #
-#                         BLOCK OF /PostgreSQL                                                                                                                                      #
-#                                                                                                                                                                                           #
-##################################################################################################################################################### 
-resultcam = 0 
+###########################################################################
+#                                                                         #
+#                         BLOCK OF /Cameracheck                           #
+#                                                                         #
+########################################################################### 
+
+bool_tmp = dur.set('lunapar',json.dumps(0))
+#Start LUNA with OFF status. It should be switched ON in front office services menu.
+
 @app.route('/cameracheck', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def deco():
-    global resultcam
-    param = request.args.get('param')
-    if param == 'True': 
-        #time.sleep(3)
-        maxid = get_max_eventid_luna()
-        #resultcam = post.apply_async([maxid])   
-        bool_tmp = dur.set('resultcam',pickle.dumps(post.apply_async([maxid]))) 
-        print type(pickle.loads(dur.get('resultcam')))
-        ServicesStatusPost('luna',True)
-        return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been added to Redis'}),200)
-    else:
-        suka = pickle.loads(dur.get('resultcam')).revoke(terminate=True) 
-        ServicesStatusPost('luna',False)
-        return make_response(jsonify({'Cameracheck':'Task '+str(pickle.loads(dur.get('resultcam')))+' has been terminated'}),200)
+def camparam():
+     param = request.args.get('param')
+     if param == 'True':
+         bool_tmp = dur.set('lunapar',json.dumps(1))
+         maxid = get_max_eventid_luna()
+         resultcam = post.apply_async([maxid])  
+     else:
+         bool_tmp = dur.set('lunapar',json.dumps(0))
+     return make_response(jsonify({'Cameracheck':json.loads(dur.get('lunapar'))}),200)
 
 
 #############################################################################################################################################################################################
@@ -562,11 +390,12 @@ def deco():
 #                         BLOCK OF /Color Scheme                                                                                                                                     #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
+
 bool_tmp = dur.set('SchemeColor',json.dumps({"Front":"rgb(91, 155, 213)","Retail":"rgb(251, 164, 78)"}))
+
 @app.route('/color', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def color():
-    #global SchmeColor
     if request.method == 'GET':
         return make_response(jsonify({'Color':json.loads(dur.get('SchemeColor'))}),200)
     if request.method == 'POST':
@@ -575,7 +404,6 @@ def color():
             color = request.json['color']
         except:
             return make_response(jsonify({'Color':'Invalid color input'}),400)
-        #SchmeColor[context] = color
         dur_tmp = json.loads(dur.get('SchemeColor'))
         dur_tmp[context] = color
         bool_tmp = dur.set('SchemeColor',json.dumps(dur_tmp))
@@ -584,7 +412,69 @@ def color():
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
-#                         BLOCK OF /ESP UPATE                                                                                                                                    #
+#                         BLOCK OF /CredCardApp                                                                                                                                  #
+#                                                                                                                                                                                           #
+#####################################################################################################################################################
+@app.route('/CredCardApp', methods=['POST','GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def CredCardApp():
+    try:
+        cost = request.json["cost"]
+        limitpoints = request.json["limitpoints"]
+        mycat = request.json["mycat"]
+        country = request.json["country"]
+        table = request.json["table"]
+    except:
+        return make_response(jsonify({'CredCardApp':'Incorrect input'}),400)
+    url = "http://10.20.1.190/SASBIWS/services/CreditCardApp_WebService"
+    headers = {'content-type':'text/xml'}
+    body = """
+           <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cred="http://tempuri.org/CreditCardApp_WebService">
+           <soapenv:Header/>
+           <soapenv:Body>
+           <cred:creditCardApp_StoredProcces>
+           <cred:parameters>
+               <!--Optional:-->
+               <cred:cost>"""+str(cost)+"""</cred:cost>
+               <!--Optional:-->
+               <cred:limitpoints>"""+str(limitpoints)+"""</cred:limitpoints>
+               <!--Optional:-->
+               <cred:mycat>"""+mycat+"""</cred:mycat>
+               <!--Optional:-->
+               <cred:country>"""+country+"""</cred:country>
+               <!--Optional:-->
+               <cred:table>"""+table+"""</cred:table>
+           </cred:parameters>
+           </cred:creditCardApp_StoredProcces>
+           </soapenv:Body>
+           </soapenv:Envelope>
+           """
+    try:
+        response = requests.post(url,data=body,headers=headers)
+    except Exception as e:
+        return make_response(jsonify({'CredCardApp':e}),400)
+    Miles = {}
+    Points = {}
+    Cashback = {}
+    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
+    cur = db.cursor()
+    cur.execute("SELECT Id,Maintenance,Miles,Cash,Cashback,Points from [RTData].[CardSetId] WHERE Type = 'M'")
+    data = cur.fetchone()
+    if data is not None:
+        Miles = {"Id":data[0],"Maintenance":data[1],"Miles":data[2],"Cash":data[3]}
+    cur.execute("SELECT Id,Maintenance,Miles,Cash,Cashback,Points from [RTData].[CardSetId] WHERE Type = 'P'")
+    data = cur.fetchone()
+    if data is not None:
+        Points = {"Id":data[0],"Maintenance":data[1],"Points":data[5]}
+    cur.execute("SELECT Id,Maintenance,Miles,Cash,Cashback,Points from [RTData].[CardSetId] WHERE Type = 'C'")
+    data = cur.fetchone()
+    if data is not None:
+        Cashback = {"Id":data[0],"Maintenance":data[1],"Cashback":data[4]}
+    Output = {"Miles":Miles,"Points":Points,"Cashback":Cashback}
+    return make_response(jsonify({'CredCardApp':Output}),200)
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /ESP UPDATE                                                                                                                                    #
 #                                                                                                                                                                                           #
 #####################################################################################################################################################
 @app.route('/updateesp', methods=['POST','GET','OPTIONS'])
@@ -731,13 +621,14 @@ def espupdt():
 @app.route('/ServicesStatus', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def ServicesStatusGET():
+     Services = {"atm":json.loads(dur.get('atm_status')),"transgen":json.loads(dur.get('transgenpar')),"facetz":json.loads(dur.get('facetzpar')),"luna":json.loads(dur.get('lunapar'))}
      return make_response(jsonify({'Ratatoskr':Services}),200)  
 
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /LoyaltyScore                                                                                                                               #
-#                                                                                                                                                                                           #
+#                                                                                                                                                                                           #c
 ####################################################################################################################################################
 
 @app.route('/loyalty', methods=['GET','POST','OPTIONS'])
@@ -760,12 +651,12 @@ def loyalty():
 #                         BLOCK OF /SERVICE LIST                                                                                                    #
 #                                                                                                                                                                                           #
 ##################################################################################################################################################
-#ServiceList = {"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}
-bool_tmp = dur.set('ServiceList',json.dumps({"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21',"Infurl":'labinfo.sas-mic.local'}))
+
+bool_tmp = dur.set('ServiceList',json.dumps({"Offurl":'ruscilab.sas-mic.local',"Mesurl":'10.20.1.21:5000',"Infurl":'labinfo.sas-mic.local'}))
+
 @app.route('/service_list',  methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def service_list_post():
-    #global ServiceList
     try:
         offurl = request.json['offurl']
         mesurl = request.json['mesurl']
@@ -774,13 +665,10 @@ def service_list_post():
         return make_response(jsonify({'Ratatoskr':'Input error'}),415)  
     dur_tmp = json.loads(dur.get('ServiceList'))
     if offurl != "":
-         #ServiceList['Offurl'] = offurl
          dur_tmp['Offurl'] = offurl
     if mesurl != "":
-         #ServiceList['Mesurl'] = mesurl
          dur_tmp['Mesurl'] = mesurl
     if infurl != "":
-         #ServiceList['Infurl'] = infurl
          dur_tmp['Infurl'] = infurl
     bool_tmp = dur.set('ServiceList',json.dumps(dur_tmp))
     return make_response(jsonify({'Ratatoskr':'Service list has been successfully updated'}),200)  
@@ -798,11 +686,13 @@ def service_list_get():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def contactpol():
     try:
-        link = request.json['link']
-        login = request.json['login']
-        psw = request.json['psw']
+        #link = request.json['link']
+        #login = request.json['login']
+        #psw = request.json['psw']
+        individ = request.json['IndivID']
         phones = request.json['phones']
         mes = request.json['mes']
+        channel = request.json['Channel']
         sender = request.json['sender']
         param1 = request.json['param1']
         param2 = request.json['param2']
@@ -810,16 +700,14 @@ def contactpol():
         param4 = request.json['param4']
     except:
         return make_response(jsonify({'ContactPolicy':'Incorrect input'}),418)
-    inputs={"link":link,"login":login,"psw":psw,"phones":phones,"mes":mes,"sender":sender,"param1":param1,"param2":param2,"param3":param3,"param4":param4}
+    inputs={"IndivID":individ,"Channel":channel,"phones":phones,"mes":mes,"sender":sender,"param1":param1,"param2":param2,"param3":param3,"param4":param4}
     dns = "10.20.1.190"
     event = "smsevent"
     rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
     payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}    
     try:
-        #r = requests.post(dns,json = payload)
         result = call_rtdm.apply_async((dns,"smsevent",inputs),retry=True)  
     except Exception as e:
-        #return make_response(jsonify({'ContactPolicy':'RTDM request failed'}),400)
         return make_response(jsonify({'ContactPolicy':e}),400)
     return make_response(jsonify({'ContactPolicy':'Success'}),200)  
 #############################################################################################################################################################################################
@@ -830,28 +718,69 @@ def contactpol():
 @app.route('/sms', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def sms():
-    #global req_path
     try:
         login =  request.args.get("login") 
         psw = request.args.get("psw")
         phones = request.args.get("phones")
         mes = request.args.get("mes")
         sender = request.args.get("sender")
-        #param1 = request.json["param1"]
-        #param2 = request.json["param2"]
-        #param3 = request.json["param3"]
-        #param4 = request.json["param4"] 
     except Exception:
-        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415) 
-    #req_path = "https://smsc.ru/sys/send.php?charset=utf-8&login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender    
+        return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)    
     bool_tmp = dur.set('req_path',"https://smsc.ru/sys/send.php?charset=utf-8&login="+login+"&psw="+psw+"&phones="+phones+"&mes="+mes+"&sender="+sender )
     try:
-        #r = requests.get(req_path) 
         r = requests.get(dur.get('req_path')) 
         answer = r.content
     except requests.exceptions.RequestException as e:
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':'Success!'}),200)
+
+
+### TVBESTOFFER ###
+#This function is waiting for incomming GET request from RTDM to parse it and store in REDIS (in JSON)
+@app.route('/tvbestoffer', methods=['GET', 'OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def tvbestoffer():
+    try:
+        title = request.args.get("Title")
+        forename = request.args.get("Forename")
+        surname = request.args.get("Surname")
+        offername = request.args.get("OfferName")
+        offerdesc = request.args.get("OfferDesc")
+    except Exception:
+        return make_response(jsonify({'Ratatoskr':'Input data is incorrect'},415))
+    tvoffer = {'Title': title, 'Forename': forename, 'Surname': surname, 'OfferName': offername, 'OfferDesc': offerdesc}
+    red_tvoffer = dur.set('tvoffer_tmp',json.dumps(tvoffer))#1st changed string
+    red_tvflag = dur.set('tvflagpar',json.dumps(1))
+    return make_response(jsonify({'Ratatoskr':str(tvoffer)}),200)
+
+##################
+
+### TVSTATUS ###
+
+@app.route('/tvstatus', methods=['GET', 'OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def tvstatus():
+    red_tvflag = dur.get('tvflagpar')
+    tvoffer = dur.get('tvoffer_tmp')
+    #print ("Current TVFLAG Value is: " + str(red_tvflag))
+    try:
+        reset = request.args.get("reset")
+        if reset is not None:
+            red_tvflag = dur.set('tvflagpar',json.dumps(0))
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':str(e)+str(reset)}),400)
+    try:
+        if int(red_tvflag) == 0:
+            #tvoffer_def = dur.get('tvoffer_tmp_def')
+            return make_response(jsonify({'Ratatoskr':json.loads(dur.get('tvoffer_tmp_def'))}),200)
+        else:
+            return make_response(jsonify({'Ratatoskr':json.loads(dur.get('tvoffer_tmp'))}),200)
+    except Exception:
+        return "Something Goes Wrong" #make_response(jsonify({'Ratatoskr': 'NoData'}),415)
+
+################
+
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -859,21 +788,10 @@ def sms():
 #FasetZ                                                                                                                     #
 #                                                                                                                                                                                           #
 ####################################################################################################################################################
-"""resultface = 0
-@app.route('/facetz', methods=['GET','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def facetz():
-    global resultface
-    cid =  request.args.get("cid") 
-    param = request.args.get("param")
-    if param == "True":
-        resultface = facetztask.apply_async([cid])   
-        ServicesStatusPost('facetz',True)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
-    else:
-        resultface.revoke(terminate=True)
-        ServicesStatusPost('facetz',False)
-        return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been terminated'}),200)"""
+#Initialization of active sessions list
+#bool_tmp = dur.set('Sesslist',json.dumps([]))
+if dur.get('Sesslist') == None:
+    bool_tmp = dur.set('Sesslist',json.dumps([]))
 
 @app.route('/facetz2', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -881,81 +799,125 @@ def facetz2():
     cid =  request.args.get("cid") 
     url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
     Formatted = []
-    r = requests.get(url)
-    Formatted.append({"id":r.json()['id']})
+    try:
+        r = requests.get(url)
+        Formatted.append({"id":r.json()['id']})
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Facetz is not responding'}),404)  
     i=1
-    for el in r.json()['visits']:
-        formatted_el = {}
-        formatted_el['number'] = i
-        formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
-        if 'www.' in urllib.unquote(el['url']):
-            editurl=urllib.unquote(el['url']).replace('www.','')
-        else:
-            editurl=urllib.unquote(el['url'])
-        if 'http' not in editurl:
-            editurl=''.join(('http://',editurl))
-        else:
-            editurl = editurl
-        if not editurl.endswith('/'):
-            editurl=''.join((editurl,'/'))
-        formatted_el['url'] = editurl
-        Formatted.append(formatted_el)
-        i+=1
-    return make_response(jsonify({'Ratatoskr':Formatted}),200)
-
-class FacetzTask(object):
-    def __init__(self,taskresult):
-        self.taskresult = taskresult
-    def StopTask(self):
-        self.taskresult.revoke(terminate=True)
+    try:
+        for el in r.json()['visits']:
+            formatted_el = {}
+            formatted_el['number'] = i
+            formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+            if 'www.' in urllib.unquote(el['url']):
+                editurl=urllib.unquote(el['url']).replace('www.','')
+            else:
+                editurl=urllib.unquote(el['url'])
+            if 'http' not in editurl:
+                editurl=''.join(('http://',editurl))
+            else:
+                editurl = editurl
+            if not editurl.endswith('/'):
+                editurl=''.join((editurl,'/'))
+            formatted_el['url'] = editurl
+            Formatted.append(formatted_el)
+            i+=1
+        return make_response(jsonify({'Ratatoskr':Formatted}),200)
+    except Exception as e:
+        return make_response(jsonify({'Ratatoskr':'Other error'}),404)  
 
 
 
 
-facetzstack = {}
-facetzstackstr = {}
-facetz_enable = False
+bool_tmp = dur.set('facetzpar',json.dumps(0))
+#Start Facetz service with OFF status. It should be switched ON in front services office menu.
+
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
-    global facetz_enable
-    global facetzstack
-    global facetzstackstr
     param = request.args.get("param")
-    if param == "True": 
-        facetz_enable = True
-        ServicesStatusPost('facetz',True)
-        return make_response(jsonify({'Ratatoskr':'FacetZ service has been enabled'}),200)
+    if param == "True":
+        try:
+            bool_tmp = dur.set('facetzpar',json.dumps(1))
+            resultface = facetztask.apply_async()  
+        except Exception as e:
+            return make_response(jsonify({'Ratatoskr':'facetztask is not invoking'}),404)  
     else:
-        for k,v in facetzstack.iteritems():
-            print str(facetzstack[k].taskresult)
-            facetzstack[k].StopTask()
-        facetz_enable = False
-        ServicesStatusPost('facetz',False)
-        facetzstack = {}
-        facetzstackstr = {}
-        return make_response(jsonify({'Ratatoskr':'FacetZ service has been disabled'}),201)
+        bool_tmp = dur.set('facetzpar',json.dumps(0))
+        dur_tmp = json.loads(dur.get('Sesslist'))
+        dur_tmp = []
+        bool_tmp = dur.set('Sesslist',json.dumps(dur_tmp))
+    return make_response(jsonify({'Facetzmanage':json.loads(dur.get('facetzpar'))}),200)
+    
+    
+@app.route('/facetzshit', methods=['GET','OPTIONS'])
+@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
+def facetzshit(): 
+    
+    while json.loads(dur.get('facetzpar')) == 1:
+        dur_tmp = json.loads(dur.get('Sesslist'))
+        for sessid in dur_tmp:
+            try:
+                url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+sessid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
+                print(url)
+                Formatted = []
+                r = requests.get(url)
+                print(r.status_code)
+                print(r.text)
+                return make_response(jsonify({'Facetzmanage':str(r)}),510)
+                i=1
+                print("current --> working with visits!!!")
+                for el in r.json()['visits']:
+                    print(el)
+                    formatted_el = {}
+                    formatted_el['number'] = i
+                    formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+                    if 'www.' in urllib.unquote(el['url']):
+                        editurl=urllib.unquote(el['url']).replace('www.','')
+                    else:
+                        editurl=urllib.unquote(el['url'])
+                    if 'http' not in editurl:
+                        editurl=''.join(('http://',editurl))
+                    else:
+                        editurl = editurl
+                    if not editurl.endswith('/'):
+                        editurl=''.join((editurl,'/'))
+                    formatted_el['url'] = editurl
+                    Formatted.append(formatted_el)
+                    i+=1
+            except Exception as e:
+                print(str(e))
+                return make_response(jsonify({'Facetzmanage':str(e)}),500)
+            try:
+                if dur_tmp != []:
+                    Result = {"sys":{"id":r.json()['id']},"site":Formatted}
+                    que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Result,ensure_ascii=False),'application/json','facetz_mq')
+                    return make_response(jsonify({'Facetzshit':'queue'}),418)
+            except Exception as e:
+                return make_response(jsonify({'Facetzmanage':'Error lev 2'}),500)
+    #print ("djiodqwlkjqwdlkjqwdlkj")
+    return make_response(jsonify({'Facetzshit':json.loads(dur.get('facetzpar'))}),200)
+    
+
 
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
-    global facetzstack
-    global facetzstackstr
-    visitid =  request.args.get("visitid") 
+    visitid = request.args.get("visitid") 
+    dur_tmp = json.loads(dur.get('Sesslist'))
     if visitid is None:
-        return make_response(jsonify({'Ratatoskr':facetzstackstr}),201)
-    if facetz_enable == True:
-        if visitid not in facetzstack:
-            resultface = facetztask.apply_async([visitid])  
-            ftask = FacetzTask(resultface)
-            facetzstack[visitid] = ftask
-            facetzstackstr[visitid] = str(resultface)
-        #ServicesStatusPost('facetz',True)
-            return make_response(jsonify({'Ratatoskr':'Task '+str(resultface)+' has been added to Redis'}),200)
-        else:
-            return make_response(jsonify({'Ratatoskr':'This visitid is already exists'}),200)
+        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Sesslist'))}),201)
+    if visitid not in dur_tmp and json.loads(dur.get('facetzpar')) == 1:
+        dur_tmp.append(visitid)
+        bool_tmp = dur.set('Sesslist',json.dumps(dur_tmp))
+        return make_response(jsonify({'Ratatoskr':'VisitID has been added to Lesslist'}),200)
     else:
-        return make_response(jsonify({'Ratatoskr':'Sorry, FacetZ service is disabled'}),201)
+        return make_response(jsonify({'Ratatoskr':'This visitid is already exists'}),200)
+
+     
+
+        
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
@@ -995,8 +957,6 @@ def obank():
         vals += "'"+email+"',"
     fields += "Timestamp)"
     vals += str(int(time.time()))+")"
-    #query = "INSERT INTO [DataMart].[FACETZ] "+fields+" VALUES "+vals
-    #print query
     conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     if phone != "" or email != "" or login != "":
@@ -1008,9 +968,9 @@ def obank():
     bin_esp_event = esp_event.encode()
     try:
         r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
-        #req = urllib.request.Request(url=esp_url,data=bin_esp_event,headers=esp_headers,method='PUT')
     except Exception as e:
-        return make_response(jsonify({'OnlineBank':e}),418)
+        return make_response(jsonify({'OnlineBank':str(e)}),418)
+        #return make_response(jsonify({'OnlineBank':e}),418)
     return make_response(jsonify({'OnlineBank':r.content}),200)
 
 #############################################################################################################################################################################################
@@ -1089,18 +1049,6 @@ def mssqlsave():
         "INSERT INTO [DataMart].[INDIVIDUAL_PASSPORT] (IndivID) VALUES ("+str(CID)+")"
         )
         cursor.execute(query1)
-    #sql1 = (
-    #"UPDATE [DataMart].[INDIVIDUAL] SET "
-    #"Forename = '"+str(FirstName)+"',"
-    #"Surname='"+str(LastName)+"',"
-    #"Middlename='"+str(MiddleName)+"',"
-    #"Mobile='"+str(MobileNumber)+"',"
-    #"Birthdate='"+str(DateOfBirth)+"',"
-    #"Email='"+str(Email)+"',"
-    #"Phone='"+str(PhoneNumber)+"',"
-    #"PhotoID='"+str(PhotoID)+"'"
-    #"WHERE IndivID="+str(CID)+"")
-
 
     sql1="UPDATE [DataMart].[INDIVIDUAL] SET Forename ='"+str(FirstName)+"',Surname='"+str(LastName)+"',Middlename='"+str(MiddleName)+"',Mobile='"+str(MobileNumber)+"',Birthdate='"+str(DateOfBirth)+"',Email='"+str(Email)+"',Phone='"+str(PhoneNumber)+"',"
     if Title != 'undefined':
@@ -1117,21 +1065,6 @@ def mssqlsave():
     print sql2
 
 
-
-    
-    #slq2 = (sql2txt)
-    """sql2 = (
-    "UPDATE [DataMart].[INDIVIDUAL_DEMOGRAPHIC] SET "
-    "Gender = '"+str(Gender)+"',"
-    "Age='"+str(Age)+"',"
-    "AgeGroupID='"+str(AgeGroup)+"',"
-    "MartialStatus='"+str(MaritalStatus)+"',"
-    "Children='"+str(Children)+"',"
-    "EducationID='"+str(Education)+"',"
-    "JobID='"+str(Occupation)+"',"
-    "Income='"+str(Income)+"',"
-    "LanguageID='"+str(LanguageID)+"'"
-    "WHERE IndivID="+str(CID)+"")"""
     sql3 = (
     "UPDATE [DataMart].[INDIVIDUAL_PASSPORT] SET "
     "PassportNumber = '"+str(Passport)+"',"
@@ -1172,7 +1105,6 @@ def mssqlsave():
 @app.route('/mobile_get', methods=['GET'])
 
 def mobile_get_all():
-    #global LastMobileGet
     cid = request.args.get('client_id')
     context = "sync"
     channel = "mobile"
@@ -1195,7 +1127,6 @@ def mobile_get_all():
     WIFI = []
     GPS = []
     Beacon = []
-    #LastMobileGet = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}
     bool_tmp = dur.set('LastMobileGet',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"cid":cid}))
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cur = db.cursor()
@@ -1219,6 +1150,7 @@ def mobile_get_all():
             cur.execute(query)
             loyalty = cur.fetchall()            
             #GET OFFERS
+            """
             i = 0
             for row in result_mssql_offers:
                 offer = {}
@@ -1226,7 +1158,7 @@ def mobile_get_all():
                 offer["offerid"] = row[20]
                 offer["name"] = row[0]
                 offer["duration"] = 12
-                #offer["type"] = prodtype[i][0]
+                offer["type"] = prodtype[i][0]
                 offer["description"] = row[19]
                 offer["sum"] = row[3]
                 #offer["image"] = prodtype[i][1]
@@ -1241,9 +1173,10 @@ def mobile_get_all():
                 offer["termination_dttm"] = int(round(time.time()*1))
                 offer["sent_dttm"] = int(round(time.time()*1))
                 Offers.append(offer)
-                i+=1
+                i+=1"""
         except Exception as e:
             response = {"Ratatoskr":e}
+            print str(response)
             return make_response(jsonify(response),500)
 
 #CID IS SPECIFIED
@@ -1276,14 +1209,12 @@ def mobile_get_all():
                 offer = {'clientid': str(int(resp["outputs"]["cid"])), 'description':resp["outputs"]["advdetails"][i], 'generated_dttm':int(round(time.time()*1)),'image':off_imgs[i][0],'name':resp["outputs"]["offername"][i],'offerid':int(resp["outputs"]["offercode"][i]),'payment':resp["outputs"]["payment"][i],'priorigty':int(resp["outputs"]["prio"][i]),'rate':resp["outputs"]["rate"][i],'duration':12,'recieved_dttm':int(round(time.time()*1)),'secret':'','sent_dttm':int(round(time.time()*1)),'sum':resp["outputs"]["amount"][i],'termination_dttm':int(round(time.time()*1)),'type':resp["outputs"]["offertype"][i],'visibility':1}
                 Offers.append(offer)
                 i += 1
-            #return make_response(jsonify({'Offers':Offers, 'OUTPUT':resp["outputs"]}),201)     
         except Exception as e:
             response = {"Ratatoskr":"R:"+str(e)}
             return make_response(jsonify(response),500)      
         try:
             resp = r.json()
             response = {"Ratatoskr":"Try was OK calling NBO:"+str(resp)+str(rtdmpath)}
-            #return make_response(jsonify(response),500)
         except Exception:
             response = {"Ratatoskr":"Error calling NBO:"+str(Exception)+str(rtdmpath)}
             return make_response(jsonify(response),500)
@@ -1333,8 +1264,8 @@ def mobile_get_all():
         client["phone"] = row[5]
         client["login"] = row[27]
         client["password"] = row[28]
-        #client["loyaltyscore"] = row[29]
-        client["loyaltyscore"] = (loyalty[lcnt][1],0)[loyalty[lcnt][1] == None]
+        #client["loyaltyscore"] = (loyalty[lcnt][1],0)[loyalty[lcnt][1] == None]
+        client["loyaltyscore"] = 0
         Clients.append(client)
         lcnt += 1
 #GET PRODUCTS
@@ -1343,7 +1274,6 @@ def mobile_get_all():
         product["clientid"] = int(row[10])
         product["sum"] = row[1]
         product["duration"] = row[3]
-        #product["image"] = row[14]
         product["image"] = (row[14],'')[cid == None]
         product["rate"] = row[0]
         product["payment"] = row[2]
@@ -1411,7 +1341,6 @@ def mobile_get_all():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def getresponsehistory():
     cid = request.args.get('cid')
-    #cid = 1
     conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM RTData.RESPONSE_HISTORY where CID='+str(cid))
@@ -1428,13 +1357,15 @@ def getresponsehistory():
 #                         BLOCK OF /mtsukanov                                                                                                                                             #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-#HistArr=[]
+
 #bool_tmp = dur.set('HistArr',json.dumps([]))
+
+if dur.get('HistArr') == None:
+    bool_tmp = dur.set('HistArr',json.dumps([]))
+
+
 @app.route('/mobile_post', methods=['POST','GET','OPTIONS'])
 def mobile_post_all():
-    #global LastMobile
-    #global HistArr
-    #HistArr.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):request.data})
     dur_tmp =json.loads(dur.get('HistArr'))
     dur_tmp.append({strftime("%d.%m.%Y %H:%M:%S",gmtime()):json.loads(request.data)})
     dur.set('HistArr',json.dumps(dur_tmp))
@@ -1444,7 +1375,6 @@ def mobile_post_all():
         beacon = request.json['beacon']
         gps = request.json['gps']
         trigger =  request.json['trigger']
-        #LastMobile = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}
         bool_tmp = dur.set('LastMobile',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"sys":sys,"wifi":wifi,"gps":gps,"beacon":beacon, "trigger": trigger,"opcode": "i"}))
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
@@ -1459,9 +1389,7 @@ def mobile_post_all():
 
 @app.route('/hist', methods=['GET'])
 def hist():
-    #var = HistArr
-    HistArr = json.loads(dur.get('HistArr'))
-    return make_response(jsonify({"Ratatoskr":HistArr}),200)
+    return make_response(jsonify({"Ratatoskr":json.loads(dur.get('HistArr'))}),200)
 
 
 
@@ -1474,26 +1402,16 @@ def hist():
 #############################################################################################################################################################################################
 @app.route('/getlast', methods=['GET'])
 def lastrequest():
-    #try:
-    #    launch = LastLaunch
-    #except:
-    #    launch = "The service hasn't been requested after server reboot"
-    #try:
-    #    offer = LastOffer
-    #except:
-    #    offer = "The service hasn't been requested after server reboot"
-    #try:
-    #    mobile = LastMobile
-    #except:
-    #    mobile = "The service hasn't been requested after server reboot"
-    #try:
-    #    sync = LastSync
-    #except:
-    #    sync = "The service hasn't been requested after server reboot"
-    #try:
-    #    mobileget = LastMobileGet
-    #except:
-    #    mobileget = "The service hasn't been requested after server reboot"
+    if dur.get('LastLaunch') == None:
+        bool_tmp = dur.set('LastLaunch',json.dumps([]))
+    if dur.get('LastOffer') == None:
+        bool_tmp = dur.set('LastOffer',json.dumps([]))
+    if dur.get('LastMobile') == None:
+        bool_tmp = dur.set('LastMobile',json.dumps([]))
+    if dur.get('LastSync') == None:
+        bool_tmp = dur.set('LastSync',json.dumps([]))
+    if dur.get('LastMobileGet') == None:
+        bool_tmp = dur.set('LastMobileGet',json.dumps([]))
     try:
         return make_response(jsonify({'launch':json.loads(dur.get('LastLaunch')),'offer_accept':json.loads(dur.get('LastOffer')),'mobile_post':json.loads(dur.get('LastMobile')),'sync_updt':json.loads(dur.get('LastSync')),'mobile_get':json.loads(dur.get('LastMobileGet'))}),200)
     except Exception as e:
@@ -1556,41 +1474,6 @@ def get_analytics():
     return make_response(jsonify({'Transaction_list':tr,'Aggregate':Result}),200)
 
 
-
-
-
-@app.route('/aggr', methods=['POST','OPTIONS','GET'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def aggr():
-    try:
-        cid = request.args.get('cid')
-    except:
-        return make_response(jsonify({'Aggr':'invalid input'}),400)
-    db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
-    query = ("SELECT DISTINCT CAST(t3.MCC AS int) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
-    cur = db.cursor()
-    cur.execute(query) 
-    mcc = cur.fetchall()
-    query3 = ("SELECT SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE TransStatus='ok' AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
-    cur.execute(query3) 
-    transsum = cur.fetchone()[0]
-    MCC = []
-    Result = []
-    for row in mcc:
-        MCC.append(row[0])
-    for row in MCC:
-        query2 = ("SELECT  SUM(TransSum) FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
-        query4 = ("SELECT  t3.MCCCategory FROM [TRANSData].[TRANSACTION] as t1 inner join [TRANSData].[TERMINAL] as t2 on t1.TermID = t2.TermID inner join [TRANSData].[MCC] as t3 on t2.MCC = t3.MCC WHERE t3.MCC = "+str(row)+" AND TransStatus='ok'AND TransSum>0 AND TransType = 1 AND AccountID IN (SELECT AccountID FROM [DataMart].[ACCOUNT] WHERE IndivID="+cid+")")
-        cur.execute(query2) 
-        mccsum = cur.fetchone()[0]
-        cur.execute(query4) 
-        mcccat = cur.fetchone()[0]
-        percent = (mccsum/transsum)*100
-        MCCSUM = {"Category":mcccat,"Sum":mccsum,"Percent":percent}
-        Result.append(MCCSUM)
-
-    return make_response(jsonify({'Aggr':Result}),200)
-
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /NEW PRODUCTS                                                                                                                                    #
@@ -1615,7 +1498,7 @@ def new_products():
         Products=[]         
         cur = db.cursor()
         query = (
-        " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t1.ProdDetValidFrom,t1.ProdDetValidTo"
+                " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t1.ProdDetDesc,t2.ProdName,t2.ProdType,t1.ProdDetValidFrom,t1.ProdDetValidTo"
         " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID"
         " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT] WHERE IndivID='"+cid+"')")
         cur.execute(query)
@@ -1652,8 +1535,6 @@ def buyprod():
         return make_response(jsonify({'BuyProdService':'incorrect input'}),400) 
     db = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB',charset='UTF8')
     cur = db.cursor()
-    #q = "INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+str(cid)+",'"+prodname+"',"+str(amount)+",'"+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"')"
-    #print q
     cur.execute("INSERT INTO [CIDB].[DataMart].[BUYPROD] VALUES ("+str(cid)+",'"+prodname+"',"+str(amount)+",'"+str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))+"')")
     db.commit()
     return make_response(jsonify({'BuyProdService':'ok'}),200)
@@ -1702,7 +1583,6 @@ def offer_img():
         cur.execute(query)
         tst = cur.fetchall()
         cur.execute("DROP TABLE #TEMP")       
-        #return make_response(jsonify({'OfferImages':cur.fetchall()}),200)
         return make_response(jsonify({'OfferImages':tst}),200)
     else:
         return make_response(jsonify({"OfferImages":"OfferID shouldn't be equal to 0"}),418)
@@ -1785,15 +1665,6 @@ def contactupd():
 #############################################################################################################################################################################################
 @app.route('/sync_updt', methods=['POST'])
 def sync_updt():
-    #global LastSync
-    #global app_server
-    #global web_server
-    #global soa_server
-    #global sync
-    #global freq_in
-    #global freq_out
-    #global freq_sync
-    #global Settings
     try:
         app_server = request.json['app_server']
         web_server = request.json['web_server']
@@ -1802,8 +1673,6 @@ def sync_updt():
         freq_in = request.json['freq_in']
         freq_out = request.json['freq_out']
         freq_sync = request.json['freq_sync']
-        #LastSync = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"app_server":app_server,"web_server":web_server,"soa_server":soa_server,"sync":sync,"freq_in":freq_in,"freq_out":freq_out,"freq_sync":freq_sync}
-        #Settings = {"app_server" : app_server,"web_server" : web_server,"soa_server" : soa_server,"sync" : sync,"freq_in" : freq_in,"freq_out" : freq_out,"freq_sync" : freq_sync}
         bool_tmp = dur.set('Settings',json.dumps({"app_server" : app_server,"web_server" : web_server,"soa_server" : soa_server,"sync" : sync,"freq_in" : freq_in,"freq_out" : freq_out,"freq_sync" : freq_sync}))
         bool_tmp = dur.set('LastSync',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"app_server":app_server,"web_server":web_server,"soa_server":soa_server,"sync":sync,"freq_in":freq_in,"freq_out":freq_out,"freq_sync":freq_sync}))
         return make_response(jsonify({'Ratatoskr':'request processed'}),201)
@@ -1812,7 +1681,6 @@ def sync_updt():
 
 @app.route('/sync_updt', methods=['GET'])
 def sync_updt2():
-    Settings =     {"app_server" : app_server,"web_server" : web_server,"soa_server" : soa_server,"sync" : sync,"freq_in" : freq_in,"freq_out" : freq_out,"freq_sync" : freq_sync}
     return make_response(jsonify(json.loads(dur.get('Settings'))),200)
 
 #############################################################################################################################################################################################
@@ -1820,26 +1688,18 @@ def sync_updt2():
 #                         BLOCK OF /OFFER_ACCEPT                                                                                                                                            #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-    
-@app.route('/offer_accept', methods=['OPTIONS'])
-@crossdomain(origin='*',content = 'application/json',headers = 'Content-Type')
-def send_options2():
-    return make_response(jsonify({'Ratatoskr':'POST, GET'}))
 
 
 
-
-
-@app.route('/offer_accept', methods=['POST','GET'])
+@app.route('/offer_accept', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def offer_accept():
-    #global LastOffer
+
     try: 
         visibility = request.json['visibility']
         option = 0
     except:
         option = 1
-        #return make_response(jsonify({'Ratatoskr':'response you are looking for'}),518) 
     if option == 0:    
         try:
             context = request.json['type']
@@ -1848,8 +1708,6 @@ def offer_accept():
             accepted_dttm = request.json['accepted_dttm']
             cid = request.json['clientid']
             offerid = request.json['offerid']
-            #LastOffer = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"type":context,"visibility":visibility,"priority":priority,"accepted_dttm":accepted_dttm,"cid":cid,"offerid":offerid}
-            #LastOffer = request.data
             bool_tmp = dur.set('LastOffer',request.data)
             channel = 'mobile'
             resptype = 'direct'
@@ -1866,9 +1724,8 @@ def offer_accept():
             else:
                 respname = "undefined"
                 respid = None
-    #.isoformat(sep='T')
+            #.isoformat(sep='T')
             inputs = {"cid":cid,"channel": channel,"context" : context,"device" : device,"offerid" : offerid,"resptype" : resptype,"respname" : respname,"respid" : respid,"resptime" : datetime.datetime.now().isoformat(sep='T'),"resptimestr" : str(accepted_dttm),"param1" : None,"param2" : None,"param3" : None,"param4" : None,"param5" : None,"param6" : None,"param7" : None}
-            #return make_response(jsonify({'Ratatoskr':'request processed'}),201)
         except Exception as e:
             return make_response(jsonify({'Ratatoskr':e}),415)       
     else:
@@ -1896,21 +1753,14 @@ def offer_accept():
             return make_response(jsonify({'Ratatoskr':'input data is corrupted','e':str(e)}),406) 
         try:
             inputs = {"cid":cid,"channel": channel,"context" : context,"device" : device,"offerid" : offerid,"resptype" : resptype,"respname" : respname,"respid" : respid,"resptime" : resptime,"resptimestr" : resptime,"param1" : param1,"param2" : param2,"param3" : param3,"param4" : param4,"param5" : param5,"param6" : param6,"param7" : param7}
-            #return make_response(jsonify({'Ratatoskr':inputs}),201)
             
         except Exception:
             return make_response(jsonify({'Ratatoskr':'error processing site'}),418)  
-    #result = call_rtdm("172.28.106.245","responsehistoryevent",inputs)
     try:
         result = call_rtdm.apply_async((rtdmpath,"responsehistoryevent",inputs),retry=True)    
         return make_response(jsonify({'Ratatoskr':str(result)}),201)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),418)  
-    #return make_response(jsonify(result),201)
-     
-        #[v for v in result.collect-()
-        #     if not isinstance(v, (ResultBase, tuple))]
-        #return make_response(str(v[1]),201)
 
 
 #############################################################################################################################################################################################
@@ -1920,14 +1770,13 @@ def offer_accept():
 #############################################################################################################################################################################################
 @app.route('/launch', methods=['POST'])
 def launch():
-    #global LastLaunch
+
     try:
         clientid = request.json['clientid']
         login = request.json['login']
         password = request.json['password']
         scenario = request.json['scenario']
         Status = {'clientid':clientid,'login':login,'password':password,'scenario':scenario}
-        #LastLaunch = {"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"clientid":clientid,"login":login,"password":password,"scenario":scenario}
         bool_tmp = dur.set('LastLaunch',json.dumps({"LastRequestTime":strftime("%d.%m.%Y %H:%M:%S",gmtime()),"clientid":clientid,"login":login,"password":password,"scenario":scenario}))
         print json.loads(dur.get('LastLaunch'))
         print json.loads(dur.get('LastOffer')) 
@@ -1937,57 +1786,48 @@ def launch():
         return make_response(jsonify({'Ratatoskr':'input data is corrupted'}),415)
 
 
-
-taskid = 0
-status = ''
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /TRANSACTION GENERATOR                                                                                                                                        #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
+
+bool_tmp = dur.set('transgenpar',json.dumps(0))
 @app.route('/transgenerate', methods=['GET','POST','OPTIONS'])
 @crossdomain(origin='*',content = 'application/json',headers = 'Content-Type')
 def transgenerate():
-    global taskid
-    global status 
     try:
         param = request.json['param']
-        if param == 'True':      
+        if param == 'True': 
+            dur.set('transgenpar',json.dumps(1))
             taskid=transgen.delay()
-            time.sleep(2)
-            status = taskid.status
-            while status == 'SUCCESS':
-                taskid=transgen.delay()
-                time.sleep(2)
-                status = taskid.status
-            ServicesStatusPost('transgen',True)
-            #taskid = transgen.delay().id
-            #print transgen.AsyncResult(transgen.request.id).state
-            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been added to Redis. Status: '+status}),200)
+            return make_response(jsonify({'Ratatoskr':'Transactions generator is actve'}),200)
         else:
-            taskid.revoke(terminate=True)
-            time.sleep(2)
-            status = taskid.status
-            ServicesStatusPost('transgen',False)
-            return make_response(jsonify({'Ratatoskr':'Task '+str(taskid)+' has been terminated. Status: '+status}),200)
+            dur.set('transgenpar',json.dumps(0))
+            return make_response(jsonify({'Ratatoskr':'Transactions generator is inactve'}),200)
     except Exception as e:
         return make_response(jsonify({'Ratatoskr':e}),415)
+
 
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ACTIVE_QUEUE                                                                                                                                     #
 #                                                                                                                                                                                           #
 ########################################################################################################################################################
-#Client_list = []
-#Terminal =[]
-#updated = 0
-#upd = 0
-#client_cnt=1
+
 
 #Redis variables initialization. Uncomment if Redis database being cleared
+
 #bool_tmp = dur.set('Client_list',json.dumps([]))
 #bool_tmp = dur.set('Terminal',json.dumps([]))
-fsbool_tmp = dur.set('client_cnt',json.dumps(1))
+
+if dur.get('Client_list') == None:
+    bool_tmp = dur.set('Client_list',json.dumps([]))
+
+if dur.get('Terminal') == None:
+    bool_tmp = dur.set('Terminal',json.dumps([]))
+
+bool_tmp = dur.set('client_cnt',json.dumps(1))
 bool_tmp = dur.set('updated',json.dumps(0))
 bool_tmp = dur.set('upd',json.dumps(0))
 
@@ -1995,13 +1835,7 @@ bool_tmp = dur.set('upd',json.dumps(0))
 
 @app.route('/active_queue', methods=['POST','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def active_queue():
-    #global client_cnt
-    #global Client_list
-    #global Terminal
-    #global updated
-    #global upd
-   
+def active_queue():  
     try:
         client_fname = request.json['name']
         client_lname = request.json['surname']
@@ -2014,41 +1848,31 @@ def active_queue():
         client_area = request.json['area']
     except:
         return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415) 
-    #if Client_list == []:
     if json.loads(dur.get('Client_list')) == []:
         Client_profile = {'client_num':str(json.loads(dur.get('client_cnt'))),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
-        #Client_list.append(Client_profile)
         dur_tmp = json.loads(dur.get('Client_list'))
         dur_tmp.append(Client_profile)
         bool_tmp = dur.set('Client_list',json.dumps(dur_tmp))
-        #client_cnt+=1  
         dur_tmp = json.loads(dur.get('client_cnt'))
         dur_tmp +=1
         bool_tmp = dur.set('client_cnt',json.dumps(dur_tmp))
 
     else:
-        #updated = 0
         bool_tmp = dur.set('updated',json.dumps(0))
-        #for obj in Client_list:
         dur_tmp = json.loads(dur.get('Client_list'))
         for obj in dur_tmp:
             if obj['id'] == client_id:
-                #print dur_tmp
                 obj['location'] = client_location
                 obj['reason'] = client_reason
                 obj['area'] = client_area
                 obj['time'] = strftime("%d.%m.%Y %H:%M:%S",gmtime())
                 dur.set('Client_list',json.dumps(dur_tmp))
-                #updated = 1
                 bool_tmp = dur.set('updated',json.dumps(1))
-        #if updated == 0:
         if json.loads(dur.get('updated')) == 0:
             Client_profile = {'client_num':str(json.loads(dur.get('client_cnt'))),'time':strftime("%d.%m.%Y %H:%M:%S",gmtime()),'id':client_id,'name':client_fname,'last_name':client_lname,'middle_name':client_mname,'dob':client_dob,'status':client_status,'reason':client_reason,'location':client_location,"area":client_area}
-            #Client_list.append(Client_profile)
             dur_tmp = json.loads(dur.get('Client_list'))
             dur_tmp.append(Client_profile)
             bool_tmp = dur.set('Client_list',json.dumps(dur_tmp))
-            #client_cnt+=1  
             dur_tmp = json.loads(dur.get('client_cnt'))
             dur_tmp +=1
             bool_tmp = dur.set('client_cnt',json.dumps(dur_tmp))    
@@ -2059,14 +1883,12 @@ def active_queue():
 @app.route('/active_queue', methods=['GET'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def CList():
-    #global Client_list
     currdate = strftime("%d.%m.%Y %H:%M:%S",gmtime())
     Newcommers = []
     Full = []
     opt = request.args.get('option')
     if (opt is not None):
         if (opt == "new"):
-            #for obj in Client_list:
             dur_tmp = json.loads(dur.get('Client_list'))
             for obj in dur_tmp:
                 if datetime.datetime.strptime(currdate,'%d.%m.%Y %H:%M:%S') - datetime.datetime.strptime(obj['time'],'%d.%m.%Y %H:%M:%S') < datetime.timedelta(0,10) and (obj['location'] == 'terminal' or obj['location'] == 'camera' or obj['location'] == 'ATM' or obj['location'] == 'The Store' or obj['location'] == 'The Bank'):
@@ -2074,16 +1896,15 @@ def CList():
                     Newcommers.append(Newcommer_profile)
             return make_response(jsonify({'Ratatoskr':Newcommers}),200)
         if (opt == "full"):
-            #for obj in Client_list:
             dur_tmp = json.loads(dur.get('Client_list'))
             for obj in dur_tmp:
                 Full_profile = {'client_num':obj['client_num'],'time':obj['time'],'id':obj['id'],'name':obj['name'],'last_name':obj['last_name'],'middle_name':obj['middle_name'],'dob':obj['dob'],'status':obj['status'],'reason':obj['reason'],'location':obj['location'],'area':obj['area'],'photo':get_client(obj['id'])[25].replace(" ","+")}
                 Full.append(Full_profile)
+                #Full.append(obj['id'])
             return make_response(jsonify({'Ratatoskr':Full}),200)
         if (opt == "terminal"):
             return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Terminal'))}),200)
     else:
-        #if Client_list != []:
         if json.loads(dur.get('Client_list')) != []:
             return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Client_list'))}),200)
         else:
@@ -2101,28 +1922,21 @@ def dltclt():
                 client_image = request.json['image']
             except:
                 return make_response(jsonify({'Ratatoskr':'Incorrect input'}),415)
-            #if Terminal == []:
             if json.loads(dur.get('Terminal')) == []:
                 dur_tmp = json.loads(dur.get('Terminal'))
                 Terminal_profile = {'client_id':client_id,'client_image':client_image}
-                #Terminal.append(Terminal_profile)
                 dur_tmp.append(Terminal_profile)
                 bool_tmp = dur.set('Terminal',json.dumps(dur_tmp))
             else:
-                #upd = 0
                 bool_tmp = dur.set('upd',json.dumps(0))
-                #for obj in Terminal:
                 dur_tmp = json.loads(dur.get('Terminal'))
                 for obj in dur_tmp:
                     if obj['client_id'] == client_id:
                         obj['client_image'] = client_image
                         dur.set('Terminal',json.dumps(dur_tmp))
-                        #upd = 1
                         bool_tmp = dur.set('upd',json.dumps(1))
-                #if upd == 0:
                 if json.loads(dur.get('upd')) == 0:
                     Terminal_profile = {'client_id':client_id,'client_image':client_image}
-                    #Terminal.append(Terminal_profile)
                     dur_tmp.append(Terminal_profile)
                     dur.set('Terminal',json.dumps(dur_tmp))
             return make_response(jsonify({'Ratatoskr':'Success'}),200)
@@ -2131,69 +1945,21 @@ def dltclt():
             cid = request.json['id']
         except:
             return make_response(jsonify({'Ratatoskr':'No correct id'}),415)
-        #for i in reversed(range(len(Client_list))):
         dur_tmp = json.loads(dur.get('Client_list'))
         for i in reversed(range(len(dur_tmp))):
-            #if Client_list[i].get('id') == cid:
             if dur_tmp[i].get('id') == cid:
-                #Client_list.pop(i)
                 dur_tmp.pop(i)
         bool_tmp = dur.set('Client_list',json.dumps(dur_tmp))
         return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Client_list'))}),200)
             
             
 
-
-
-
-
-
-
-#############################################################################################################################################################################################
-#                                                                                                                                                                                           #
-#                         BLOCK OF /BEACONS                                                                                                                                                 #
-#                                                                                                                                                                                           #
-#############################################################################################################################################################################################
-
-@app.route('/beacon_reg', methods=['POST'])
-def register_beacon():
-    r = request.json
-    ntime = int(round(time.time()*1))
-    beacon_uuid = str(request.json["beacon_uuid"])
-    result_mysql_sel = mysql_select('ratatoskr',None,'BEACONS',None)
-    #check if beacon is in DB
-    for row in result_mysql_sel:
-        if row[0] == beacon_uuid:
-            domestic_beacon = True
-            r['spot_id'] = int(row[3])
-            spot_id = int(row[3])
-            break 
-        else:
-            return make_response(jsonify({'Ratatoskr':'Beacon is not registered (wrong uuid)'}),200)
-    #if beacon is in DB, proceed
-    result_b_hist_ins=mysql_b_history_ins.delay('ratatoskr',r)
-    #create queue for ESP
-    major = request.json["major"]
-    minor = request.json["minor"]
-    detection_dttm = request.json["detection_dttm"]
-    detection_lvl = request.json["detection_lvl"]
-    message = {"opcode": "i","beacon_uuid":beacon_uuid,'spot_id':spot_id, 'major':major, 'minor':minor,'detection_dttm':detection_dttm,'detection_lvl':detection_lvl,'registration_dttm':ntime}
-    message = str(message)
-    message = message.replace("'",'"')
-    result_mq = rabbitmq_add.delay('beacons_mq','b_mq',message,'application/json','beacons_mq')
-  
-    return make_response(jsonify({'Ratatoskr':'Beacon registered'}),201)
-
-@app.route('/beacon_reg', methods=['GET'])
-def get_beacon_list():
-    result_mysql_sel = mysql_select('ratatoskr',None,'BEACONS',None)
-    return make_response(jsonify({'List of beacons':result_mysql_sel}),200)
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /ATM                                                                                                                                                     #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-
+bool_tmp = dur.set('atm_status',json.dumps(True))
 @app.route('/atm_status', methods=['GET'])
 @crossdomain(origin='*')
 def get_atm_status():
@@ -2203,14 +1969,11 @@ def get_atm_status():
     
     if (change is not None):
         if (change == "true"):
-            #atm_status = True
             bool_tmp = dur.set('atm_status',json.dumps(True))
-            ServicesStatusPost('atm',True)
         else:
-            #atm_status = False
             bool_tmp = dur.set('atm_status',json.dumps(False))
-            ServicesStatusPost('atm',False)
     return make_response(jsonify({'status':json.loads(dur.get('atm_status'))}),200)
+
 
 @app.route('/atm_status', methods=['POST'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
@@ -2228,50 +1991,6 @@ def set_atm_status():
         "COMMIT")
     cursor.execute(sql)     
     return make_response(jsonify({'Ratatoskr':'Terminal status has been updated'}),200)
-#############################################################################################################################################################################################
-#                                                                                                                                                                                           #
-#                         BLOCK OF /ESP                                                                                                                                                     #
-#                                                                                                                                                                                           #
-#############################################################################################################################################################################################
-@app.route('/geo', methods=['GET','POST'])
-@crossdomain(origin='*')
-def get_geo():
-
-    result_mysql_beacon = mysql_select('ratatoskr',None, 'BEACONS',None)
-    result_mysql_wifi = mysql_select('ratatoskr',None, 'WIFI',None)
-    result_mysql_gps = mysql_select('ratatoskr',None, 'GPS',None)
-
-    WIFI = []
-    GPS = []
-    Beacon = []
-
-#GET WIFI
-    for row in result_mysql_wifi:
-        wifi = {}
-        wifi["id"] = row[0]
-        wifi["ssid"] = row[1]
-        wifi["level"] = row[3]
-        WIFI.append(wifi)
-#GET BEACONS
-    for row in result_mysql_beacon:
-        beacon = {}
-        beacon["uuid"] = row[0]
-        beacon["major"] = row[1]
-        beacon["minor"] = row[3]
-        Beacon.append(beacon)
-#GET GPS
-    for row in result_mysql_gps:
-        gps = {}
-        gps["id"] = row[0]
-        gps["latitude"] = row[1]
-        gps["longitude"] = row[3]
-        GPS.append(gps)
-
-    response = {"GPS":GPS,"WIFI":WIFI,"BEACONS":Beacon}
-
-    return make_response(jsonify(response),201)
-
-
 
 
 #############################################################################################################################################################################################
@@ -2343,39 +2062,13 @@ def card():
         event = "scoringevent"
         rtdm_addr = "http://"+dns+"/RTDM/rest/runtime/decisions/"+event
         payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
-        #r = requests.post(rtdm_addr,json = payload)
         result = call_rtdm.apply_async((dns,"scoringevent",inputs),retry=True)  
         return make_response(jsonify({'Ratatoskr':'ok'}),201)
     except:
         return make_response(jsonify({'Ratatoskr':'error'}),418)
         
-    #resp = str(r)
-    
-
-    #try:
-    #    result = call_rtdm.apply_async((rtdmpath,"scoringevent",inputs),retry=True)    
-        #res = call_rtdm.AsyncResult(str(result))
-        #time.sleep(15)
-    #    return make_response(jsonify({'Ratatoskr':str(result)}),201)
-    #except Exception as e:
-    #    return make_response(jsonify({'Ratatoskr':e}),418) 
-
-    #return make_response(jsonify({"A":r.json()}),201)
 
 
-@app.route('/ccard', methods=['PUT'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def cardcheck():
-    try:
-        task = request.json["task_id"]
-    except:
-        return make_response(jsonify({'Ratatoskr':"Task ID is corrupt"}),418) 
-    res = call_rtdm.AsyncResult(task)
-    isready = res.ready()
-    while (isready == False):
-        isready = res.ready()
-    if isready == True:
-        return make_response(jsonify({'Ratatoskr':res.get()}),201)  
     
 
 #############################################################################################################################################################################################
@@ -2395,7 +2088,6 @@ def limit():
         return make_response(jsonify({"Ratatoskr":'input values are corrupt'}),400)
     conn = pymssql.connect(server = mssqlpath,user = 'rtdm',password = 'Orion123',database='CIDB')
     cursor = conn.cursor()
-#    cursor.execute('SELECT CardCashLImit FROM [DataMart].[Card] WHERE IndivID ='+str(CID))
     cursor.execute('SELECT AccountBalance FROM [DataMart].[ACCOUNT] WHERE IndivID ='+str(CID))
     data = cursor.fetchone()
     if data == None:
@@ -2464,10 +2156,17 @@ def getlimit():
 #                         BLOCK OF /LUNA                                                                                                                                                    #
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
-
 @app.route('/luna', methods=['GET'])
 @crossdomain(origin='*')
 def result_luna():
+    if dur.get('lunaresp') == None:
+        dur.set('lunaresp','never used')
+    if dur.get('lunaans') == None:
+        dur.set('lunaans','never used')
+    if dur.get('req_image') == None:
+        dur.set('req_image','')
+    if dur.get('rid') == None:
+        dur.set('rid',0)
     return make_response(jsonify({'Ratatoskr':dur.get('lunaresp'),'Luna':dur.get('lunaans'), 'image':dur.get('req_image'), 'rid':json.loads(dur.get('rid'))}))
     
 @app.route('/luna', methods=['OPTIONS'])
@@ -2478,10 +2177,6 @@ def send_options():
 @app.route('/luna', methods=['PUT'])
 @crossdomain(origin='*',headers = 'Content-Type', content = 'application/json')
 def call_luna():
-    #global lunaresp
-    #global lunaans
-    #global req_image
-    #global rid
     image = ''
     try:
         image = request.json["data"]
@@ -2489,18 +2184,14 @@ def call_luna():
         return make_response(jsonify({'Ratatoskr':'Missing attribute data (image)'}),422)
     if (image == ""):
         return make_response(jsonify({'Ratatoskr':'Empty attribute data (image)'}),422)
-    #req_image = image
     bool_tmp = dur.set('req_image',image)
     #rid - applicant image , cid - client ID , bare - write to DB (True - no, False - yes)    
     try:
         rid = request.json["rid"]
         bool_tmp = dur.set('rid',json.dumps(rid))
     except Exception:
-        #rid = 500000
         bool_tmp = dur.set('rid',json.dumps(500000))
-    #if rid < 500000:
     if json.loads(dur.get('rid'))<500000:
-        #rid = rid+500000
         dur_tmp = json.loads(dur.get('rid'))
         dur_tmp += 500000
         bool_tmp = dur.set('rid',json.dumps(dur_tmp))
@@ -2517,35 +2208,25 @@ def call_luna():
     except Exception:
         match_flg = False
 
-    #url = "http://172.28.104.180:8083/4/templates?id="+str(rid)
     url = "http://"+lunapath+":8083/5/templates"
-    #usr = "test"
-    #psw = "password"
     
     payload = {"image":image, "bare":bare}
     try:
-        #r = requests.post(url,auth=(usr,psw),json = payload)
         r = requests.post(url,json = payload)
-        #lunaans = r.json()
         bool_tmp = dur.set('lunaans',r.json())
         status = str(r)
     except Exception:
-        #lunaresp = 'Luna service is unreachable or unavailable'
         bool_tmp = dur.set('lunaresp','Luna service is unreachable or unavailable')
-        #lunaans = 'Luna service is unreachable or unavailable'
         bool_tmp = dur.set('lunaans','Luna service is unreachable or unavailable')
         return make_response(jsonify({'Ratatoskr':dur.get('lunaresp')}),  415)  
 
      
     if ((("200") in status)  and (match_flg == False)):
-        #lunaresp = 'Luna has processed the image'
         bool_tmp = dur.set('lunaresp','Luna has processed the image')
         return make_response(jsonify({'Ratatoskr': dur.get('lunaresp'),'Luna':str(r.json()),'score':r.json()["score"]}),  200)
 
     elif ((("201") in status)  and (match_flg == False)):  
-        #lunaresp = 'Luna has processed and saved the image'
         bool_tmp = dur.set('lunaresp','Luna has processed and saved the image')
-        #rid = r.json()["id"]
         bool_tmp = dur.set('rid',r.json()["id"])
         return make_response(jsonify({'Ratatoskr': dur.get('lunaresp'),'Luna':str(r.json()),'score':r.json()["score"],'rid':json.loads(dur.get('rid'))}),  201)
 
@@ -2554,17 +2235,14 @@ def call_luna():
             try:
                 candidates = str(get_client(cid)[26])
             except Exception:
-               #lunaresp = 'Client not found'
                bool_tmp = dur.set('lunaresp','Client not found')
                return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')}), 500)
         else:
             candidates = str(get_all_clients())[1:-1]
          
 
-        #rid = r.json()["id"]
         bool_tmp = dur.set('rid',r.json()["id"])
         url_get = "http://"+lunapath+":8083/5/similar_templates?id="+str(json.loads(dur.get('rid')))+"&candidates="+candidates
-        #g = requests.get(url_get,auth=(usr,psw))
         g = requests.get(url_get)
         
         try:
@@ -2575,14 +2253,10 @@ def call_luna():
            photoid = v[0][1][0]["id"]
            clientid = get_cid_byphotoid(photoid)
            clientinfo = get_client(clientid)
-           #clientinfo = json.loads(get_client(clientid))
-           #return make_response(jsonify({'Ratatoskr': clientid}), 200)
         except Exception:
-            #lunaresp = 'Client photo not found in Luna. Check cid or photoid'
             bool_tmp = dur.set('lunaresp','Client photo not found in Luna. Check cid or photoid')
             return make_response(jsonify({'Ratatoskr': dur.get('lunaresp'),'url':url_get,'rid':json.loads(dur.get('rid')),'photoid':photoid}), 500) 
 
-        #lunaresp = 'Luna has saved and matched the image'
         bool_tmp = dur.set('lunaresp','Luna has saved and matched the image')
         name = clientinfo[1]
         surname = clientinfo[3]
@@ -2596,16 +2270,13 @@ def call_luna():
 'name':name,'surname':surname, 'middlename':middlename, 'gender':gender, 'mobile':mobile, 'dob':dob,'Luna':g.text, 'url':url_get,'rid':json.loads(dur.get('rid'))}), 201) 
 
     elif ((("200") in status)  and (match_flg == True)): 
-        #lunaresp = 'That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?'
         bool_tmp = dur.set('lunaresp','That will not work. Maybe \'bare\' should be \'false\' or there is an ambiguous \'match\' option?')
         return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')}), 422) 
 
     elif ("500" in status):
-        #lunaresp = 'Luna failed on upload'
         bool_tmp = dur.set('lunaresp','Luna failed on upload')
         return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')}), 451)       
     else:
-        #lunaresp = 'Ooops... something unexpected happened'
         bool_tmp = dur.set('lunaresp','Ooops... something unexpected happened')
         return make_response(jsonify({'Ratatoskr': dur.get('lunaresp')+' Response code is '+status}), 418) 
 

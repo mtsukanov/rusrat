@@ -363,20 +363,19 @@ def email():
     return make_response(jsonify({'Ratatoskr':answer}),200)
 
 
-###########################################################################
-#                                                                         #
-#                         BLOCK OF /Cameracheck                           #
-#                                                                         #
-########################################################################### 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /Cameracheck                                                                                                                                      #
+#                                                                                                                                                                                           #
+##################################################################################################################################################### 
 
-bool_tmp = dur.set('lunapar',json.dumps(0))
-#Start LUNA with OFF status. It should be switched ON in front office services menu.
+bool_tmp = dur.set('lunapar',json.dumps(1))#start LUNA with ON status
 
 @app.route('/cameracheck', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def camparam():
      param = request.args.get('param')
-     if param == 'True':
+     if param == 'True': 
          bool_tmp = dur.set('lunapar',json.dumps(1))
          maxid = get_max_eventid_luna()
          resultcam = post.apply_async([maxid])  
@@ -736,7 +735,7 @@ def sms():
 
 
 ### TVBESTOFFER ###
-#This function is waiting for incomming GET request from RTDM to parse it and store in REDIS (in JSON)
+
 @app.route('/tvbestoffer', methods=['GET', 'OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def tvbestoffer():
@@ -830,9 +829,7 @@ def facetz2():
 
 
 
-bool_tmp = dur.set('facetzpar',json.dumps(0))
-#Start Facetz service with OFF status. It should be switched ON in front services office menu.
-
+bool_tmp = dur.set('facetzpar',json.dumps(1))#Set Facets service ON status
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
@@ -855,21 +852,16 @@ def facetzmanage():
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzshit(): 
     
-    while json.loads(dur.get('facetzpar')) == 1:
+    while json.loads(dur.get('facetzpar')) == 1: 
         dur_tmp = json.loads(dur.get('Sesslist'))
         for sessid in dur_tmp:
             try:
                 url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+sessid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
-                print(url)
                 Formatted = []
                 r = requests.get(url)
-                print(r.status_code)
-                print(r.text)
-                return make_response(jsonify({'Facetzmanage':str(r)}),510)
+                return make_response(jsonify({'Facetzmanage':str(r)}),500)
                 i=1
-                print("current --> working with visits!!!")
                 for el in r.json()['visits']:
-                    print(el)
                     formatted_el = {}
                     formatted_el['number'] = i
                     formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
@@ -887,7 +879,6 @@ def facetzshit():
                     Formatted.append(formatted_el)
                     i+=1
             except Exception as e:
-                print(str(e))
                 return make_response(jsonify({'Facetzmanage':str(e)}),500)
             try:
                 if dur_tmp != []:
@@ -896,7 +887,7 @@ def facetzshit():
                     return make_response(jsonify({'Facetzshit':'queue'}),418)
             except Exception as e:
                 return make_response(jsonify({'Facetzmanage':'Error lev 2'}),500)
-    #print ("djiodqwlkjqwdlkjqwdlkj")
+    print ("djiodqwlkjqwdlkjqwdlkj")
     return make_response(jsonify({'Facetzshit':json.loads(dur.get('facetzpar'))}),200)
     
 
@@ -904,10 +895,10 @@ def facetzshit():
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
-    visitid = request.args.get("visitid") 
+    visitid =  request.args.get("visitid") 
     dur_tmp = json.loads(dur.get('Sesslist'))
     if visitid is None:
-        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Sesslist'))}),2011)
+        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Sesslist'))}),201)
     if visitid not in dur_tmp and json.loads(dur.get('facetzpar')) == 1:
         dur_tmp.append(visitid)
         bool_tmp = dur.set('Sesslist',json.dumps(dur_tmp))

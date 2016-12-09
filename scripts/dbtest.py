@@ -1,0 +1,11 @@
+import MySQLdb
+db = MySQLdb.connect(host="10.20.1.20", port = 3306, user="rusrat",passwd="Orion123", db="thebankfront",use_unicode = True,charset='UTF8')
+cur = db.cursor()
+query = "SELECT * FROM customers where CID=150001"
+cur.execute(query)
+k=0
+for row in cur.fetchall():
+    output = row
+    k+=1
+    print output
+print k

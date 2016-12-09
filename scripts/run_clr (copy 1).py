@@ -74,9 +74,6 @@ lunapath= '10.20.1.22'
 #                                                                                                                                                                                           #
 #############################################################################################################################################################################################
 
-tvoffer = {'Title': 'ZoomZoom', 'Forename': 'ZoomZoom', 'Surname': 'ZoomZoom', 'OfferName': 'ZoomZoom', 'OfferDesc': 'ZoomZoom'}
-red_tvoffer_def = dur.set('tvoffer_tmp_def',json.dumps(tvoffer))
-red_tvflag = dur.set('tvflagpar',json.dumps(0))
 #Head decorator
 def crossdomain(origin=None, methods=None, headers=None,max_age=21600, attach_to_all=True,automatic_options=True, content=None):
     if methods is not None:
@@ -363,20 +360,19 @@ def email():
     return make_response(jsonify({'Ratatoskr':answer}),200)
 
 
-###########################################################################
-#                                                                         #
-#                         BLOCK OF /Cameracheck                           #
-#                                                                         #
-########################################################################### 
+#############################################################################################################################################################################################
+#                                                                                                                                                                                           #
+#                         BLOCK OF /Cameracheck                                                                                                                                      #
+#                                                                                                                                                                                           #
+##################################################################################################################################################### 
 
 bool_tmp = dur.set('lunapar',json.dumps(0))
-#Start LUNA with OFF status. It should be switched ON in front office services menu.
 
 @app.route('/cameracheck', methods=['POST','GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def camparam():
      param = request.args.get('param')
-     if param == 'True':
+     if param == 'True': 
          bool_tmp = dur.set('lunapar',json.dumps(1))
          maxid = get_max_eventid_luna()
          resultcam = post.apply_async([maxid])  
@@ -734,54 +730,6 @@ def sms():
         return make_response(jsonify({'Ratatoskr':'connection error'}),404)   
     return make_response(jsonify({'Ratatoskr':'Success!'}),200)
 
-
-### TVBESTOFFER ###
-#This function is waiting for incomming GET request from RTDM to parse it and store in REDIS (in JSON)
-@app.route('/tvbestoffer', methods=['GET', 'OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def tvbestoffer():
-    try:
-        title = request.args.get("Title")
-        forename = request.args.get("Forename")
-        surname = request.args.get("Surname")
-        offername = request.args.get("OfferName")
-        offerdesc = request.args.get("OfferDesc")
-    except Exception:
-        return make_response(jsonify({'Ratatoskr':'Input data is incorrect'},415))
-    tvoffer = {'Title': title, 'Forename': forename, 'Surname': surname, 'OfferName': offername, 'OfferDesc': offerdesc}
-    red_tvoffer = dur.set('tvoffer_tmp',json.dumps(tvoffer))#1st changed string
-    red_tvflag = dur.set('tvflagpar',json.dumps(1))
-    return make_response(jsonify({'Ratatoskr':str(tvoffer)}),200)
-
-##################
-
-### TVSTATUS ###
-
-@app.route('/tvstatus', methods=['GET', 'OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def tvstatus():
-    red_tvflag = dur.get('tvflagpar')
-    tvoffer = dur.get('tvoffer_tmp')
-    #print ("Current TVFLAG Value is: " + str(red_tvflag))
-    try:
-        reset = request.args.get("reset")
-        if reset is not None:
-            red_tvflag = dur.set('tvflagpar',json.dumps(0))
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':str(e)+str(reset)}),400)
-    try:
-        if int(red_tvflag) == 0:
-            #tvoffer_def = dur.get('tvoffer_tmp_def')
-            return make_response(jsonify({'Ratatoskr':json.loads(dur.get('tvoffer_tmp_def'))}),200)
-        else:
-            return make_response(jsonify({'Ratatoskr':json.loads(dur.get('tvoffer_tmp'))}),200)
-    except Exception:
-        return "Something Goes Wrong" #make_response(jsonify({'Ratatoskr': 'NoData'}),415)
-
-################
-
-
-
 #############################################################################################################################################################################################
 #                                                                                                                                                                                           #
 #                         BLOCK OF /
@@ -799,50 +747,39 @@ def facetz2():
     cid =  request.args.get("cid") 
     url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+cid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
     Formatted = []
-    try:
-        r = requests.get(url)
-        Formatted.append({"id":r.json()['id']})
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'Facetz is not responding'}),404)  
+    r = requests.get(url)
+    Formatted.append({"id":r.json()['id']})
     i=1
-    try:
-        for el in r.json()['visits']:
-            formatted_el = {}
-            formatted_el['number'] = i
-            formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
-            if 'www.' in urllib.unquote(el['url']):
-                editurl=urllib.unquote(el['url']).replace('www.','')
-            else:
-                editurl=urllib.unquote(el['url'])
-            if 'http' not in editurl:
-                editurl=''.join(('http://',editurl))
-            else:
-                editurl = editurl
-            if not editurl.endswith('/'):
-                editurl=''.join((editurl,'/'))
-            formatted_el['url'] = editurl
-            Formatted.append(formatted_el)
-            i+=1
-        return make_response(jsonify({'Ratatoskr':Formatted}),200)
-    except Exception as e:
-        return make_response(jsonify({'Ratatoskr':'Other error'}),404)  
+    for el in r.json()['visits']:
+        formatted_el = {}
+        formatted_el['number'] = i
+        formatted_el['ts'] = datetime.datetime.strftime(datetime.datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
+        if 'www.' in urllib.unquote(el['url']):
+            editurl=urllib.unquote(el['url']).replace('www.','')
+        else:
+            editurl=urllib.unquote(el['url'])
+        if 'http' not in editurl:
+            editurl=''.join(('http://',editurl))
+        else:
+            editurl = editurl
+        if not editurl.endswith('/'):
+            editurl=''.join((editurl,'/'))
+        formatted_el['url'] = editurl
+        Formatted.append(formatted_el)
+        i+=1
+    return make_response(jsonify({'Ratatoskr':Formatted}),200)
 
 
 
 
 bool_tmp = dur.set('facetzpar',json.dumps(0))
-#Start Facetz service with OFF status. It should be switched ON in front services office menu.
-
 @app.route('/facetzmanage', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetzmanage(): 
     param = request.args.get("param")
     if param == "True":
-        try:
-            bool_tmp = dur.set('facetzpar',json.dumps(1))
-            resultface = facetztask.apply_async()  
-        except Exception as e:
-            return make_response(jsonify({'Ratatoskr':'facetztask is not invoking'}),404)  
+        bool_tmp = dur.set('facetzpar',json.dumps(1))
+        resultface = facetztask.apply_async()  
     else:
         bool_tmp = dur.set('facetzpar',json.dumps(0))
         dur_tmp = json.loads(dur.get('Sesslist'))
@@ -850,64 +787,16 @@ def facetzmanage():
         bool_tmp = dur.set('Sesslist',json.dumps(dur_tmp))
     return make_response(jsonify({'Facetzmanage':json.loads(dur.get('facetzpar'))}),200)
     
-    
-@app.route('/facetzshit', methods=['GET','OPTIONS'])
-@crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
-def facetzshit(): 
-    
-    while json.loads(dur.get('facetzpar')) == 1:
-        dur_tmp = json.loads(dur.get('Sesslist'))
-        for sessid in dur_tmp:
-            try:
-                url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+sessid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
-                print(url)
-                Formatted = []
-                r = requests.get(url)
-                print(r.status_code)
-                print(r.text)
-                return make_response(jsonify({'Facetzmanage':str(r)}),510)
-                i=1
-                print("current --> working with visits!!!")
-                for el in r.json()['visits']:
-                    print(el)
-                    formatted_el = {}
-                    formatted_el['number'] = i
-                    formatted_el['ts'] = datetime.strftime(datetime.fromtimestamp(el['ts']/1000),"%Y-%m-%d %H:%M:%S")
-                    if 'www.' in urllib.unquote(el['url']):
-                        editurl=urllib.unquote(el['url']).replace('www.','')
-                    else:
-                        editurl=urllib.unquote(el['url'])
-                    if 'http' not in editurl:
-                        editurl=''.join(('http://',editurl))
-                    else:
-                        editurl = editurl
-                    if not editurl.endswith('/'):
-                        editurl=''.join((editurl,'/'))
-                    formatted_el['url'] = editurl
-                    Formatted.append(formatted_el)
-                    i+=1
-            except Exception as e:
-                print(str(e))
-                return make_response(jsonify({'Facetzmanage':str(e)}),500)
-            try:
-                if dur_tmp != []:
-                    Result = {"sys":{"id":r.json()['id']},"site":Formatted}
-                    que_result = rabbitmq_add('facetz_mq','f_mq',json.dumps(Result,ensure_ascii=False),'application/json','facetz_mq')
-                    return make_response(jsonify({'Facetzshit':'queue'}),418)
-            except Exception as e:
-                return make_response(jsonify({'Facetzmanage':'Error lev 2'}),500)
-    #print ("djiodqwlkjqwdlkjqwdlkj")
-    return make_response(jsonify({'Facetzshit':json.loads(dur.get('facetzpar'))}),200)
-    
+
 
 
 @app.route('/facetz', methods=['GET','OPTIONS'])
 @crossdomain(origin='*', content = 'application/json',headers = 'Content-Type')
 def facetz():
-    visitid = request.args.get("visitid") 
+    visitid =  request.args.get("visitid") 
     dur_tmp = json.loads(dur.get('Sesslist'))
     if visitid is None:
-        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Sesslist'))}),2011)
+        return make_response(jsonify({'Ratatoskr':json.loads(dur.get('Sesslist'))}),201)
     if visitid not in dur_tmp and json.loads(dur.get('facetzpar')) == 1:
         dur_tmp.append(visitid)
         bool_tmp = dur.set('Sesslist',json.dumps(dur_tmp))
@@ -969,8 +858,7 @@ def obank():
     try:
         r = requests.put(esp_url,data = bin_esp_event,headers=esp_headers)
     except Exception as e:
-        return make_response(jsonify({'OnlineBank':str(e)}),418)
-        #return make_response(jsonify({'OnlineBank':e}),418)
+        return make_response(jsonify({'OnlineBank':e}),418)
     return make_response(jsonify({'OnlineBank':r.content}),200)
 
 #############################################################################################################################################################################################
@@ -1150,7 +1038,6 @@ def mobile_get_all():
             cur.execute(query)
             loyalty = cur.fetchall()            
             #GET OFFERS
-            """
             i = 0
             for row in result_mssql_offers:
                 offer = {}
@@ -1173,10 +1060,9 @@ def mobile_get_all():
                 offer["termination_dttm"] = int(round(time.time()*1))
                 offer["sent_dttm"] = int(round(time.time()*1))
                 Offers.append(offer)
-                i+=1"""
+                i+=1
         except Exception as e:
             response = {"Ratatoskr":e}
-            print str(response)
             return make_response(jsonify(response),500)
 
 #CID IS SPECIFIED
@@ -1498,7 +1384,7 @@ def new_products():
         Products=[]         
         cur = db.cursor()
         query = (
-                " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t1.ProdDetDesc,t2.ProdName,t2.ProdType,t1.ProdDetValidFrom,t1.ProdDetValidTo"
+        " SELECT ProdDetRate,ProdDetAmount,ProdDetPayment,ProdDetPeriod,ProdDetName,t1.ProdDetID,t1.ProdID,t2.ProdDesc,t2.ProdName,t2.ProdType,t1.ProdDetValidFrom,t1.ProdDetValidTo"
         " FROM [CIDB].[DataMart].[PRODUCTDETAILS] as t1 inner join [CIDB].[DataMart].[PRODUCT] as t2 on t1.ProdID = t2.ProdID inner join [CIDB].[DataMart].[ACCOUNT] as t3 on t3.ProdDetID = t1.ProdDetID"
         " WHERE t1.ProdDetID IN (SELECT ProdDetID FROM [CIDB].[DataMart].[ACCOUNT] WHERE IndivID='"+cid+"')")
         cur.execute(query)

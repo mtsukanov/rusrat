@@ -1,0 +1,70 @@
+#!/var/beacon/clr/bin/python 
+# coding: utf-8
+import config
+import telebot
+import random
+import re
+import requests
+
+from ctasks import rabbitmq_add,mysql_select,call_rtdm,mssql_select,call_service
+from celery import Celery
+from flask import Flask, jsonify, abort,make_response,request,json 
+
+global blacklist 
+blacklist =  {'durak','urod','skotina','suka','gad','urod','chmo','petux','gandon','gnida','pidar','pizduk','svoloch'}
+
+
+bot = telebot.TeleBot(config.token)
+
+
+
+
+
+
+code = 0000
+rtdmpath = '10.20.1.190'
+
+@bot.message_handler(content_types=["text"])
+def send_messages(message):
+    global code
+    global tel
+    reply_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True,one_time_keyboard = True)
+    reply_markup.row('English')
+    reply_markup.row('Русский')
+ if message.text == '/start':
+        bot.send_message(message.chat.id,'Hello! Please, enter mobile phone number. ChatID:'+str(message.chat.id),reply_markup = reply_markup)
+        code = random.randint(1000,10000)
+        bot.send_message(message.chat.id,'Hello! Please, enter mobile phone number. ChatID:'+str(message.chat.id))
+        #bot.send_message(message.chat.id,code)
+    elif message.text.isdigit():
+        if re.match('7\d{10}$',message.text):
+            global tel
+            tel = message.text
+            inputs = {"IndivID":0,"Channel":"","phones":tel,"mes":"Telegram secure code:"+str(code)+". Don't tell this code anyone","sender":"SAS Russia","param1":"",
+"param2":"","param3":0,"param4":0} 
+            event = "smsevent"
+            rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
+            payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+            r = requests.post(rtdm_addr,json = payload)
+            bot.send_message(message.chat.id,'Thank you. Enter a code you\'ll receive in SMS soon')
+        elif re.match('\d{4}$',message.text):
+            if str(message.text) == str(code):
+                inputs = {"Mobile":tel,"Chat_id":int(message.chat.id),"Sender":"SAS Russia"}
+                event = "telegram"
+                rtdm_addr = "http://"+rtdmpath+"/RTDM/rest/runtime/decisions/"+event
+                payload = {"clientTimeZone":"Europe/Moscow","version":1,"inputs":inputs}
+                r = requests.post(rtdm_addr,json = payload)
+                bot.send_message(message.chat.id,'Correct!')
+            else:
+                bot.send_message(message.chat.id,'Incorrect')
+                bot.send_message(message.chat.id,code)
+        else:
+            bot.send_message(message.chat.id,'What does number you enter mean?')
+    elif any(word in message.text.lower() for word in blacklist):
+        bot.send_message(message.chat.id,'Easy,dude. You should be more polite' )
+    else:
+        bot.send_message(message.chat.id,'Sorry,I don\'t understand you')
+    
+
+if __name__ == '__main__':
+    bot.polling(none_stop = True)

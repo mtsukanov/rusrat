@@ -169,11 +169,8 @@ def facetztask():
         dur_tmp = json.loads(dur.get('Sesslist'))
         for sessid in dur_tmp:
             url = "https://api.facetz.net/v2/facts/user.json?key=51af6192-c812-423d-ae25-43a036804632&query={%22user%22:{%22id%22:%22"+sessid+"%22},%22ext%22:{%22exchangename%22:%22sas_demo%22}}"
-            print ("Print result for URL post: " + str(url))
             Formatted = []
             r = requests.get(url)
-            #print ("Print decoded request result: " + str(r.text))
-            print ("Print result of a request: " + str(r))
             i=1
             for el in r.json()['visits']:
                 formatted_el = {}
